@@ -123,7 +123,7 @@
     function loadBuffer(filename,buffer){
       if(!view.active)return;
       generation++;set('decoding','Checking project / 正在校验工程',{progress:0});
-      if(!/\.(wav|json)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a WAV or JSON project under 128 MB'));return;}
+      if(!/\.(wav|json|po33frame)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a WAV or JSON project under 128 MB'));return;}
       run('decode',{wav:buffer,filename});
     }
     hubButton.onclick=()=>{set('hub','LAN HUB (:33033)',{progress:0,level:0});hub.open();};
@@ -162,8 +162,8 @@
       finally{clearTimeout(timeout);if(downloadAbort===controller)downloadAbort=null;}
     }
     scanButton.onclick=async()=>{
-      const token=++generation;set('scanning','Scanning download QR / 扫描下载二维码',{progress:0,level:0});
-      try{const text=await scanner.open();if(token!==generation)return;if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
+      const token=++generation;set('scanning','Scanning project QR / 扫描工程二维码',{progress:0,level:0});
+      try{const text=await scanner.open();if(token!==generation)return;if(text?.buffer)loadBuffer(text.filename,text.buffer);else if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
       catch(error){if(token===generation)await fail(error);}
     };
     async function makeAudio(rate,token){

@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>PO33 camera transfer</title>
+<style>body{background:#151515;color:white;font:17px Arial;max-width:640px;margin:auto;padding:20px}button,input{font:inherit;margin:8px;padding:10px}#qr{background:white;padding:24px;width:420px;max-width:calc(100vw - 100px)}#qr img,#qr canvas{width:100%;height:auto}a{color:#ff752c}</style>
+<h1>Camera project transfer / 摄像头传工程</h1>
+<p>On R1: Receive → Scan QR. Keep the whole code in view. Frames repeat until received. Import replaces the current project; Undo restore is available.</p>
+<p>R1：接收 → 扫码。保持完整二维码入镜，漏帧会在下一轮补齐。收齐后导入工程，可用 Undo restore 撤销。</p>
+<button id="sample">Small test / 小工程测试</button><input id="file" type="file" accept=".json,.wav">
+<label>Frame duration <select id="speed"><option value="700">700 ms</option><option value="1200">1200 ms</option><option value="2000">2000 ms</option></select></label><button id="pause">Pause / 暂停</button>
+<p id="status" role="status">Select a project. No file is uploaded.</p><div id="qr"></div>
+<p>Start with the small test: 108 BPM, slot 1, four notes. Large sampled projects can take many minutes. The sender cannot see receiver progress.</p>
+<script src="../../vendor/qrcodejs/qrcode.min.js"></script><script src="../../qr-transfer.js"></script>
+<script type="module">
+import {decodePO33Backup} from '../../decoder/browser/src/codec/po33Codec.js';
+import {projectFromJSON} from '../../decoder/browser/src/codec/po33JSON.js';
+let frames=[],index=0,timer=null,paused=false;
+const status=document.querySelector('#status'),qr=document.querySelector('#qr'),speed=document.querySelector('#speed');
+function show(){clearTimeout(timer);if(!frames.length)return;qr.replaceChildren();new QRCode(qr,{text:frames[index],width:420,height:420,correctLevel:QRCode.CorrectLevel.L});status.textContent=`Frame ${index+1}/${frames.length} · loop ${(frames.length*Number(speed.value)/1000).toFixed(1)} s · ${paused?'paused':'repeating'}`;if(!paused)timer=setTimeout(()=>{index=(index+1)%frames.length;show();},Number(speed.value));}
+async function prepare(buffer,json=false){clearTimeout(timer);frames=[];qr.replaceChildren();status.textContent='Decoding and checking project…';await new Promise(r=>setTimeout(r,50));try{const project=json?projectFromJSON(new TextDecoder().decode(buffer)):decodePO33Backup(buffer);frames=await PO33QRTransfer.encode(new Uint8Array(project.raw.frameBytes));index=0;paused=false;show();}catch(e){status.textContent=e.message;}}
+document.querySelector('#sample').onclick=async()=>{try{await prepare(await(await fetch('../qr-test/po33-backup.wav')).arrayBuffer());}catch(e){status.textContent=e.message;}};
+document.querySelector('#file').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>128*1024*1024){status.textContent='File exceeds 128 MB';return;}await prepare(await f.arrayBuffer(),f.name.toLowerCase().endsWith('.json'));};
+document.querySelector('#pause').onclick=()=>{paused=!paused;show();};speed.onchange=show;
+</script>

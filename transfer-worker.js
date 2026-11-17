@@ -5,7 +5,7 @@ import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.j
 self.onmessage=({data:m})=>{
   try{
     if(m.command==='decode'){
-      const project=m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
+      const project=m.filename?.endsWith('.po33frame')?decodePO33Frame(new Uint8Array(m.wav)):m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
       self.postMessage({type:'decoded',project});
     }else if(m.command==='export-json'){
       const built=buildHardwareProject(m.snapshot,m.native,m.baseline);

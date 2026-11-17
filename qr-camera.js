@@ -2,10 +2,10 @@
 (function(root){'use strict';
   function create(parent){
     const dialog=document.createElement('dialog');dialog.id='transferQR';
-    dialog.innerHTML='<p>Scan WAV download QR / 扫描工程音频下载码</p><video id="transferQRVideo" autoplay muted playsinline></video><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p><form id="transferQRForm"><label>WAV URL / 下载网址<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button type="submit">Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
+    dialog.innerHTML='<p>Scan URL or animated project QR / 扫描网址或动态工程码</p><video id="transferQRVideo" autoplay muted playsinline></video><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p><form id="transferQRForm"><label>WAV URL / 下载网址<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button type="submit">Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
     parent.append(dialog);
     const video=dialog.querySelector('video'),status=dialog.querySelector('#transferQRStatus'),input=dialog.querySelector('input');
-    let stream=null,worker=null,timer=null,finish=null,session=0,busy=false;
+    let stream=null,worker=null,timer=null,finish=null,session=0,busy=false,receiver=null;
     function cleanup(){clearTimeout(timer);timer=null;if(worker)worker.terminate();worker=null;if(stream)stream.getTracks().forEach(t=>{t.onended=null;t.stop();});stream=null;video.srcObject=null;busy=false;}
     function settle(text){session++;cleanup();if(dialog.open)dialog.close();const resolve=finish;finish=null;resolve?.(text);}
     dialog.querySelector('#transferQRCancel').onclick=()=>settle(null);
@@ -22,14 +22,19 @@
         video.srcObject=stream;await video.play();if(token!==session || !stream)return;
         worker=new Worker('./qr-camera-worker.js');
         worker.onerror=()=>{cleanup();status.textContent='QR decoder unavailable. Paste URL below / 扫码不可用，请输入网址。';};
-        worker.onmessage=({data:m})=>{
-          if(token!==session)return;busy=false;
+        worker.onmessage=async({data:m})=>{
+          if(token!==session)return;
           if(m.error){cleanup();status.textContent=m.error;return;}
-          if(m.text)settle(m.text);
+          try{
+           if(m.text){const result=await receiver.add(m.text);if(token!==session)return;
+            if(result){status.textContent='Receiving '+result.received+'/'+result.total+' / 接收数据块';if(result.buffer)settle({filename:'camera.po33frame',buffer:result.buffer});}
+            else settle(m.text);
+           }
+          }catch(error){cleanup();status.textContent=error.message;}finally{busy=false;}
         };
         const canvas=document.createElement('canvas'),context=canvas.getContext('2d',{willReadFrequently:true});
         if(!context)throw Error('Camera image access unavailable');
-        status.textContent='Aim at a WAV download QR / 对准 WAV 下载二维码';
+        status.textContent='Aim at URL or animated QR / 对准网址或动态二维码';
         function frame(){
           if(token!==session || !worker)return;
           timer=setTimeout(frame,200);
@@ -43,7 +48,7 @@
       }catch(error){if(token!==session)return;cleanup();status.textContent=`${error.name || 'Camera'}: ${error.message || 'Unavailable'}. Paste URL below / 可在下方输入网址。`;}
     }
     return {get active(){return !!finish;},close:()=>settle(null),
-      open(){if(finish)settle(null);const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.showModal();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
+      open(){if(finish)settle(null);const token=++session;receiver=root.PO33QRTransfer.receiver();input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.showModal();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
     };
   }
   root.PO33QRCamera={create};

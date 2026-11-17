@@ -16,3 +16,9 @@ Preserve these notices and licenses when distributing the decoder.
 Official Teenage Engineering test WAVs and decoded audio are not included
 and are not relicensed by these source-code licenses. Existing project asset
 and font notices continue to apply.
+
+## QRCode.js
+
+The offline animated QR sender uses QRCode.js by davidshimjs (MIT), pinned to
+commit `04f46c6a0708418cb7b96fc563eacae0fbf77674`. License and source provenance
+are included under `vendor/qrcodejs/`.
