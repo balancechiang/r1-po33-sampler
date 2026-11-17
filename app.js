@@ -1679,7 +1679,9 @@
   // One short tactile pulse per press. Unsupported WebViews keep operating normally.
   function vibrateButton(e) {
     var button = e.target.closest ? e.target.closest("button") : null;
-    if (!button || button.disabled) return;
+    var panel = d.getElementById("panel");
+    // Only rendered virtual controls are haptic targets, never the page or hidden legacy controls.
+    if (!button || button.disabled || !panel.contains(button) || !button.getClientRects().length) return;
     if (e.type === "pointerdown" && e.button !== 0) return;
     if (e.type === "keydown" && (e.repeat || (e.key !== "Enter" && e.key !== " "))) return;
     try {
