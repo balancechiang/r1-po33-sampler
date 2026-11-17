@@ -17,6 +17,9 @@ No release package or deployment has been prepared.
 - **I/O → Find devices** lists interface inputs/outputs. Where output selection
   is unsupported, choose the system default in OS settings. Permissions are
   requested only for an explicit input/device action.
+- In transfer mode, the R1 wheel moves focus through visible, enabled controls;
+  each actual move requests one 12 ms vibration and shows an orange outline.
+  Outside transfer mode the wheel keeps its normal BPM/held-step behavior.
 - **Stop / Close** cancels transfer. No signal plays automatically.
   **Undo restore**, available in the current session, returns to the preceding
   project; it is distinct from factory reset.

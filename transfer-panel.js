@@ -9,6 +9,19 @@
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
     let generation=0,saveChain=Promise.resolve();
     const storage=root.PO33TransferStorage;
+    function moveFocus(direction){
+      if(!view.active || !direction)return;
+      const choices=[...box.querySelectorAll('button,select')].filter(e=>!e.disabled && e.getClientRects().length);
+      if(!choices.length)return;
+      const previous=document.activeElement,index=choices.indexOf(previous);
+      const next=choices[index<0?(direction>0?0:choices.length-1):(index+(direction>0?1:-1)+choices.length)%choices.length];
+      if(next===previous)return;
+      box.querySelectorAll('.wheel-focused').forEach(e=>e.classList.remove('wheel-focused'));
+      next.focus({preventScroll:true});
+      if(document.activeElement!==next)return;
+      next.classList.add('wheel-focused');next.scrollIntoView({block:'nearest',inline:'nearest'});
+      try{if(typeof navigator.vibrate==='function')navigator.vibrate(12);}catch(error){}
+    }
     function render(){
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
       const busy=['encoding','decoding','sending','receiving','listening'].includes(view.state);
@@ -189,7 +202,7 @@
       if(!id)return;
       try{const devices=await navigator.mediaDevices.enumerateDevices();if(!devices.some(d=>d.deviceId===id && d.kind===(input?'audioinput':'audiooutput')))await fail(Error('Selected audio interface disconnected'));}catch(error){await fail(error);}
     });
-    return {open,close,readFile,get view(){return view;},get hasSession(){return session;},checkpoint,
+    return {open,close,readFile,moveFocus,get view(){return view;},get hasSession(){return session;},checkpoint,
       flush:writeCheckpoint,
       async restore(){if(hooks.preview)return;try{const saved=await storage.get();if(saved){undo={snapshot:hooks.snapshot(),native:null,baseline:null,session:false};native=saved.native;baseline=saved.baseline;session=true;hooks.restoreSnapshot(saved.snapshot);}}catch(error){hooks.hint('CHECKPOINT UNAVAILABLE');}},
       async reset(){clearTimeout(saveTimer);await close();session=false;native=null;baseline=null;undo=null;await saveChain.catch(()=>{});if(!hooks.preview)await storage.clear();}

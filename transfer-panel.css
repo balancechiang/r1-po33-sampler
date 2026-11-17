@@ -4,3 +4,4 @@ body.transfer-open #transferControls{display:block}body.transfer-open{justify-co
 #transferControls button.primary{background:#fe5000;color:#000}#transferControls button:disabled{opacity:.4}
 #transferControls p{margin:3px 2px}#transferControls input[type=file]{display:none}#transferDevices label{display:block}#transferDevices select{max-width:65%}#transferDevices[hidden]{display:none}
 #panel .cbtn.transfer-latched{outline:1px solid #fe5000;outline-offset:-3px}
+#transferControls .wheel-focused:focus{outline:2px solid #fe5000;outline-offset:1px}

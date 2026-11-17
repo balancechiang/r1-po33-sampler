@@ -15,6 +15,11 @@
   ["pointerdown","keydown","wheel","sideClick","longPressStart","scrollUp","scrollDown"].forEach(function(type){
     window.addEventListener(type,function(e){
       if(!hardwareTransfer || !hardwareTransfer.view.active)return;
+      if(type==="scrollUp" || type==="scrollDown" || type==="wheel"){
+        var direction=type==="scrollUp"?-1:type==="scrollDown"?1:e.deltaY>0?1:e.deltaY<0?-1:e.deltaX>0?1:e.deltaX<0?-1:0;
+        if(direction)hardwareTransfer.moveFocus(direction);
+        if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();return;
+      }
       var controls=e.target && e.target.closest && e.target.closest("#transferControls");
       if(controls){if(type==="keydown")e.stopPropagation();return;}
       if(e.key==="Escape")hardwareTransfer.close();
