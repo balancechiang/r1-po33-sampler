@@ -7,6 +7,7 @@ import { parseFrame } from "../../decoder/vendor/so-sample/state.js";
 import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js";
 import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js";
 import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js";
+import { TAG } from "../../decoder/vendor/so-sample/packets.js";
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
  * This does not relax the separate raw PCM16 hardware replay page.
@@ -97,10 +98,20 @@ export function demodulateToBitstream(left, right, sampleRate) {
     return { syncStartSample: recovered.syncStartSample, rawBytes: recovered.wire, checksumErrors: 0 };
 }
 /** Decode without touching browser storage or the running sampler project. */
-export function decodePO33Backup(wavOrPcm) {
+export function decodePO33Backup(wavOrPcm, options = {}) {
     const fromWav = wavOrPcm instanceof ArrayBuffer || wavOrPcm instanceof Uint8Array;
     const wav = fromWav ? readWav(wavOrPcm) : validatePcm(wavOrPcm);
     const recovered = demodulate(wav), state = parseFrame(recovered.frame);
+    // Capture actual unwhitened payload bytes, not a re-encoded numeric header.
+    const rawHeaders = new Map();
+    let selectedRecord = -1;
+    for (const packet of recovered.frame.packets) {
+        if (packet.tag === TAG.SOUND_SELECT)
+            selectedRecord = packet.payload[0];
+        else if (packet.tag === TAG.SOUND_DATA && !rawHeaders.has(selectedRecord))
+            rawHeaders.set(selectedRecord, packet.payload.slice(0, 9));
+    }
+    const sliceDiagnostics = [];
     const rangeWarnings = [];
     const pools = [], byId = new Map();
     state.sounds.forEach((r, id) => {
@@ -121,8 +132,20 @@ export function decodePO33Backup(wavOrPcm) {
         if (r.end < r.start)
             throw Error(`Sound record ${recordId} has a reversed range`);
         const status = r.end > pool.audioBuffer.length ? 'out-of-pool' : 'complete';
-        if (status === 'out-of-pool')
+        if (status === 'out-of-pool') {
+            const diagnostic = {
+                slotId: recordId < 8 ? recordId + 1 : 9 + Math.floor((recordId - 8) / 16),
+                slotType: recordId < 8 ? 'melodic' : 'drum',
+                padIndex: recordId < 8 ? null : (recordId - 8) % 16,
+                recordId,
+                rawHex: Array.from(rawHeaders.get(recordId) ?? [], x => x.toString(16).padStart(2, '0').toUpperCase()).join(' '),
+                sourcePoolId: r.owner, startSample: r.start, endSample: r.end,
+                bufferLength: pool.audioBuffer.length, encodedByteLength: pool.codes.length
+            };
+            sliceDiagnostics.push(diagnostic);
+            options.onSliceDiagnostic?.({ ...diagnostic });
             rangeWarnings.push(`Sound record ${recordId}: raw range ${r.start}..${r.end} exceeds received pool ${r.owner} (${pool.audioBuffer.length} codes). Raw coordinates retained; preview contains only available PCM. No zero padding or cross-pool addressing is invented.`);
+        }
         return { audioBuffer: pool.audioBuffer.subarray(r.start, r.end), poolId: r.owner, start: r.start, end: r.end, status };
     };
     const slots = Array.from({ length: 16 }, (_, index) => {
@@ -172,7 +195,7 @@ export function decodePO33Backup(wavOrPcm) {
     const bpm = readTempo(state.globals[1]), swingRaw = readSwing(state.globals[1]), patternChain = readChain(state.globals[1]);
     if (bpm < 60 || bpm > 240)
         throw Error('Out-of-range hardware BPM');
-    return { meta: { bpm, swing: swingRaw / 18 * 100, masterVolume: 16, swingRaw, defaultedFields: ['masterVolume'] }, slots, patterns, patternChain, pools, raw: { state, frameBytes: recovered.wire },
+    return { sliceDiagnostics, meta: { bpm, swing: swingRaw / 18 * 100, masterVolume: 16, swingRaw, defaultedFields: ['masterVolume'] }, slots, patterns, patternChain, pools, raw: { state, frameBytes: recovered.wire },
         validation: { checksumErrors: 0, packetCount: recovered.frame.packets.length, complete: true, syncStartSample: recovered.syncStartSample, inputSampleRate: wav.sampleRate, inputBitsPerSample: fromWav ? wav.bitsPerSample : null, channelOrder: recovered.channelOrder, unresolvedAudioRanges: rangeWarnings.length },
         warnings: [...rangeWarnings, 'masterVolume is an explicit unity audition default; not recovered from a verified hardware field.', 'Slice pitch/volume/filter values are audition defaults. Pattern locks retain raw hardware codes; no unverified Hz/gain conversion is applied.', 'Drum audioBuffer concatenates slice previews; shared hardware allocation remains in pools/raw.state. Capacity must count unique pools, not previews.'] };
 }

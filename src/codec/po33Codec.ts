@@ -7,6 +7,7 @@ import { parseFrame, type DeviceState } from '../../decoder/vendor/so-sample/sta
 import { decodeMulaw, SAMPLE_RATE } from '../../decoder/vendor/so-sample/mulaw.ts';
 import { readCell, readEffects } from '../../decoder/vendor/so-sample/pattern.ts';
 import { readChain, readSwing, readTempo } from '../../decoder/vendor/so-sample/globals.ts';
+import { TAG } from '../../decoder/vendor/so-sample/packets.ts';
 export interface PO33Slice {
     startSample: number;
     endSample: number;
@@ -63,6 +64,8 @@ export interface PO33SamplePool {
     sampleRate: number;
 }
 export interface PO33Project {
+    /** Captured from original packet payloads, before interpreting slice addresses. */
+    sliceDiagnostics: PO33SliceDiagnostic[];
     meta: {
         bpm: number;
         swing: number;
@@ -97,6 +100,23 @@ export interface PO33PcmInput {
     left: Float32Array;
     right: Float32Array;
     sampleRate: number;
+}
+export interface PO33SliceDiagnostic {
+    slotId: number;
+    slotType: 'melodic' | 'drum';
+    padIndex: number | null;
+    recordId: number;
+    rawHex: string;
+    sourcePoolId: number;
+    startSample: number;
+    endSample: number;
+    /** Full source pool length, not the trimmed owner's range or concatenated slot preview. */
+    bufferLength: number;
+    encodedByteLength: number;
+}
+export interface PO33DecodeOptions {
+    /** Called at slice resolution for each out-of-pool range; no logging by default. */
+    onSliceDiagnostic?: (diagnostic: PO33SliceDiagnostic) => void;
 }
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
@@ -199,10 +219,18 @@ export function demodulateToBitstream(left: Float32Array, right: Float32Array, s
     return { syncStartSample: recovered.syncStartSample, rawBytes: recovered.wire, checksumErrors: 0 };
 }
 /** Decode without touching browser storage or the running sampler project. */
-export function decodePO33Backup(wavOrPcm: ArrayBuffer | Uint8Array | PO33PcmInput): PO33Project {
+export function decodePO33Backup(wavOrPcm: ArrayBuffer | Uint8Array | PO33PcmInput, options: PO33DecodeOptions = {}): PO33Project {
     const fromWav = wavOrPcm instanceof ArrayBuffer || wavOrPcm instanceof Uint8Array;
     const wav = fromWav ? readWav(wavOrPcm) : validatePcm(wavOrPcm);
     const recovered = demodulate(wav), state = parseFrame(recovered.frame);
+    // Capture actual unwhitened payload bytes, not a re-encoded numeric header.
+    const rawHeaders = new Map<number, Uint8Array>();
+    let selectedRecord = -1;
+    for (const packet of recovered.frame.packets) {
+        if (packet.tag === TAG.SOUND_SELECT) selectedRecord = packet.payload[0];
+        else if (packet.tag === TAG.SOUND_DATA && !rawHeaders.has(selectedRecord)) rawHeaders.set(selectedRecord, packet.payload.slice(0, 9));
+    }
+    const sliceDiagnostics: PO33SliceDiagnostic[] = [];
     const rangeWarnings: string[] = [];
     const pools: PO33SamplePool[] = [], byId = new Map<number, PO33SamplePool>();
     state.sounds.forEach((r, id) => {
@@ -229,8 +257,20 @@ export function decodePO33Backup(wavOrPcm: ArrayBuffer | Uint8Array | PO33PcmInp
         if (r.end < r.start)
             throw Error(`Sound record ${recordId} has a reversed range`);
         const status = r.end > pool.audioBuffer.length ? 'out-of-pool' : 'complete';
-        if (status === 'out-of-pool')
+        if (status === 'out-of-pool') {
+            const diagnostic: PO33SliceDiagnostic = {
+                slotId: recordId < 8 ? recordId + 1 : 9 + Math.floor((recordId - 8) / 16),
+                slotType: recordId < 8 ? 'melodic' : 'drum',
+                padIndex: recordId < 8 ? null : (recordId - 8) % 16,
+                recordId,
+                rawHex: Array.from(rawHeaders.get(recordId) ?? [], x => x.toString(16).padStart(2, '0').toUpperCase()).join(' '),
+                sourcePoolId: r.owner, startSample: r.start, endSample: r.end,
+                bufferLength: pool.audioBuffer.length, encodedByteLength: pool.codes.length
+            };
+            sliceDiagnostics.push(diagnostic);
+            options.onSliceDiagnostic?.({ ...diagnostic });
             rangeWarnings.push(`Sound record ${recordId}: raw range ${r.start}..${r.end} exceeds received pool ${r.owner} (${pool.audioBuffer.length} codes). Raw coordinates retained; preview contains only available PCM. No zero padding or cross-pool addressing is invented.`);
+        }
         return { audioBuffer: pool.audioBuffer.subarray(r.start, r.end), poolId: r.owner, start: r.start, end: r.end, status };
     };
     const slots: PO33Slot[] = Array.from({ length: 16 }, (_, index) => {
@@ -280,7 +320,7 @@ export function decodePO33Backup(wavOrPcm: ArrayBuffer | Uint8Array | PO33PcmInp
     const bpm = readTempo(state.globals[1]), swingRaw = readSwing(state.globals[1]), patternChain = readChain(state.globals[1]);
     if (bpm < 60 || bpm > 240)
         throw Error('Out-of-range hardware BPM');
-    return { meta: { bpm, swing: swingRaw / 18 * 100, masterVolume: 16, swingRaw, defaultedFields: ['masterVolume'] }, slots, patterns, patternChain, pools, raw: { state, frameBytes: recovered.wire },
+    return { sliceDiagnostics, meta: { bpm, swing: swingRaw / 18 * 100, masterVolume: 16, swingRaw, defaultedFields: ['masterVolume'] }, slots, patterns, patternChain, pools, raw: { state, frameBytes: recovered.wire },
         validation: { checksumErrors: 0, packetCount: recovered.frame.packets.length, complete: true, syncStartSample: recovered.syncStartSample, inputSampleRate: wav.sampleRate, inputBitsPerSample: fromWav ? wav.bitsPerSample : null, channelOrder: recovered.channelOrder, unresolvedAudioRanges: rangeWarnings.length },
         warnings: [...rangeWarnings, 'masterVolume is an explicit unity audition default; not recovered from a verified hardware field.', 'Slice pitch/volume/filter values are audition defaults. Pattern locks retain raw hardware codes; no unverified Hz/gain conversion is applied.', 'Drum audioBuffer concatenates slice previews; shared hardware allocation remains in pools/raw.state. Capacity must count unique pools, not previews.'] };
 }

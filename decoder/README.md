@@ -89,6 +89,11 @@ available data, without invented padding or guessed cross-pool correction.
 This is an interpretation limitation, not a waived CRC failure. #16operators
 really contains sixteen empty patterns. Frekvens has six empty sound slots.
 
+See the [Escalate slice audit](ESCALATE-SLICES.md) for exact original hex,
+slot/pad mapping, full source buffer lengths and checks of sentinel, flag-mask
+and compressed-offset hypotheses. Run `node decoder/inspect-escalate.cjs`
+to log them using the optional `onSliceDiagnostic` decoder callback.
+
 ## Validation
 
 Fixtures live in ignored `t/official-backup-tests/`; original and decoded audio
