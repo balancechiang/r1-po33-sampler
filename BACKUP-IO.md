@@ -2,6 +2,10 @@
 
 ## Current status
 
+The three official Transfer packs have now been tested against this page:
+two PCM16 packs load and save byte-identically; the 24-bit Escalate pack is
+rejected. None imports as an editable project. See [actual fixture results](OFFICIAL-BACKUP-TESTS.md).
+
 Stage 1 software is implemented in `backup.html`, `backup-ui.js`,
 `backup-worklet.js` and `backup-wav.js`. Physical PO-33 loopback acceptance has
 **not** been tested. Stages 2 and 3 — DQPSK modem, frame codec and editable
