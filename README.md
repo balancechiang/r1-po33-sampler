@@ -34,6 +34,10 @@ This is an independent PO-33-inspired web app, not the original hardware firmwar
 
 WRITE + SOUND + RECORD receives a backup; WRITE + SOUND + PLAY prepares one for saving or stereo output. For one-finger touch, hold and release WRITE and SOUND individually for 500 ms, then tap the third key. See [transfer controls, display states and limits](BACKUP-IO.md).
 
+Receive → Scan QR imports a backup from its HTTPS WAV download code. Camera
+decoding runs on device; a direct link with CORS support is required. Try the
+[original WAV QR test](demo/qr-test/index.html) on another screen.
+
 The original procedural factory sounds and sequences are offered under CC0-1.0. This does not assign that license to the entire application or its artwork. The bundled DSEG font retains its SIL OFL-1.1 license; see [the font license](fonts/DSEG-LICENSE.txt).
 
 [Controls](R1-CONTROLS.md) · [Factory sounds & patterns](PRESETS.md) · [Publishing](DEPLOY.md)

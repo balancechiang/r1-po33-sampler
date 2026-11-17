@@ -34,6 +34,8 @@
 
 WRITE + SOUND + RECORD 接收工程，WRITE + SOUND + PLAY 准备保存或输出工程音频。单指可分别长按 WRITE 和 SOUND 各 500 毫秒后松开，再点第三键。详见[传输操作、显示状态与限制](BACKUP-IO.md)。
 
+接收菜单的“扫码”可通过摄像头识别工程 WAV 下载码，识别在本机完成；下载需 HTTPS 直链及跨域支持。请在另一屏幕打开[原创工程扫码测试](demo/qr-test/index.html)，再用 R1 扫描。
+
 原创程序合成预置音色与音序按 CC0-1.0 提供；此许可不自动适用于整个应用或美术素材。本地 DSEG 字体保留 SIL OFL-1.1 许可，详见[字体许可](fonts/DSEG-LICENSE.txt)。
 
 [操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)

@@ -1,5 +1,8 @@
 # Backup decoder third-party notices
 
+The local camera QR decoder additionally includes jsQR 1.4.0 (Apache-2.0).
+[Full license](vendor/jsqr/LICENSE), [provenance](vendor/jsqr/PROVENANCE.md).
+
 The backup decoder contains MIT-licensed code from:
 
 - Danil Nagy, so_sample, copyright (c) 2026 Danil Nagy.

@@ -8,6 +8,20 @@ No release package or deployment has been prepared.
 
 - **WRITE + SOUND + RECORD** opens receive mode, with `rcv` on the existing LCD.
   Choose **Open WAV** for a backup file, or **Line in** for a stereo interface.
+- **Scan QR / 扫码** opens a camera preview. Scan a QR containing a public
+  HTTPS WAV direct-download URL (plain URL or JSON `wavUrl`/`url`). The camera
+  stops before download; the downloaded file must pass full frame CRC before
+  replacing the project. Camera frames are decoded locally by a worker running
+  bundled jsQR; there is no camera upload or external QR service. Denied camera
+  access leaves a manual URL field available. Cancel/Close releases camera tracks.
+  Cross-origin hosts must allow CORS; links requiring cookies/login, ordinary
+  share pages, non-WAV responses and non-project WAVs are not supported. Downloads
+  use omitted credentials, a 120-second timeout and a streamed 128 MB limit.
+  Unknown Content-Length shows no invented download percentage.
+- A fully original test QR and WAV are at `demo/qr-test/`. Open that page on
+  another screen and scan inside receive mode. Expected: 108 BPM, one populated
+  melodic slot and four notes in pattern1. This is separate from the Creation
+  installation QR under `install/`, and does not exercise USB audio capture.
 - **WRITE + SOUND + PLAY** encodes the current project. Choose **Save WAV**
   or put the hardware in receive mode and choose **Line out**.
 - Keep the two modifiers held and tap the third key. Shift+mouse holds work.
@@ -128,6 +142,11 @@ must be measured on device. No audio or device identifiers are uploaded.
   decoder at 48 kHz with synthetic modulation, silence stop, meter/IN and mono
   rejection, 60-second timeout, overload/disconnection, undo and reload.
   This is not physical USB/PO-33 acceptance.
+- `python -X utf8 test-qr-import.py`: real camera video frames from a browser
+  canvas MediaStream → jsQR worker → WAV HTTP download → validated restore and
+  measured playback. Also checks camera release, permission-denied URL fallback,
+  invalid WAV, CORS rejection, cancellation and preservation of the prior project.
+  This does not validate the physical R1 camera or its permission flow.
 - `python -X utf8 test-backup-browser.py`: legacy raw-page capture/replay
   regression and integrated entry. `backup.html` remains a separate strict
   PCM16/44100 raw recorder/replayer, not the main restore interface.

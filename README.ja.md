@@ -34,6 +34,8 @@ PO-33 の操作フローを参考にした、rabbit r1 用のコンパクトな�
 
 WRITE + SOUND + RECORD で受信、WRITE + SOUND + PLAY で保存／送信を準備します。一本指では WRITE と SOUND をそれぞれ 500 ms 長押しして離し、最後のキーを押します。[転送の説明と制限](BACKUP-IO.md)をご覧ください。
 
+受信メニューの Scan QR は WAV ダウンロードコードを端末内で読み取ります。HTTPS の直接リンクと CORS 対応が必要です。[テスト用 QR](demo/qr-test/index.html)を別の画面に表示して r1 で読み取れます。
+
 オリジナルのプログラム合成音色とシーケンスは CC0-1.0 で提供します。このライセンスはアプリ全体やアートワークには自動的に適用されません。DSEG フォントには SIL OFL-1.1 が適用されます。[フォントライセンス](fonts/DSEG-LICENSE.txt)をご覧ください。
 
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)

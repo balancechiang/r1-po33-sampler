@@ -5,3 +5,5 @@ body.transfer-open #transferControls{display:block}body.transfer-open{justify-co
 #transferControls p{margin:3px 2px}#transferControls input[type=file]{display:none}#transferDevices label{display:block}#transferDevices select{max-width:65%}#transferDevices[hidden]{display:none}
 #panel .cbtn.transfer-latched{outline:1px solid #fe5000;outline-offset:-3px}
 #transferControls .wheel-focused:focus{outline:2px solid #fe5000;outline-offset:1px}
+#transferQR{position:fixed;inset:0;z-index:100;box-sizing:border-box;width:min(100vw,440px);height:100dvh;max-width:none;max-height:none;margin:auto;padding:7px;border:1px solid #555;background:#111;color:#fff;font:12px/1.3 Arial,sans-serif;overflow:auto}
+#transferQR::backdrop{background:#000b}#transferQR[open]{display:flex;flex-direction:column;gap:5px}#transferQR video{width:100%;height:min(42vh,250px);object-fit:contain;background:#000;flex-shrink:0}#transferQR label{display:block}#transferQR input[type=url]{display:block;width:100%;min-height:30px;font:12px Arial,sans-serif;color:#fff;background:#222;border:1px solid #777;user-select:text}#transferQR p{margin:1px 0}

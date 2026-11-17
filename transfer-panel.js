@@ -4,14 +4,17 @@
     const box=document.createElement('section');box.id='transferControls';box.setAttribute('aria-label','Hardware project transfer');
     box.innerHTML='<p id="transferHint" role="status" aria-live="polite"></p><div><button id="transferFile">Open WAV</button><input id="transferFileInput" type="file" accept=".wav,audio/wav"><button id="transferRecord">Line in</button><button id="transferSend" class="primary">Line out</button><button id="transferSave">Save WAV</button><button id="transferStop">Stop</button><button id="transferClose">Close</button><button id="transferUndo">Undo restore</button><button id="transferDeviceToggle">I/O</button></div><div id="transferDevices" hidden><button id="transferRefresh">Find devices</button><button id="transferCheckInput">Check input</button><p id="transferInputReport" role="status"></p><label>Input <select id="transferInput"><option value="">System default</option></select></label><label>Output <select id="transferOutput"><option value="">System default</option></select></label></div>';
     document.body.append(box);const $=id=>document.getElementById(id);
+    const scanButton=document.createElement('button');scanButton.id='transferScan';scanButton.textContent='Scan QR / 扫码';$('transferFile').after(scanButton);
+    const scanner=root.PO33QRCamera.create(box);
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
-    let generation=0,saveChain=Promise.resolve(),probing=false;
+    let generation=0,saveChain=Promise.resolve(),probing=false,downloadAbort=null;
     const storage=root.PO33TransferStorage;
     function moveFocus(direction){
       if(!view.active || !direction)return;
-      const choices=[...box.querySelectorAll('button,select')].filter(e=>!e.disabled && e.getClientRects().length);
+      const scope=scanner.active?box.querySelector('#transferQR'):box;
+      const choices=[...scope.querySelectorAll('button,select,input[type=url]')].filter(e=>!e.disabled && e.getClientRects().length);
       if(!choices.length)return;
       const previous=document.activeElement,index=choices.indexOf(previous);
       const next=choices[index<0?(direction>0?0:choices.length-1):(index+(direction>0?1:-1)+choices.length)%choices.length];
@@ -24,11 +27,12 @@
     }
     function render(){
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=probing || ['encoding','decoding','sending','receiving','listening'].includes(view.state);
+      const busy=probing || ['encoding','decoding','sending','receiving','listening','scanning','downloading'].includes(view.state);
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
+      scanButton.hidden=view.mode!=='receive';scanButton.disabled=busy;
       $('transferSend').hidden=view.mode!=='send';$('transferSave').hidden=view.mode!=='send';
       $('transferFile').disabled=busy;$('transferRecord').disabled=busy;$('transferSend').disabled=!encoded||busy;$('transferSave').disabled=!encoded||busy;
-      $('transferStop').disabled=!['receiving','listening','sending'].includes(view.state);$('transferUndo').hidden=!undo;
+      $('transferStop').disabled=!['receiving','listening','sending','downloading'].includes(view.state);$('transferUndo').hidden=!undo;
       $('transferUndo').disabled=busy;$('transferRefresh').disabled=busy;
       $('transferCheckInput').disabled=busy;
       $('transferInput').disabled=busy;$('transferOutput').disabled=busy;
@@ -90,7 +94,7 @@
       worker.postMessage({command,...data});
     }
     async function open(mode){
-      if(['encoding','decoding','receiving','listening','sending'].includes(view.state))return;
+      if(['encoding','decoding','receiving','listening','sending','scanning','downloading'].includes(view.state))return;
       clearTimeout(timer);generation++;encoded=null;view={active:true,state:'waiting',mode,progress:0,level:0,record:0,phase:''};
       hooks.stop();
       set('waiting',mode==='receive'?'rcv · Choose WAV or Line in / 选择工程 WAV 或立体声输入':'Preparing current project / 正在准备当前工程');
@@ -107,6 +111,42 @@
         view.progress=0;set('decoding','Checking carrier, packets and CRC / 解调与校验');run('decode',{wav:bytes.buffer});
       }catch(error){if(token===generation)await fail(error);}
     }
+    function downloadURL(text){
+      let value=String(text).trim();
+      if(value.startsWith('{')){let obj;try{obj=JSON.parse(value);}catch(error){throw Error('Invalid QR link / 二维码不是有效网址');}value=obj.wavUrl || obj.url;}
+      if(typeof value!=='string' || value.length>8192)throw Error('QR must contain a WAV download URL / 二维码需包含 WAV 下载网址');
+      let url;try{url=new URL(value);}catch(error){throw Error('QR must contain a full HTTPS WAV URL / 需要完整 HTTPS 下载网址');}
+      const local=['localhost','127.0.0.1','[::1]'].includes(url.hostname);
+      if(url.username || url.password || (url.protocol!=='https:' && !(url.protocol==='http:' && local)))throw Error('Use HTTPS WAV URL / 请使用 HTTPS WAV 直链');
+      return url.href;
+    }
+    async function readURL(text){
+      const token=++generation;let timeout,controller;
+      try{
+        const url=downloadURL(text);controller=new AbortController();downloadAbort=controller;timeout=setTimeout(()=>controller.abort(),120000);
+        set('downloading','Downloading WAV / 正在下载工程音频',{progress:null,level:0});
+        const response=await fetch(url,{signal:downloadAbort.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+        if(token!==generation)return;
+        if(!response.ok)throw Error('Download HTTP '+response.status);
+        downloadURL(response.url);
+        if((response.headers.get('Content-Type') || '').includes('text/html'))throw Error('Link returned a web page, not WAV / 请使用 WAV 直链');
+        const total=Number(response.headers.get('Content-Length')) || 0,max=128*1024*1024;
+        if(total>max)throw Error('Backup exceeds 128 MB');
+        if(!response.body?.getReader)throw Error('Streaming downloads unavailable / 此浏览器不支持流式下载');
+        const reader=response.body.getReader(),parts=[];let received=0;
+        for(;;){const {value,done}=await reader.read();if(token!==generation){await reader.cancel();return;}if(done)break;received+=value.length;if(received>max){await reader.cancel();throw Error('Backup exceeds 128 MB');}parts.push(value);view.progress=total?Math.min(.99,received/total):null;render();}
+        if(!received)throw Error('Empty download / 下载文件为空');
+        const bytes=new Uint8Array(received);let at=0;for(const p of parts){bytes.set(p,at);at+=p.length;}
+        if(String.fromCharCode(...bytes.subarray(0,4))!=='RIFF' || String.fromCharCode(...bytes.subarray(8,12))!=='WAVE')throw Error('Downloaded file is not RIFF/WAV / 下载内容不是 WAV');
+        set('decoding','Checking downloaded backup / 正在校验下载工程',{progress:0});run('decode',{wav:bytes.buffer});
+      }catch(error){controller?.abort();if(token===generation)await fail(error.name==='TypeError'?Error('Download failed: network or CORS. Use a public WAV direct link with cross-origin access / 网络或跨域限制，请使用允许跨域的 WAV 直链'):error.name==='AbortError'?Error('Download timed out / 下载超时'):error);}
+      finally{clearTimeout(timeout);if(downloadAbort===controller)downloadAbort=null;}
+    }
+    scanButton.onclick=async()=>{
+      const token=++generation;set('scanning','Scanning download QR / 扫描下载二维码',{progress:0,level:0});
+      try{const text=await scanner.open();if(token!==generation)return;if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
+      catch(error){if(token===generation)await fail(error);}
+    };
     async function makeAudio(rate,token){
       const context=new (root.AudioContext||root.webkitAudioContext)({sampleRate:rate,latencyHint:'playback'});audio=context;
       if(![44100,48000].includes(context.sampleRate))throw Error('A 44.1/48 kHz stereo audio path is required');
@@ -180,7 +220,7 @@
       try{set('sending','Opening stereo output / 正在打开输出',{progress:0,level:0});if(!await makeAudio(encoded.rate,token))return;set('sending','Sending stereo backup / 正在发送立体声工程');node.port.postMessage({command:'play',left:encoded.left,right:encoded.right});}
       catch(error){if(token===generation)await fail(error);}
     }
-    async function close(){generation++;clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
+    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
     async function devices(){
       let permission;
       try{
@@ -210,7 +250,7 @@
     }
     $('transferFile').onclick=()=>$('transferFileInput').click();$('transferFileInput').onchange=e=>{const file=e.target.files[0];e.target.value='';readFile(file);};
     $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=close;
-    $('transferStop').onclick=()=>view.state==='sending'?close():stopCapture();
+    $('transferStop').onclick=()=>['sending','downloading'].includes(view.state)?close():stopCapture();
     $('transferSave').onclick=()=>{if(!encoded)return;const url=URL.createObjectURL(new Blob([encoded.wav],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download='po33-project-backup.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Backup WAV saved / 工程音频已保存');};
     $('transferUndo').onclick=async()=>{
       if(!undo)return;hooks.restoreSnapshot(undo.snapshot);native=undo.native;baseline=undo.baseline;session=undo.session;undo=null;
@@ -219,8 +259,8 @@
     };
     $('transferDeviceToggle').onclick=()=>$('transferDevices').hidden=!$('transferDevices').hidden;$('transferRefresh').onclick=devices;
     $('transferCheckInput').onclick=checkInput;
-    document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));});
-    root.addEventListener('pagehide',()=>{closeAudio();terminate();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));if(document.hidden && view.state==='downloading')close();});
+    root.addEventListener('pagehide',()=>{scanner.close();downloadAbort?.abort();closeAudio();terminate();});
     root.addEventListener('resize',()=>{if(view.active)render();});
     navigator.mediaDevices?.addEventListener('devicechange',async()=>{
       if(!['sending','receiving','listening'].includes(view.state))return;
