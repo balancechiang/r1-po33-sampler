@@ -18,6 +18,11 @@ No release package or deployment has been prepared.
   share pages, non-WAV responses and non-project WAVs are not supported. Downloads
   use omitted credentials, a 120-second timeout and a streamed 128 MB limit.
   Unknown Content-Length shows no invented download percentage.
+  For LAN tests, literal private IPv4 HTTP URLs (10/8, 172.16/12, 192.168/16)
+  are also accepted. This does not bypass browser mixed-content/local-network
+  policies. Keep camera scanning on the HTTPS Creation; ordinary LAN HTTP pages
+  do not provide a secure camera context. `tools/serve-lan-wav.py --bind LAN_IP`
+  shares only the explicitly selected WAV/QR, with CORS headers and no uploads.
 - A fully original test QR and WAV are at `demo/qr-test/`. Open that page on
   another screen and scan inside receive mode. Expected: 108 BPM, one populated
   melodic slot and four notes in pattern1. This is separate from the Creation

@@ -116,14 +116,16 @@
       if(value.startsWith('{')){let obj;try{obj=JSON.parse(value);}catch(error){throw Error('Invalid QR link / 二维码不是有效网址');}value=obj.wavUrl || obj.url;}
       if(typeof value!=='string' || value.length>8192)throw Error('QR must contain a WAV download URL / 二维码需包含 WAV 下载网址');
       let url;try{url=new URL(value);}catch(error){throw Error('QR must contain a full HTTPS WAV URL / 需要完整 HTTPS 下载网址');}
-      const local=['localhost','127.0.0.1','[::1]'].includes(url.hostname);
-      if(url.username || url.password || (url.protocol!=='https:' && !(url.protocol==='http:' && local)))throw Error('Use HTTPS WAV URL / 请使用 HTTPS WAV 直链');
+      const octets=url.hostname.split('.').map(Number);
+      const privateIPv4=octets.length===4 && octets.every(n=>Number.isInteger(n)&&n>=0&&n<=255) && (octets[0]===10 || (octets[0]===172 && octets[1]>=16 && octets[1]<=31) || (octets[0]===192 && octets[1]===168));
+      const local=privateIPv4 || ['localhost','127.0.0.1','[::1]'].includes(url.hostname);
+      if(url.username || url.password || (url.protocol!=='https:' && !(url.protocol==='http:' && local)))throw Error('Use HTTPS or a private LAN WAV URL / 请使用 HTTPS 或局域网 WAV 直链');
       return url.href;
     }
     async function readURL(text){
-      const token=++generation;let timeout,controller;
+      const token=++generation;let timeout,controller,lan=false;
       try{
-        const url=downloadURL(text);controller=new AbortController();downloadAbort=controller;timeout=setTimeout(()=>controller.abort(),120000);
+        const url=downloadURL(text);lan=new URL(url).protocol==='http:';controller=new AbortController();downloadAbort=controller;timeout=setTimeout(()=>controller.abort(),120000);
         set('downloading','Downloading WAV / 正在下载工程音频',{progress:null,level:0});
         const response=await fetch(url,{signal:downloadAbort.signal,credentials:'omit',referrerPolicy:'no-referrer'});
         if(token!==generation)return;
@@ -139,7 +141,7 @@
         const bytes=new Uint8Array(received);let at=0;for(const p of parts){bytes.set(p,at);at+=p.length;}
         if(String.fromCharCode(...bytes.subarray(0,4))!=='RIFF' || String.fromCharCode(...bytes.subarray(8,12))!=='WAVE')throw Error('Downloaded file is not RIFF/WAV / 下载内容不是 WAV');
         set('decoding','Checking downloaded backup / 正在校验下载工程',{progress:0});run('decode',{wav:bytes.buffer});
-      }catch(error){controller?.abort();if(token===generation)await fail(error.name==='TypeError'?Error('Download failed: network or CORS. Use a public WAV direct link with cross-origin access / 网络或跨域限制，请使用允许跨域的 WAV 直链'):error.name==='AbortError'?Error('Download timed out / 下载超时'):error);}
+      }catch(error){controller?.abort();if(token===generation)await fail(error.name==='TypeError'?Error(lan?'LAN download blocked or unreachable: check same Wi-Fi, local-network permission and HTTP/CORS policy / 局域网未连接或被浏览器限制':'Download failed: network or CORS. Use a public WAV direct link with cross-origin access / 网络或跨域限制，请使用允许跨域的 WAV 直链'):error.name==='AbortError'?Error('Download timed out / 下载超时'):error);}
       finally{clearTimeout(timeout);if(downloadAbort===controller)downloadAbort=null;}
     }
     scanButton.onclick=async()=>{
