@@ -5,7 +5,7 @@
 ## GitHub Pages
 
 1. 저장소를 만듭니다. GitHub Free에서는 공개 저장소를 사용합니다.
-2. ZIP 파일 자체가 아니라 이 폴더의 내용을 업로드합니다. index.html은 저장소 루트에 두고 app.js, presets.js, po33-fx.js, 두 CSS 파일과 이미지도 함께 올립니다. fonts 폴더와 라이선스를 유지하세요.
+2. ZIP 파일 자체가 아니라 이 폴더의 내용을 업로드합니다. index.html은 저장소 루트에 두고 app.js, presets.js, po33-fx.js, lcd-indicator.js, 두 CSS 파일과 이미지도 함께 올립니다. fonts 폴더와 라이선스를 유지하세요.
 3. **Settings → Pages**에서 **Deploy from a branch → main → /(root)**를 선택해 저장합니다.
 4. 배포 URL(보통 https://USERNAME.github.io/REPOSITORY/)이 생성되면 HTTPS로 앱이 정상 표시되는지 확인합니다.
 5. 릴리스와 별도로 제공된 로컬 Creation QR 생성기를 열고 앱 주소를 입력합니다. 기본 아이콘 주소는 같은 디렉터리의 icon.png입니다.

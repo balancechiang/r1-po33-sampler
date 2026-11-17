@@ -620,6 +620,7 @@
 
   var factoryMuted = [], knobAngles = [0,0];
   var parameterDisplay=false;
+  var lcdIndicator=null;
   var systemInfoPage=0;
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
@@ -2273,9 +2274,25 @@
       g.querySelector("rect").setAttribute("fill",pair[1]?"#fff":"#222");
       g.querySelector("text").setAttribute("fill",pair[1]?"#000":"#888");
     });
-    var lit=Math.max(0,Math.min(38,Math.ceil(level*38*1.5))), meter=d.getElementById("lcdMeter");
-    if(!meter.children.length){var bars="";for(var bi=0;bi<38;bi++)bars+='<rect x="'+(19+bi*5.35)+'" y="24" width="2" height="5" rx="1" fill="#222"/>';meter.innerHTML=bars;}
-    for(var bj=0;bj<38;bj++)meter.children[bj].setAttribute("fill",bj<lit?"#fff":"#222");
+    if(!lcdIndicator)lcdIndicator=window.PO33Indicator.create(d.getElementById("lcdMeter"),{mode:"level",value:0},{x:19,y:24.25});
+    lcdIndicator.setProps(indicatorProps(level,inputActive));
+  }
+  function indicatorProps(level,inputActive) {
+    var meter={mode:"level",value:Math.ceil(Math.min(1,level*1.5)*32)};
+    if(inputActive || fx.kind)return meter;
+    if(bpmHeld)return {mode:"level",value:masterVolume*2};
+    if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:tweaks[stepEdit.slot-1].pitch+patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]};
+    if(!parameterDisplay)return meter;
+    if(tweakMode===0)return {mode:"pitch",pitch:tweaks[state.slot-1].pitch};
+    if(tweakMode===2) {
+      var t=selectedTweak(state.slot,lastNote),sample=samples[state.slot-1];
+      if(!sample || (sample.sliceViews && !sample.sliceViews[lastNote]))return {mode:"trim",start:0,length:0};
+      // Native drum trim refers to one slice in the entire take. Melodic/copied
+      // slices use a local region and store length as a fraction of the remainder.
+      if(state.slot>8 && !sample.sliceViews)return {mode:"trim",start:(lastNote+t.start/100)*100/16,length:t.length/16};
+      return {mode:"trim",start:t.start,length:(100-t.start)*t.length/100};
+    }
+    return meter;
   }
   setInterval(function(){if(!document.hidden)updateLCD();},60);
   function showNumber(value,label) { displayValue={value:value,label:label};displayUntil=Date.now()+1200; }

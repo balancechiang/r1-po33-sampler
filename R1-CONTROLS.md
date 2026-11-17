@@ -50,6 +50,7 @@ Punch-in FX now follow official numbering: 01–04 loop, 05–06 unison, 07–08
 
 - **IN:** highlighted when the microphone is available and record is held or recording is active. The meter shows input; OUT is dimmed.
 - **OUT:** highlighted when output is detected outside input-monitoring mode, including manually triggered notes and their tails.
+- **32-square bar:** TONE shows pitch around the center (two squares per semitone); TRIM shows the selected audio interval; FX/input/output uses a left-to-right level. Holding BPM shows volume. See [component props and mapping](LCD-INDICATOR.md).
 - **Red LEDs:** show recorded samples, selection, steps, patterns or FX according to the current mode.
 - **Step LED brightness:** in write mode or during playback, programmed steps in the selected sound lane are dim red; events in other lanes are a fainter red; empty steps are off. The currently playing step is bright, with a short brighter pulse on step 1. Pattern chains follow the pattern currently heard. Sound, pattern, FX and volume selection temporarily take priority over the step display.
 - Rabbit and glove motion follows the audio clock/BPM. It resets on stop and respects reduced-motion settings.

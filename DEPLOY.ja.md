@@ -5,7 +5,7 @@
 ## GitHub Pages
 
 1. リポジトリを作成します。GitHub Free では公開リポジトリを使用します。
-2. ZIP そのものではなく、このフォルダーの中身をアップロードします。index.html はリポジトリ直下に置き、app.js、presets.js, po33-fx.js、2 つの CSS、画像も一緒に配置します。fonts フォルダーとライセンスを残してください。
+2. ZIP そのものではなく、このフォルダーの中身をアップロードします。index.html はリポジトリ直下に置き、app.js、presets.js, po33-fx.js, lcd-indicator.js、2 つの CSS、画像も一緒に配置します。fonts フォルダーとライセンスを残してください。
 3. **Settings → Pages** で **Deploy from a branch → main → /(root)** を選び、保存します。
 4. 公開 URL（通常は https://USERNAME.github.io/REPOSITORY/）の準備を待ち、HTTPS で正常に表示されることを確認します。
 5. リリースと別途配布されるローカルの Creation QR コード生成ツールを開き、アプリの URL を入力します。既定のアイコンは同じディレクトリの icon.png です。
