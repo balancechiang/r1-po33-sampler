@@ -658,15 +658,15 @@
     totalSteps: 0
   };
 
-  var FX_NAMES = ["", "STUTTER 1/16", "STUTTER 1/8", "HALF SPEED", "DOUBLE SPEED",
-    "LPF SWEEP", "HPF SWEEP", "BITCRUSH", "REVERSE"];
-  var FX_LABELS = ["", "1/16", "1/8", "HALF", "DBL", "LPF", "HPF", "CRSH", "REV"];
+  var FX_NAMES = window.PO33FX.names;
+  var FX_LABELS = FX_NAMES;
 
   // ---------- audio graph ----------
-  // every voice -> master -> [dry + fx] -> bus -> lowpass 11 kHz -> waveshaper -> trim -> out
+  // every voice -> master -> [dry + fx] -> bus -> volume -> lowpass -> saturator -> out
   var ac = null;
   var master = null;
   var bus = null;
+  var mixVolume = null;
   var dryGain = null;
   var lp = null;
   var sat = null;
@@ -692,13 +692,14 @@
     ac = new AC();
 
     master = ac.createGain();
-    master.gain.value = masterVolume / 16;
+    master.gain.value = 1;
 
     dryGain = ac.createGain();
     dryGain.gain.value = 1;
 
     bus = ac.createGain();
     bus.gain.value = 1;
+    mixVolume=ac.createGain();mixVolume.gain.value=masterVolume/16;
 
     lp = ac.createBiquadFilter();
     lp.type = "lowpass";
@@ -715,12 +716,13 @@
     master.connect(dryGain);
     dryGain.connect(bus);
 
-    bus.connect(lp);
+    bus.connect(mixVolume);mixVolume.connect(lp);
     lp.connect(sat);
     sat.connect(outTrim);
     outTrim.connect(ac.destination);
     outputMeter = ac.createAnalyser(); outputMeter.fftSize = 256;
     outputData = new Float32Array(256); outTrim.connect(outputMeter);
+    fxInstall(); // continuously warm history, including manual notes before PLAY
     return ac;
   }
 
@@ -748,125 +750,95 @@
   }
 
   // ---------- punch-in FX ----------
-  var fx = {
-    kind: 0, // pad number 1..8, 0 = none
-    proc: null,
-    wet: null,
-    filt: null,
-    filtGain: null,
-    hist: null,
-    hw: 0,
-    loop: null,
-    lp: 0,
-    rate: 1,
-    hold: 0,
-    q: 0,
-    installed: false
-  };
-
-  function fxHistoryLen() {
-    var c = ctx();
-    return Math.floor(c.sampleRate * 3);
-  }
+  // Stream effects use the master ring; 13/14 affect transport and 15 each voice.
+  var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
+  var fxTimers=[], transportGeneration=0, scheduledEffect=0;
+  var sampleVoices=[], reversedBuffers=new WeakMap();
+  var voiceEffect=0;
 
   function fxInstall() {
-    if (fx.installed) return;
-    var c = ctx();
-    if (!fx.wet) {
-      fx.wet = c.createGain();
-      fx.wet.gain.value = 0;
-      fx.wet.connect(bus);
-    }
-    if (!fx.proc) {
-      var n = 512;
-      fx.proc = c.createScriptProcessor(n, 1, 1);
-      fx.proc.onaudioprocess = fxProcess;
-      fx.hist = new Float32Array(fxHistoryLen());
-      fx.hw = 0;
+    if(fx.installed)return;
+    var c=ctx();
+    if(!fx.wet){fx.wet=c.createGain();fx.wet.gain.value=0;fx.wet.connect(bus);}
+    if(!fx.proc){
+      fx.engine=new window.PO33FX.Engine(c.sampleRate);
+      fx.proc=c.createScriptProcessor(512,1,1);
+      fx.proc.onaudioprocess=function(e){fx.engine.process(e.inputBuffer.getChannelData(0),e.outputBuffer.getChannelData(0));};
       fx.proc.connect(fx.wet);
     }
-    master.connect(fx.proc);
-    fx.installed = true;
+    master.connect(fx.proc);fx.installed=true;
   }
-
-  function fxUninstall() {
-    if (!fx.installed) return;
-    try { master.disconnect(fx.proc); } catch (err) { /* not connected */ }
-    fx.installed = false;
+  function clearFxTimers(){
+    fxTimers.forEach(function(id){clearTimeout(id);});fxTimers=[];
   }
-
-  function fxCaptureLoop(lenSamples) {
-    var hist = fx.hist;
-    if (!hist) return;
-    var n = Math.max(64, Math.min(hist.length, Math.floor(lenSamples)));
-    var out = new Float32Array(n);
-    var start = ((fx.hw - n) % hist.length + hist.length) % hist.length;
-    for (var i = 0; i < n; i++) out[i] = hist[(start + i) % hist.length];
-    fx.loop = out;
-    fx.lp = fx.rate < 0 ? n - 1 : 0;
+  function queueFx(effect,at) {
+    var generation=transportGeneration;
+    var id=setTimeout(function(){
+      var index=fxTimers.indexOf(id);if(index>=0)fxTimers.splice(index,1);
+      if(generation!==transportGeneration || !seq.playing || fxHeld || shakeFx || !r1Focused || d.hidden)return;
+      if(effect)fxEngage(effect,true);else fxRelease(true);paintStepLeds();updateLCD();
+    },Math.max(0,(at-ctx().currentTime)*1000));
+    fxTimers.push(id);
   }
-
-  function fxProcess(e) {
-    var input = e.inputBuffer.getChannelData(0);
-    var output = e.outputBuffer.getChannelData(0);
-    var n = input.length;
-    var hist = fx.hist;
-    var i;
-
-    for (i = 0; i < n; i++) {
-      hist[fx.hw] = input[i];
-      fx.hw = (fx.hw + 1) % hist.length;
-    }
-
-    var kind = fx.kind;
-    if (!kind) {
-      output.set(input);
-      return;
-    }
-
-    var loop = fx.loop;
-    if (!loop || !loop.length) {
-      output.set(input);
-      return;
-    }
-    var len = loop.length, cycleGate = len / 6;
-    var pos = fx.lp;
-    for (i = 0; i < n; i++) {
-      var idx = Math.floor(pos);
-      if (idx < 0) idx = 0;
-      if (idx >= len) idx = len - 1;
-      output[i] = loop[idx];
-      if(kind===5 || kind===6) output[i]=.5*(output[i]+input[i]);
-      if(kind===13 && (idx % Math.max(1,Math.floor(cycleGate))) > cycleGate*.7)output[i]=0;
-      pos += fx.rate;
-      if (pos >= len) pos -= len;
-      else if (pos < 0) pos += len;
-    }
-    fx.lp = pos;
-  }
-
-  function fxEngage(kind) {
+  function fxEngage(kind,fromPattern) {
     if(kind===16){fxRelease();return;}
     if(kind<1||kind>15)return;
-    var c=ctx(),now=c.currentTime;fxInstall();fx.kind=kind;
-    rampGain(dryGain,0,now);if(fx.filtGain)rampGain(fx.filtGain,0,now);
-    var durations=[0,16,12,4,2,4,4,4,4,4,3,2,1,6,16,16];
-    var rates=[0,1,1,1,1,1.005,.5,2,.5,1,1,-.75,-1.5,1,1,-1];
-    fx.rate=rates[kind];fx.hold=0;fxCaptureLoop(c.sampleRate*stepDur()*durations[kind]);
-    rampGain(fx.wet,1,now);
+    var c=ctx(),now=c.currentTime;fxInstall();
+    var previous=fx.kind;fx.kind=kind;fx.engine.engage(kind,stepDur());
+    var stream=kind<=12;
+    rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
+    if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
+    if(!fromPattern && kind===15)refreshVoices(15,true);
+    else if(!fromPattern && previous===15)refreshVoices(0,false);
   }
-
-  function fxRelease() {
-    if (!fx.kind) return;
-    fx.kind = 0;
-    var c = ctx();
-    var now = c.currentTime;
-    rampGain(dryGain, 1, now);
-    if (fx.wet) rampGain(fx.wet, 0, now);
-    if (fx.filtGain) rampGain(fx.filtGain, 0, now);
-    if (fx.filt) {
-      try { fx.filt.frequency.cancelScheduledValues(now); } catch (err) { /* ignore */ }
+  function fxRelease(fromPattern) {
+    if(!fx.kind)return;
+    var previous=fx.kind;fx.kind=0;if(fx.engine)fx.engine.release();
+    var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
+    if(previous===15 && !fromPattern)refreshVoices(0,false);
+  }
+  function reverseBuffer(buffer) {
+    var reversed=reversedBuffers.get(buffer);if(reversed)return reversed;
+    reversed=ctx().createBuffer(1,buffer.length,buffer.sampleRate);
+    var src=buffer.getChannelData(0),out=reversed.getChannelData(0);
+    for(var i=0;i<src.length;i++)out[i]=src[src.length-1-i];
+    reversedBuffers.set(buffer,reversed);return reversed;
+  }
+  function trackVoice(src,g,start,end) {
+    var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
+      gate:voiceGate,tweak:JSON.parse(JSON.stringify(tweaks[slotNumForVoice-1])),effect:voiceEffect};
+    sampleVoices.push(entry);
+    src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);};
+  }
+  function cancelVoice(v,now) {
+    try{
+      v.gain.gain.cancelScheduledValues(now);
+      v.gain.gain.setValueAtTime(v.start>now?0:.95,now);
+      v.gain.gain.linearRampToValueAtTime(0,now+RAMP);v.src.stop(now+RAMP);
+    }catch(err){}
+    var index=sampleVoices.indexOf(v);if(index>=0)sampleVoices.splice(index,1);
+  }
+  function refreshVoices(effect,includeActive) {
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){
+      if(v.effect===effect || v.end<=now || (!includeActive && v.start<=now))return;
+      cancelVoice(v,now);
+      var original=tweaks[v.slot-1];tweaks[v.slot-1]=v.tweak;
+      voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect);tweaks[v.slot-1]=original;
+    });
+  }
+  function restartPatternFx() {
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
+    clearFxTimers();transportGeneration++;
+    seq.pattern=seq.visualPattern || seq.pattern;
+    if(patternChain.length && patternChain[chainPosition]!==seq.pattern){
+      var prior=(chainPosition+patternChain.length-1)%patternChain.length;
+      chainPosition=patternChain[prior]===seq.pattern?prior:Math.max(0,patternChain.indexOf(seq.pattern));
     }
+    seq.schedStep=0;seq.step=0;seq.visualStarted=false;
+    seq.nextTime=now+.02;visQueue=[];scheduledEffect=14;
+    scheduler();paint();
   }
 
   // ---------- voices ----------
@@ -876,7 +848,7 @@
     return Math.pow(2, params.pitch / 12);
   }
 
-  var slotNumForVoice = 1;
+  var slotNumForVoice = 1,voiceNote=0,voiceGate;
   function connectVoice(g, slot, when) {
     var c=ctx(), t=tweaks[slot-1], v=c.createGain(), f=c.createBiquadFilter();
     v.gain.value = t.volume / 100;
@@ -1028,7 +1000,8 @@
     if (avail < 0.01) return;
     var dur = Math.min(avail / rate,s.gateSeconds || Infinity);
     var src = c.createBufferSource();
-    src.buffer = s.buffer;
+    src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
+    if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-avail);
     src.playbackRate.value = rate;
     var g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
@@ -1037,7 +1010,8 @@
     g.gain.linearRampToValueAtTime(0.0001, t + dur);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
-    src.start(t, off);
+    trackVoice(src,g,t,t+dur);
+    src.start(t, off,dur*rate);
     src.stop(t + dur + 0.03);
   }
 
@@ -1049,9 +1023,11 @@
     var sliceDur = s.duration / 16;
     var base = padIndex * sliceDur + (s.trim / 100) * s.duration;
     var off = (s.offset || 0) + Math.max(0, Math.min(s.duration - 0.01, base));
-    var dur = Math.max(0.001, Math.min(sliceDur * (s.length === undefined ? 1 : s.length / 100), s.duration - (off-(s.offset || 0)),(s.gateSeconds || Infinity)*rate));
+    var region=Math.min(sliceDur * (s.length === undefined ? 1 : s.length / 100),s.duration-(off-(s.offset || 0)));
+    var dur = Math.max(0.001,Math.min(region,(s.gateSeconds || Infinity)*rate));
     var src = c.createBufferSource();
-    src.buffer = s.buffer;
+    src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
+    if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-region);
     src.playbackRate.value = rate;
     var g = c.createGain();
     var fade = Math.min(RAMP, dur/rate * 0.3);
@@ -1061,12 +1037,14 @@
     g.gain.linearRampToValueAtTime(0.0001, t + dur/rate);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
+    trackVoice(src,g,t,t+dur/rate);
     src.start(t, off, dur);
   }
 
   // slotNum 1..16, padIndex 0..15
-  function voice(slotNum, padIndex, when, gateSeconds) {
+  function voice(slotNum, padIndex, when, gateSeconds,effect) {
     slotNumForVoice = slotNum;
+    voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
     var s = samples[slotNum - 1], tw = tweaks[slotNum-1];
     if (s) {
       s = Object.assign({},s);
@@ -1125,12 +1103,19 @@
 
   var visQueue = [];
 
-  function fireStep(step, when) {
+  function effectAt(step) {
+    if(!r1Focused || d.hidden)return 0;
+    if(fxHeld)return fx.kind;
+    if(shakeFx)return shakeFx;
+    return patternExtras[seq.pattern-1].effects[step] || 0;
+  }
+  function fireStep(step, when,effect) {
     var pat = patterns[seq.pattern - 1];
     var extra = patternExtras[seq.pattern - 1];
-    if (extra && !fxHeld && !shakeFx) {
-      var effect = extra.effects[step] || 16, patternAt = seq.pattern;
-      setTimeout(function(){ if(seq.playing && !fxHeld && !shakeFx && seq.pattern===patternAt) { if(effect===16) fxRelease(); else fxEngage(effect); } }, Math.max(0,(when-ctx().currentTime)*1000));
+    if(!fxHeld && !shakeFx && effect!==scheduledEffect)queueFx(effect,when);
+    scheduledEffect=effect;
+    if((fxHeld || shakeFx) && (state.mode==="STEP" || writeHeld)) {
+      extra.effects[step]=effect || 16;persistSoon();
     }
     for (var i = 0; i < TOTAL_SLOTS; i++) {
       var v = pat.lanes[i][step];
@@ -1139,7 +1124,7 @@
         if (lock) tweaks[i] = Object.assign({},original,lock);
         var detail=extra && extra.steps && extra.steps[i+":"+step];
         var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
-        for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined));
+        for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);
         tweaks[i] = original;
       }
     }
@@ -1160,8 +1145,10 @@
       if (exporting && exportSteps >= EXPORT_BARS * STEPS) break;
       var t = seq.nextTime;
       var s = seq.schedStep;
-      var at = (s % 2 === 1) ? t + stepDur() * SWING : t;
-      fireStep(s, at);
+      var effect=effectAt(s);if(effect===16)effect=0;
+      if(effect===14 && scheduledEffect!==14){s=0;seq.schedStep=0;}
+      var at = effect===13 ? t+(window.PO33FX.quantizeStep(s)-s)*stepDur() : ((s % 2 === 1) ? t + stepDur() * SWING : t);
+      fireStep(s, at,effect);
       visQueue.push({ t: at, s: s, pattern: seq.pattern });
       seq.schedStep++;
       seq.nextTime += stepDur();
@@ -1184,6 +1171,7 @@
     if (seq.playing) return;
     var c = ctx();
     seq.playing = true;
+    clearFxTimers();transportGeneration++;scheduledEffect=0;
     seq.visualPattern = seq.pattern;
     seq.visualStarted = false;
     seq.schedStep = 0;
@@ -1207,7 +1195,9 @@
     visQueue = [];
     seq.step = 0;
     fxRelease();
-    fxUninstall();
+    clearFxTimers();transportGeneration++;scheduledEffect=0;
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){if(v.start>now)cancelVoice(v,now);});
     if (exporting) abortExport();
     paint();
   }
@@ -1623,6 +1613,7 @@
   var patternUsedPad = false;
   var patternPressedAt = 0;
   var padPointer = undefined;
+  var fxPadPointer=undefined;
   var heldPad = 0;
 
   function micReady() {
@@ -2069,7 +2060,7 @@
 
     if (bpmHeld) {
       modifierUsed.bpm = true; masterVolume = n;
-      ctx(); master.gain.value = n / 16; showNumber(n,"VOL"); persistSoon(); paint(); return;
+      ctx();mixVolume.gain.value=n/16;showNumber(n,"VOL");persistSoon();paint();return;
     }
     if (writeHeld && soundHeld) {
       modifierUsed.write = true;
@@ -2087,6 +2078,7 @@
       paint(); return;
     }
     if (fxHeld && seq.playing) {
+      fxPadPointer=pid(e);
       modifierUsed.fx=true;
       if(n===16){fxRelease();showNumber("00","FX");}else fxEngage(n);
       if(state.mode==="STEP" || writeHeld) { if(n===16)patternExtras[seq.pattern-1].effects=[];else patternExtras[seq.pattern-1].effects[seq.step]=n; persistSoon(); }
@@ -2136,7 +2128,7 @@
     if(act==="rec") { recPointer=pid(e); setRecHeld(true); ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
     if(act==="write") { writeHeld=true; return; }
-    if(act==="fx") { cancelShakeFx(); fxHeld=true; return; }
+    if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
     if(act==="sound") {
       if(recHeld) { recUsedPad=true; deleteSlot(state.slot); return; }
       soundHeld=true; previousMode=state.mode; setMode("SOUND"); return;
@@ -2150,9 +2142,10 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
     if(padPointer!==undefined && pid(e)===padPointer) {
       if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
-      padPointer=undefined; heldPad=0; if(fxHeld)fxRelease();
+      padPointer=undefined; heldPad=0;
     }
     Object.keys(modifierPointers).forEach(function(act){
       if(modifierPointers[act]!==pid(e))return;
@@ -2165,7 +2158,7 @@
       if(act==="rec") { recPointer=undefined;setRecHeld(false); }
       if(act==="write") { writeHeld=false;if(!modifierUsed.write && e.type!=="pointercancel")setMode(state.mode==="STEP"?"PLAY":"STEP"); }
       if(act==="fx") {
-        fxHeld=false;fxRelease();
+        fxHeld=false;fxPadPointer=undefined;fxRelease();scheduledEffect=-1;
         if(!modifierUsed.fx && e.type!=="pointercancel") {
           tweakMode=(tweakMode+1)%3; parameterDisplay=true;
           showNumber(["ton","FLt","tri"][tweakMode],["TONE","FILTER","TRIM"][tweakMode]);
@@ -2184,6 +2177,7 @@
   window.addEventListener("pointercancel",releaseControls);
   window.addEventListener("blur",function(){
     r1Focused=false;
+    clearFxTimers();transportGeneration++;scheduledEffect=0;
     endStepEdit(true);commitSoundCopy(true);
     Object.keys(modifierPointers).forEach(function(act){releaseControls({pointerId:modifierPointers[act],type:"pointercancel"});});
     bpmHeld=fxHeld=writeHeld=soundHeld=patternHeld=false;
@@ -2361,7 +2355,7 @@
   });
 
   // R1 live punch-in FX is distinct from the on-screen FX key and pattern automation.
-  function cancelShakeFx(){shakeFx=0;fxRelease();}
+  function cancelShakeFx(){shakeFx=0;fxRelease();scheduledEffect=-1;}
   function resetShakeGroup(){
     if(shakeTimer)clearTimeout(shakeTimer);shakeTimer=null;
     shakeCount=0;shakeCancelled=false;shakeReady=true;shakeBaseline=null;shakeLastPeak=-Infinity;
@@ -2371,6 +2365,7 @@
     if(seq.playing && !document.hidden && shakeCount===2 && !shakeCancelled){
       var choices=[];for(var i=1;i<=15;i++)if(i!==lastShakeFx)choices.push(i);
       shakeFx=choices[Math.floor(Math.random()*choices.length)];lastShakeFx=shakeFx;
+      clearFxTimers();transportGeneration++;scheduledEffect=-1;
       fxEngage(shakeFx);
       if(state.mode==="STEP"){patternExtras[seq.pattern-1].effects[seq.step]=shakeFx;persistSoon();}
       showNumber(shakeFx,"SHAKE FX");paint();
@@ -2419,7 +2414,7 @@
   // Some device builds inject the SDK after page startup.
   setInterval(function(){if(seq.playing && !document.hidden && !shakeSensor)startShakeSensors();},1000);
   document.addEventListener("visibilitychange",function(){
-    if(document.hidden){sideRecArmed=sideRecHeld=false;setRecHeld(false);stopShakeSensors();cancelShakeFx();stopTransportAnimation();}
+    if(document.hidden){clearFxTimers();transportGeneration++;scheduledEffect=0;sideRecArmed=sideRecHeld=false;setRecHeld(false);stopShakeSensors();cancelShakeFx();stopTransportAnimation();}
     else if(seq.playing){startShakeSensors();startTransportAnimation();}
   });
   window.addEventListener("focus",function(){r1Focused=true;if(seq.playing){startShakeSensors();startTransportAnimation();}});

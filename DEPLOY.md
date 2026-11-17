@@ -5,7 +5,7 @@
 ## GitHub Pages
 
 1. Create a repository. Use a public repository if you use GitHub Free.
-2. Upload this folder's contents, not the ZIP itself. Keep index.html at the repository root, alongside app.js, presets.js, both CSS files and the image assets. Keep the fonts folder and its license.
+2. Upload this folder's contents, not the ZIP itself. Keep index.html at the repository root, alongside app.js, presets.js, po33-fx.js, both CSS files and the image assets. Keep the fonts folder and its license.
 3. Open **Settings → Pages**. Choose **Deploy from a branch → main → /(root)** and save.
 4. Wait for the deployment URL, normally https://USERNAME.github.io/REPOSITORY/. Open it and check that the app loads over HTTPS.
 5. Open the separate local Creation QR generator supplied with the release. Enter the app URL; the default icon URL is icon.png in the same directory.

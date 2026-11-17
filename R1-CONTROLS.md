@@ -26,6 +26,8 @@
 
 In drum TRIM mode, edit the last-triggered slice. While playing, hold write and adjust TONE or FILTER to save parameter locks at the current step.
 
+Punch-in FX now follow official numbering: 01–04 loop, 05–06 unison, 07–08 octave, 09–10 stutter, 11–12 scratch, 13 6/8 quantize, 14 retrigger pattern, 15 reverse, 16/00 bypass. Reverse follows each sound's trimmed region; retrigger restarts the actual pattern. See [FX behavior and emulation limits](FX.md). The knobs retain their TONE/FILTER/TRIM roles.
+
 ### Step editing and sound copying
 
 - In write mode, hold an existing step: A chooses note/slice (1–16); B chooses melodic duration (1–16 steps) or drum retriggers (1, 2, 3, 4, 6, 8). Hold a drum step and tap BPM to cycle retriggers. Short tap removes the step on release; a cancelled touch preserves it.

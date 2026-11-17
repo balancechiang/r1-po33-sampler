@@ -5,7 +5,7 @@
 ## GitHub Pages
 
 1. 创建仓库；GitHub Free 使用公开仓库。
-2. 上传本文件夹中的内容，不要只上传 ZIP。index.html 放在仓库根目录，与 app.js、presets.js、两个 CSS 文件及图片资源同级；保留 fonts 文件夹和许可。
+2. 上传本文件夹中的内容，不要只上传 ZIP。index.html 放在仓库根目录，与 app.js、presets.js, po33-fx.js、两个 CSS 文件及图片资源同级；保留 fonts 文件夹和许可。
 3. 打开 **Settings → Pages**，选择 **Deploy from a branch → main → /(root)** 并保存。
 4. 等待生成地址，通常为 https://用户名.github.io/仓库名/。打开并确认应用可通过 HTTPS 加载。
 5. 打开随发布文件另外提供的本地 Creation 二维码生成器，填入应用网址；默认图标为同目录下的 icon.png。

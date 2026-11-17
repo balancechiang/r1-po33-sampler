@@ -40,7 +40,7 @@ with sync_playwright() as p:
     assert page.locator('#lcdNumber').get_attribute('data-value')=='50'
     # Recording remains a hold gesture, and releasing either input stops it.
     down('[data-act="rec"]',1);down('[data-pad="1"]',2);page.wait_for_timeout(3000)
-    assert page.locator('#lcdRecord rect').get_attribute('fill')=='#fff', (page.locator('#hint').inner_text(),errors,page.locator('body').get_attribute('class'))
+    assert page.locator('#lcdRecord rect').get_attribute('fill')=='#222', (page.locator('#hint').inner_text(),errors,page.locator('body').get_attribute('class'))
     up(2);up(1);page.wait_for_timeout(400)
     assert 'sampled' in page.locator('[data-pad="1"]').get_attribute('class')
     assert mode()=='PLAY'

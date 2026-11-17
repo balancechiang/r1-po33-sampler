@@ -23,12 +23,13 @@ with sync_playwright() as p:
         page.wait_for_timeout(650)
     assert not active('lcdIn') and not active('lcdOut')
     # Hardware wheel always controls tempo, even inside SOUND and after FX selection.
-    down('[data-act="sound"]',1);event('scrollUp');assert page.locator('#lcdNumber').get_attribute('data-value')=='121';up(1)
+    down('[data-act="sound"]',1);event('scrollUp');assert page.locator('#lcdNumber').get_attribute('data-value')=='0101';up(1)
+    assert page.locator('#lcdNumber').get_attribute('data-value')=='121'
     down('[data-act="fx"]',1);up(1);event('scrollDown');assert page.locator('#lcdNumber').get_attribute('data-value')=='120'
     # Side long press plus screen pad records into an empty slot; duplicate click is suppressed.
     event('longPressStart');down('[data-pad="5"]',2);page.wait_for_timeout(1500)
     assert active('lcdIn') and not active('lcdOut')
-    assert page.locator('#lcdRecord rect').get_attribute('fill')=='#fff'
+    assert page.locator('#lcdRecord rect').get_attribute('fill')=='#222'  # WRITE indicator, not microphone recording
     event('longPressEnd');up(2);event('sideClick');page.wait_for_timeout(250)
     assert sampled(5)
     assert page.locator('#lcdRecord rect').get_attribute('fill')=='#222'
