@@ -1098,7 +1098,7 @@
       var s = seq.schedStep;
       var at = (s % 2 === 1) ? t + stepDur() * SWING : t;
       fireStep(s, at);
-      visQueue.push({ t: at, s: s });
+      visQueue.push({ t: at, s: s, pattern: seq.pattern });
       seq.schedStep++;
       seq.nextTime += stepDur();
       if (seq.schedStep >= STEPS) {
@@ -1120,6 +1120,8 @@
     if (seq.playing) return;
     var c = ctx();
     seq.playing = true;
+    seq.visualPattern = seq.pattern;
+    seq.visualStarted = false;
     seq.schedStep = 0;
     seq.step = 0;
     seq.totalSteps = 0;
@@ -1161,9 +1163,14 @@
     if (!seq.playing || !ac) return;
     var now = ac.currentTime;
     var lit = -1;
-    while (visQueue.length && visQueue[0].t <= now) lit = visQueue.shift().s;
-    if (lit >= 0 && lit !== seq.step) {
+    var audiblePattern = seq.visualPattern;
+    while (visQueue.length && visQueue[0].t <= now) {
+      var visual = visQueue.shift(); lit = visual.s; audiblePattern = visual.pattern;
+    }
+    if (lit >= 0 && (!seq.visualStarted || lit !== seq.step || audiblePattern !== seq.visualPattern)) {
       seq.step = lit;
+      seq.visualPattern = audiblePattern;
+      seq.visualStarted = true;
       paintChase();
       mascotPunch(lit);
     }
@@ -1770,6 +1777,41 @@
     for (var p = 0; p < pads.length; p++) {
       pads[p].classList.toggle("cur", seq.playing && (p === seq.step) && state.mode !== "SOUND");
     }
+    paintStepLeds();
+  }
+
+  // One resolved lamp state per pad: context indicators take priority over the chase.
+  function paintStepLeds() {
+    var patternNumber = seq.playing ? (seq.visualPattern || seq.pattern) : seq.pattern;
+    var pat = patterns[patternNumber - 1], lane = pat.lanes[state.slot - 1];
+    var stepView = state.mode === "STEP" || seq.playing;
+    d.getElementById("panel").style.setProperty("--led-pulse", Math.min(110,stepDur()*700)+"ms");
+    for(var p=0;p<pads.length;p++) {
+      var level="off", reason="empty";
+      if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
+      else if(state.mode==="SOUND") {
+        if(samples[p]){level="dim";reason="sample";}
+        if(p+1===state.slot){level="bright";reason="selected";}
+      } else if(state.mode==="PATTERN") {
+        if(patternHasData(patterns[p])){level="dim";reason="pattern";}
+        if(p+1===patternNumber){level="bright";reason="selected";}
+        else if(p+1===seq.queued){level="dim";reason="queued";}
+      } else if(fxHeld || shakeFx) {
+        if(p+1===fx.kind){level="bright";reason="effect";}
+      } else if(stepView) {
+        if(lane[p]>=0){level="dim";reason="own-step";}
+        else {
+          for(var track=0;track<TOTAL_SLOTS;track++) {
+            if(track!==state.slot-1 && pat.lanes[track][p]>=0){level="low";reason="other-step";break;}
+          }
+        }
+        if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
+      } else if(samples[p]) {level="dim";reason="sample";}
+      if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
+      pads[p].setAttribute("data-led-level",level);
+      pads[p].setAttribute("data-led-reason",reason);
+      pads[p].setAttribute("data-led-pattern",String(patternNumber));
+    }
   }
 
   function paint() {
@@ -1821,6 +1863,7 @@
         else sub.textContent = "";
       }
     }
+    paintStepLeds();
   }
 
   var flashTimers = [];

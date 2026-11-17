@@ -100,3 +100,22 @@ body[data-mode="PATTERN"] #panel .pad.pat-cur .led,
 .bank-label::before { top:0; border-top:calc(1 * var(--unit,1px)) solid #ff5705; }
 .bank-label::after { bottom:0; border-bottom:calc(1 * var(--unit,1px)) solid #ff5705; }
 #lcdNumber { font-family:DSEG7,monospace; font-variant-numeric:tabular-nums; letter-spacing:.5px; }
+
+/* Step LEDs: distinct steady levels, with a single resolved context per lamp. */
+body[data-mode] #panel .pad[data-led-level] .led {
+  background:#24100c; opacity:1; box-shadow:none; animation:none;
+}
+body[data-mode] #panel .pad[data-led-level="low"] .led { background:#48100b; }
+body[data-mode] #panel .pad[data-led-level="dim"] .led { background:#9a2014; }
+body[data-mode] #panel .pad[data-led-level="bright"] .led { background:#ff3020; }
+body[data-mode] #panel .pad[data-led-reason="cursor"] .led { animation:step-cursor var(--led-pulse,85ms) ease-out both; }
+body[data-mode] #panel .pad[data-led-reason="downbeat"] .led { animation:step-downbeat var(--led-pulse,85ms) ease-out both; }
+body[data-mode] #panel .pad[data-led-reason="selected"] .led { animation:step-selection 800ms steps(1,end) infinite; }
+body[data-mode] #panel .pad[data-led-reason="queued"] .led { animation:step-selection 400ms steps(1,end) infinite; }
+@keyframes step-cursor { from { background:#ff5438; } to { background:#ff3020; } }
+@keyframes step-downbeat { 0%,40% { background:#ff9a70; } 100% { background:#ff3020; } }
+@keyframes step-selection { 0%,49% { background:#ff3020; } 50%,100% { background:#9a2014; } }
+@media (prefers-reduced-motion:reduce) {
+  body[data-mode] #panel .pad[data-led-reason="cursor"] .led,
+  body[data-mode] #panel .pad[data-led-reason="downbeat"] .led { animation:none; }
+}

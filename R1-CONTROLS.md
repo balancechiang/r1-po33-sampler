@@ -40,6 +40,7 @@ In drum TRIM mode, edit the last-triggered slice. While playing, hold write and 
 - **IN:** highlighted when the microphone is available and record is held or recording is active. The meter shows input; OUT is dimmed.
 - **OUT:** highlighted when output is detected outside input-monitoring mode, including manually triggered notes and their tails.
 - **Red LEDs:** show recorded samples, selection, steps, patterns or FX according to the current mode.
+- **Step LED brightness:** in write mode or during playback, programmed steps in the selected sound lane are dim red; events in other lanes are a fainter red; empty steps are off. The currently playing step is bright, with a short brighter pulse on step 1. Pattern chains follow the pattern currently heard. Sound, pattern, FX and volume selection temporarily take priority over the step display.
 - Rabbit and glove motion follows the audio clock/BPM. It resets on stop and respects reduced-motion settings.
 
 IN/OUT highlight thresholds are an app implementation, not a verified frame-for-frame recreation of the hardware. All keys request a 12ms vibration pulse where supported, without a transient pressed-color effect. Shake sensitivity and vibration require real-device testing.
