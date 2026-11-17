@@ -1,10 +1,11 @@
-# PO-33 offline backup decoder
+# PO-33 backup codec
 
 The first decoder milestone of the Rabbit R1 hardware compatibility spec.
 Entry point: [`../src/codec/po33Codec.ts`](../src/codec/po33Codec.ts).
 Runtime code is pure TypeScript without Node, Web Audio, native or WASM calls.
-It is connected to the isolated [project audition page](../project-import.html),
-not to persistent project replacement or USB live decoding.
+It is connected to the original panel's backup/restore state machine and the
+isolated [project audition page](../project-import.html). See
+[transfer controls and evidence](../BACKUP-IO.md).
 
 ```ts
 import { decodePO33Backup, parseWavStereo, demodulateToBitstream }
@@ -46,10 +47,15 @@ const transport = demodulateToBitstream(
 - Decoding is synchronous and memory intensive. Run in a worker when adding
   R1 UI integration; desktop test timings are not R1 performance evidence.
 
-`encodePO33Backup`, live Worklet demodulation, USB 48 kHz capture integration,
-persistent sampler import and physical hardware acceptance remain pending.
-There is deliberately no encoder placeholder returning an ordinary audio WAV.
-The existing raw PCM16 replay page keeps its original format restrictions.
+`encodePO33Backup(project, rate=44100)` serializes `project.raw.state` into
+stereo PCM16 DQPSK WAV (also supports 48000/96000). `buildHardwareProject` in
+`po33WebProject.ts` applies current web edits before encoding. Untouched native
+fields remain intact. Direct edits to the preview `slots` array alone do not
+change `raw.state`; use the builder for that translation. All three real source
+frames survive encode/decode byte-identically. Physical hardware acceptance
+remains pending. Live input uses AudioWorklet capture at 44100/48000 and is
+decoded after Stop/two seconds of silence, not continuously demodulated during
+capture. The legacy raw page retains its original format restrictions.
 
 ## Browser audition
 

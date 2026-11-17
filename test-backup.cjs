@@ -28,3 +28,11 @@ const player=new Processor();player.port.onmessage({data:{command:'play',left:le
 let output=[new Float32Array(128),new Float32Array(128)];player.process([],[output]);assert.deepEqual(output[0],left.slice(0,128));assert.deepEqual(output[1],right.slice(0,128));
 output=[new Float32Array(128),new Float32Array(128)];player.process([],[output]);assert.equal(output[0][0],left[128]);assert(output[0].slice(1).every(x=>x===0));assert(player.messages.some(m=>m.type==='ended'));
 console.log('PASS: exhaustive PCM16 stereo byte roundtrip, strict headers/format rejection; independent channels, silent monitor, ordered chunk/final flush, mono and frame-gap rejection, exact stereo worklet playback.');
+const armed=new Processor();armed.port.onmessage({data:{command:'record',waitForSignal:true}});
+const zero=new Float32Array(128),tone=new Float32Array(128).fill(.25);
+for(const frame of [0,256]){sandbox.currentFrame=frame;armed.process([[zero,zero]],[[new Float32Array(128),new Float32Array(128)]]);}
+assert(!armed.messages.some(m=>m.type==='error'));
+sandbox.currentFrame=512;armed.process([[tone,tone]],[[new Float32Array(128),new Float32Array(128)]]);
+sandbox.currentFrame=768;armed.process([[tone,tone]],[[new Float32Array(128),new Float32Array(128)]]);
+assert(armed.messages.some(m=>m.type==='error'));
+console.log('PASS receive arming ignores silent startup gaps but rejects gaps after signal starts.');

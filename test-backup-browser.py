@@ -62,15 +62,17 @@ try:
             pairs=list(struct.iter_unpack('<hh',data))
             left=max(abs(l) for l,r in pairs);right=max(abs(r) for l,r in pairs)
             assert 8000<left<8300 and 16200<right<16500,(left,right)
-        # Sampler combination opens the separate transfer page without recording.
+        # Sampler combination now opens the integrated transfer state machine.
         panel=browser.new_page(viewport={'width':240,'height':282});panel.goto(url+'index.html');panel.wait_for_timeout(500)
         panel.keyboard.down('Shift')
         panel.locator('[data-act="write"]').click(force=True);panel.locator('[data-act="sound"]').click(force=True)
-        with panel.expect_popup() as popup:panel.locator('[data-act="play"]').click(force=True)
-        popup.value.wait_for_load_state();assert popup.value.url.endswith('backup.html#replay')
+        panel.locator('[data-act="play"]').click(force=True)
+        assert panel.locator('#transferControls').is_visible()
+        assert panel.locator('#lcdNumber').get_attribute('data-value')=='Snd'
+        panel.locator('#transferClose').click()
         panel.keyboard.up('Shift')
         assert not errors,errors
         page.screenshot(path=str(root/'backup-preview.png'),full_page=True)
-        print('PASS: localhost AudioWorklet stereo replay, byte-identical WAV download, device enumeration, incompatible input rejection; simulated stereo interface capture through real worklet preserves channel amplitudes and PCM format; sampler combo opens isolated transfer page. No JS errors. No physical hardware acceptance tested.')
+        print('PASS: localhost AudioWorklet stereo replay, byte-identical WAV download, device enumeration, incompatible input rejection; simulated stereo interface capture through real worklet preserves channel amplitudes and PCM format; sampler combo opens integrated transfer controls. No JS errors. No physical hardware acceptance tested.')
         browser.close()
 finally:server.shutdown();server.server_close()

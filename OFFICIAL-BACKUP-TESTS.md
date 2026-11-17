@@ -82,9 +82,11 @@ published or used as application presets. With these exact files present, run
 loading/saving tests. The script intentionally does not download or play audio.
 Results are written beside the fixtures as `browser-results.json`.
 
-Next steps are the modem/frame stages in [BACKUP-IO.md](BACKUP-IO.md). These
-official files now provide genuine reference signals. Supporting Escalate's
-raw playback would require an explicit 24-bit-preserving path; silently reducing
-it to PCM16 is not part of this test or the current transfer implementation.
+The main panel now performs validated project restore and re-encoding; see
+[BACKUP-IO.md](BACKUP-IO.md). All three official frames survive UI translation
+and stereo encode/decode byte-identically. The panel-downloaded Escalate WAV
+also recovers the exact original frame hash listed in the codec tests.
+The legacy raw page retains its PCM16-only restriction; re-encoding a decoded
+project is a separate operation, not a claim of byte-identical source WAV replay.
 
-简体中文：三份官方 Transfer 文件均已实测。两份 16-bit WAV 可作为原始音频载入且原样保存；Escalate 的 24-bit WAV 被拒绝。当前均不能解码成可编辑工程，已有音色／Pattern 未变。本轮只增加测试与结果记录，没有放宽格式校验或修改音频文件。
+简体中文：三份官方 Transfer 文件均可通过主面板解码并载入工程，未经修改时重新编码回读可保留完整原始帧。旧版 raw 页面仍仅接收 PCM16；这不限制主面板接收 Escalate 的 PCM24 原文件。实体 PO-33／R1 USB 声卡验收尚未完成。

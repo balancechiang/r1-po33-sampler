@@ -8,6 +8,7 @@ import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.j
 import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js";
 import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js";
 import { TAG } from "../../decoder/vendor/so-sample/packets.js";
+export { encodePO33Backup, transferTimeline } from "./po33Encode.js";
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
  * This does not relax the separate raw PCM16 hardware replay page.
@@ -76,13 +77,13 @@ function validatePcm(input) {
                 throw Error('Non-finite audio sample');
     return { sampleRate: input.sampleRate, channels: [Float64Array.from(input.left), Float64Array.from(input.right)], bitsPerSample: 32, format: 'float' };
 }
-function demodulate(wav) {
+function demodulate(wav, progress) {
     try {
-        return { ...decodePilotFrame(wav), channelOrder: 'normal' };
+        return { ...decodePilotFrame(wav, progress), channelOrder: 'normal' };
     }
     catch (normalError) {
         try {
-            return { ...decodePilotFrame({ ...wav, channels: [wav.channels[1], wav.channels[0]] }), channelOrder: 'swapped' };
+            return { ...decodePilotFrame({ ...wav, channels: [wav.channels[1], wav.channels[0]] }, progress), channelOrder: 'swapped' };
         }
         catch (swappedError) {
             throw Error(`No complete checksum-valid PO-33 frame. Normal: ${normalError.message}; swapped: ${swappedError.message}`);
@@ -101,7 +102,8 @@ export function demodulateToBitstream(left, right, sampleRate) {
 export function decodePO33Backup(wavOrPcm, options = {}) {
     const fromWav = wavOrPcm instanceof ArrayBuffer || wavOrPcm instanceof Uint8Array;
     const wav = fromWav ? readWav(wavOrPcm) : validatePcm(wavOrPcm);
-    const recovered = demodulate(wav), state = parseFrame(recovered.frame);
+    const recovered = demodulate(wav, options.onProgress), state = parseFrame(recovered.frame);
+    options.onProgress?.('validated', 1, 1);
     // Capture actual unwhitened payload bytes, not a re-encoded numeric header.
     const rawHeaders = new Map();
     let selectedRecord = -1;

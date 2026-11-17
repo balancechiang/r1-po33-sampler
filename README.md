@@ -30,7 +30,9 @@ The interface uses English labels. These documents are available in English, Sim
 
 ## Scope and credits
 
-This is an independent PO-33-inspired web app, not the original hardware firmware. FX are Web Audio interpretations. Physical line-sync/data-transfer protocols, cross-slot single-slice copying and step multipliers are not implemented. Microphone permissions, vibration, motion sensitivity and audio latency still require r1 testing.
+This is an independent PO-33-inspired web app, not the original hardware firmware. FX are Web Audio interpretations. Hardware-project WAV backup/restore and dedicated stereo transfer are implemented; physical PO-33/R1 USB acceptance and line-sync remain unverified. Musical parameter-lock playback is incomplete. Microphone permissions, vibration, motion sensitivity and audio latency still require r1 testing.
+
+WRITE + SOUND + RECORD receives a backup; WRITE + SOUND + PLAY prepares one for saving or stereo output. For one-finger touch, hold and release WRITE and SOUND individually for 500 ms, then tap the third key. See [transfer controls, display states and limits](BACKUP-IO.md).
 
 The original procedural factory sounds and sequences are offered under CC0-1.0. This does not assign that license to the entire application or its artwork. The bundled DSEG font retains its SIL OFL-1.1 license; see [the font license](fonts/DSEG-LICENSE.txt).
 

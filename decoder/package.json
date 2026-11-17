@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --expose-gc test-decoder.cjs",
+    "test:encode": "node --expose-gc test-encode.cjs",
     "typecheck": "tsc --project tsconfig.json",
     "build:browser": "node build-browser.cjs"
   },

@@ -5,7 +5,7 @@ class PO33BackupProcessor extends AudioWorkletProcessor {
     this.left=new Float32Array(4096);this.right=new Float32Array(4096);this.used=0;
     this.meterFrames=0;this.peak=[0,0];this.cross=[0,0];this.previous=[0,0];this.expected=null;
     this.port.onmessage=({data:m})=>{
-      if(m.command==='record'){this.frames=0;this.sequence=0;this.used=0;this.expected=null;this.recording=true;}
+      if(m.command==='record'){this.frames=0;this.sequence=0;this.used=0;this.expected=null;this.waitForSignal=!!m.waitForSignal;this.signalDetected=false;this.recording=true;}
       if(m.command==='stop'){
         this.recording=false;this.playing=false;this.audio=null;this.flush();
         this.port.postMessage({type:'stopped',frames:this.frames});
@@ -32,14 +32,21 @@ class PO33BackupProcessor extends AudioWorkletProcessor {
       if(this.cursor===this.audio[0].length){this.playing=false;this.audio=null;this.port.postMessage({type:'ended'});}
     } else if(this.recording&&input.length){
       if(input.length!==2){this.fail('Input is not stereo. Recording discarded.');return true;}
+      // A newly attached MediaStream may have empty startup quanta. They are
+      // outside the signal, not missing backup symbols. Once carrier-level
+      // input arrives, preserve the strict render-gap rejection.
+      if(this.waitForSignal && !this.signalDetected){
+        this.expected=null;
+        this.signalDetected=input.some(c=>c.some(x=>Math.abs(x)>.005));
+      }
       if(this.expected!==null&&this.expected!==currentFrame){this.fail('Render-frame gap detected. Recording discarded.');return true;}
       this.expected=currentFrame+input[0].length;source=input;
       for(let i=0;i<input[0].length;i++){
         this.left[this.used]=input[0][i];this.right[this.used]=input[1][i];this.used++;this.frames++;
         if(this.used===4096)this.flush();
-        if(this.frames===44100*600){this.recording=false;break;}
+        if(this.frames===sampleRate*600){this.recording=false;break;}
       }
-      if(this.frames>=44100*600){this.recording=false;this.flush();this.port.postMessage({type:'stopped',frames:this.frames});}
+      if(this.frames>=sampleRate*600){this.recording=false;this.flush();this.port.postMessage({type:'stopped',frames:this.frames});}
     }
     if(source){
       for(let c=0;c<2;c++)for(const x of source[c]){this.peak[c]=Math.max(this.peak[c],Math.abs(x));if(this.previous[c]<=0&&x>0)this.cross[c]++;this.previous[c]=x;}

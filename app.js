@@ -10,6 +10,17 @@
   "use strict";
   // Hardware projects can be auditioned without reading or writing saved projects.
   var backupPreview = new URLSearchParams(window.location.search).get("backupPreview") === "1";
+  var hardwareTransfer=null;
+  // Keep panel performance gestures out of the dedicated transfer audio path.
+  ["pointerdown","keydown","wheel","sideClick","longPressStart","scrollUp","scrollDown"].forEach(function(type){
+    window.addEventListener(type,function(e){
+      if(!hardwareTransfer || !hardwareTransfer.view.active)return;
+      var controls=e.target && e.target.closest && e.target.closest("#transferControls");
+      if(controls){if(type==="keydown")e.stopPropagation();return;}
+      if(e.key==="Escape")hardwareTransfer.close();
+      if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
+    },true);
+  });
 
   // ---------- constants & state ----------
   var MELODIC_SLOTS = 8; // slots 1-8 melodic, 9-16 drum
@@ -154,6 +165,7 @@
   }
 
   function enqueueSave(job) {
+    if(hardwareTransfer && hardwareTransfer.hasSession)return;
     if (saveRunning && saveQueued[job.key]) return; // replace the one still waiting
     if (saveQueued[job.key]) {
       saveQueue = saveQueue.filter(function (j) { return j.key !== job.key; });
@@ -397,6 +409,7 @@
 
   var metaTimer = null;
   function persistSoon() {
+    if(hardwareTransfer && hardwareTransfer.hasSession){hardwareTransfer.checkpoint();return;}
     if (persistPaused) return;
     if (metaTimer) clearTimeout(metaTimer);
     metaTimer = setTimeout(function () {
@@ -407,6 +420,7 @@
 
   // anything still queued goes out now (the page may be closing)
   function flushPersist() {
+    if(hardwareTransfer && hardwareTransfer.hasSession){hardwareTransfer.flush().catch(function(){});return;}
     if (persistPaused) return;
     savePendingTakes();
     for (var p = 1; p <= PATTERNS; p++) {
@@ -1607,6 +1621,13 @@
     pending: null,
     error: null
   };
+  var micGeneration=0;
+  function disconnectMusicMic(){
+    micGeneration++;
+    if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
+    [mic.node,mic.proc,mic.silent].forEach(function(n){if(n){try{n.disconnect();}catch(error){}}});
+    mic.stream=mic.node=mic.proc=mic.silent=mic.pending=null;mic.error=null;inputLevel=0;
+  }
 
   var rec = {
     on: false,
@@ -1651,7 +1672,7 @@
       mic.error = "NO MIC";
       return Promise.resolve(false);
     }
-    var c = ctx();
+    var c = ctx(), requestGeneration=micGeneration;
     mic.pending = md
       .getUserMedia({
         audio: {
@@ -1661,7 +1682,7 @@
         }
       })
       .then(function (stream) {
-        if(resetBusy || resetFailure){stream.getTracks().forEach(function(track){track.stop();});return false;}
+        if(requestGeneration!==micGeneration || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(track){track.stop();});if(requestGeneration===micGeneration)mic.pending=null;return false;}
         mic.stream = stream;
         mic.node = c.createMediaStreamSource(stream);
         mic.proc = c.createScriptProcessor(4096, 1, 1);
@@ -1676,6 +1697,7 @@
         return true;
       })
       ["catch"](function (err) {
+        if(requestGeneration!==micGeneration)return false;
         mic.pending = null;
         mic.error = "MIC DENIED";
         return false;
@@ -1959,6 +1981,12 @@
     var stepView = state.mode === "STEP" || seq.playing;
     d.getElementById("panel").style.setProperty("--led-pulse", Math.min(110,stepDur()*700)+"ms");
     for(var p=0;p<pads.length;p++) {
+      if(hardwareTransfer && hardwareTransfer.view.active){
+        var tv=hardwareTransfer.view, cursor=tv.record ? tv.record-1 : Math.min(15,Math.floor((tv.progress || 0)*16));
+        var bright=tv.state==="success" || (["sending","decoding","encoding"].indexOf(tv.state)>=0 && p===cursor);
+        pads[p].setAttribute("data-led-level",bright?"bright":"off");
+        pads[p].setAttribute("data-led-reason","transfer-"+tv.state);continue;
+      }
       pads[p].classList.toggle("step-edit",!!(stepEdit && stepEdit.used && stepEdit.slot===state.slot && stepEdit.step===p));
       var level="off", reason="empty";
       if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
@@ -2145,17 +2173,36 @@
 
   var ctl = d.getElementById("ctl");
   var lastPointer = 0;
+  var touchChord={},touchChordTimers={},touchChordIdle=null;
+  function clearTouchChord(){
+    clearTimeout(touchChordIdle);
+    Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
+    var held=touchChord;touchChord={};
+    Object.keys(held).forEach(function(act){
+      var key=ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove("transfer-latched");
+      releaseControls({pointerId:held[act],type:"pointercancel"});
+    });
+  }
 
   function onCtlDown(e) {
     var btn=e.target.closest ? e.target.closest(".cbtn") : null;
     if(!btn) return; e.preventDefault(); lastPointer=Date.now();
+    if(hardwareTransfer && hardwareTransfer.view.active)return;
     var act=btn.getAttribute("data-act");
+    if(touchChord[act]!==undefined){clearTouchChord();return;}
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=false;
+    if(e.pointerType==="touch" && (act==="write" || act==="sound")){
+      var pointer=pid(e);
+      touchChordTimers[pointer]=setTimeout(function(){
+        if(modifierPointers[act]!==pointer)return;
+        touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");
+        clearTimeout(touchChordIdle);touchChordIdle=setTimeout(clearTouchChord,8000);
+      },500);
+    }
     if(writeHeld && soundHeld && (act==="play" || act==="rec")){
-      modifierUsed.write=true;stopSeq();
-      var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
-      ctx().suspend();window.open("./backup.html#"+(act==="play"?"replay":"receive"),"po33-hardware-backup");return;
+      modifierUsed.write=modifierUsed.sound=true;
+      hardwareTransfer.open(act==="play"?"send":"receive");return;
     }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true); ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
@@ -2174,6 +2221,7 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    clearTimeout(touchChordTimers[pid(e)]);delete touchChordTimers[pid(e)];
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
     if(padPointer!==undefined && pid(e)===padPointer) {
@@ -2181,6 +2229,7 @@
     }
     Object.keys(modifierPointers).forEach(function(act){
       if(modifierPointers[act]!==pid(e))return;
+      if(touchChord[act]===pid(e) && e.type!=="pointercancel")return;
       delete modifierPointers[act];
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {
@@ -2208,6 +2257,7 @@
   window.addEventListener("pointerup",releaseControls);
   window.addEventListener("pointercancel",releaseControls);
   window.addEventListener("blur",function(){
+    clearTouchChord();
     shiftHolds={};
     r1Focused=false;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
@@ -2249,6 +2299,7 @@
     }
     var id=shiftPointerSerial--;shiftHolds[key]={id:id};e.po33PointerId=id;
   },true);
+  d.addEventListener("pointerdown",function(e){if(Object.keys(touchChord).length && !e.target.closest(".cbtn,.pad,.knob"))clearTouchChord();},true);
   window.addEventListener("keyup",function(e){if(e.key==="Shift" && !e.shiftKey)releaseShiftHolds(false);});
   window.addEventListener("pointercancel",function(e){if(e.pointerType==="mouse")releaseShiftHolds(true);});
   d.addEventListener("visibilitychange",function(){if(d.hidden)releaseShiftHolds(true);});
@@ -2322,6 +2373,8 @@
     if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
+    var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
+    if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
     d.getElementById("lcdPlay").setAttribute("fill",seq.playing?"#fff":"#222");
@@ -2332,15 +2385,16 @@
     var level=0;
     var inputActive=!!((recHeld||rec.on) && micReady());
     if(inputActive)level=inputLevel;
-    else if(outputMeter && outputData){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++)level=Math.max(level,Math.abs(outputData[ai]));}
+    else if(outputMeter && outputData && ac && ac.state==="running"){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++)level=Math.max(level,Math.abs(outputData[ai]));}
     if(!inputActive && level>.003)outputActiveUntil=Date.now()+110;
-    [["lcdIn",inputActive],["lcdOut",!inputActive && Date.now()<outputActiveUntil]].forEach(function(pair){
+    if(transferView){level=transferView.level || 0;inputActive=["listening","receiving"].indexOf(transferView.state)>=0;}
+    [["lcdIn",inputActive],["lcdOut",transferView?transferView.state==="sending":!inputActive && Date.now()<outputActiveUntil]].forEach(function(pair){
       var g=d.getElementById(pair[0]);g.setAttribute("data-active",pair[1]?"true":"false");
       g.querySelector("rect").setAttribute("fill",pair[1]?"#fff":"#222");
       g.querySelector("text").setAttribute("fill",pair[1]?"#000":"#888");
     });
     if(!lcdIndicator)lcdIndicator=window.PO33Indicator.create(d.getElementById("lcdMeter"),{mode:"level",value:0},{x:19,y:24.25});
-    lcdIndicator.setProps(indicatorProps(level,inputActive));
+    lcdIndicator.setProps(transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*32):Math.floor(Math.min(1,transferView.progress)*32)}:indicatorProps(level,inputActive));
   }
   function indicatorProps(level,inputActive) {
     var meter={mode:"level",origin:seq.playing && !inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
@@ -2544,7 +2598,7 @@
     if (e.key === "p" || e.key === "P") { e.preventDefault(); patternHeld = false; paint(); }
   });
 
-  d.addEventListener("pointerdown", function () { try { ctx(); } catch (err) {} }, true);
+  d.addEventListener("pointerdown", function () { if(hardwareTransfer && hardwareTransfer.view.active)return;try { ctx(); } catch (err) {} }, true);
 
   paint();
 
@@ -2610,6 +2664,7 @@
     d.body.setAttribute("data-resetting","true");paint();
     try{
       if(!recover && startupRestore)await startupRestore;
+      if(hardwareTransfer)await hardwareTransfer.reset();
       persistPaused=true;
       if(metaTimer){clearTimeout(metaTimer);metaTimer=null;}
       saveQueue=[];saveQueued={};
@@ -2618,8 +2673,7 @@
       rec.on=false;rec.chunks=[];rec.replacing=null;
       if(rec.timer){clearInterval(rec.timer);rec.timer=null;}
       d.body.classList.remove("recording");
-      if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
-      [mic.node,mic.proc,mic.silent].forEach(function(node){if(node){try{node.disconnect();}catch(err){}}});
+      disconnectMusicMic();
       stopSeq();stopShakeSensors();cancelShakeFx();stopTransportAnimation();clearFxTimers();transportGeneration++;
       var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
       // Let an already dispatched storage write finish before removing its key.
@@ -2666,23 +2720,50 @@
     // takes come back by themselves
     try { ctx(); } catch (err) { /* the first tap opens it instead */ }
   }
-  startupRestore=startRestore();
+  function stopForTransfer(){
+    clearTouchChord();
+    stopSeq();if(rec.on)finishRec();setRecHeld(false);endStepEdit(true);
+    var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
+    disconnectMusicMic();
+    clearFxTimers();fxRelease();bpmHeld=fxHeld=writeHeld=soundHeld=patternHeld=false;
+    modifierPointers={};shiftHolds={};state.mode="PLAY";
+    if(ac && ac.state==="running")ac.suspend();
+  }
+  function snapshotProject(){
+    var assets=[],ids={};
+    function view(s){if(!s)return null;var b=s.buffer;if(!b._po33id)b._po33id="transfer-"+Date.now().toString(36)+"-"+(++audioSerial);
+      if(!ids[b._po33id]){assets.push({id:b._po33id,rate:b.sampleRate,data:b.getChannelData(0).slice()});ids[b._po33id]=true;}
+      return {asset:b._po33id,offset:s.offset || 0,duration:s.duration};}
+    var slots=samples.map(function(s){if(!s)return null;var v=view(s);if(s.sliceViews)v.slices=s.sliceViews.map(view);return v;});
+    return {assets:assets,slots:slots,patterns:JSON.parse(JSON.stringify(patterns)),extras:JSON.parse(JSON.stringify(patternExtras)),tweaks:JSON.parse(JSON.stringify(tweaks)),bpm:params.bpm,swing:SWING,chain:patternChain.slice(),pattern:seq.pattern,slot:state.slot,masterVolume:masterVolume,patternSettings:JSON.parse(JSON.stringify(patternSettings)),lastNotes:lastNotes.slice()};
+  }
+  function applySnapshot(snapshot){
+    var c=ctx(),buffers={};snapshot.assets.forEach(function(a){var b=c.createBuffer(1,a.data.length,a.rate);b.copyToChannel(a.data,0);b._po33id=a.id;buffers[a.id]=b;});
+    function view(v){if(!v)return null;return {buffer:buffers[v.asset],offset:v.offset,duration:v.duration,trim:0,pitch:0};}
+    stopForTransfer();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
+    patterns=JSON.parse(JSON.stringify(snapshot.patterns));patternExtras=JSON.parse(JSON.stringify(snapshot.extras));tweaks=JSON.parse(JSON.stringify(snapshot.tweaks));
+    params.bpm=snapshot.bpm;SWING=snapshot.swing;patternChain=snapshot.chain.slice();seq.pattern=snapshot.pattern || patternChain[0] || 1;seq.queued=0;chainPosition=0;
+    patternSettings=snapshot.patternSettings || Array(16).fill(null);state.slot=snapshot.slot || 1;lastNotes=snapshot.lastNotes || Array(16).fill(0);
+    masterVolume=snapshot.masterVolume===undefined?8:snapshot.masterVolume;if(mixVolume)mixVolume.gain.value=masterVolume/16;paint();
+  }
+  function adoptHardware(project){
+    var imported=window.PO33PreviewAdapter.adapt(project,ctx());
+    stopForTransfer();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
+    patternSettings=Array(16).fill(null);params.bpm=imported.bpm;SWING=0;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
+    state.slot=1;state.mode="PLAY";masterVolume=8;if(mixVolume)mixVolume.gain.value=.5;paint();return imported;
+  }
+  if(window.PO33TransferFactory){
+    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint});
+    window.PO33Transfer=hardwareTransfer;
+  }
+  startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();});
   if (backupPreview && window.parent !== window) {
     window.addEventListener("message", async function(event) {
       if(event.source!==window.parent || event.origin!==window.location.origin || !event.data || event.data.type!=="po33-preview-project")return;
       try {
         await startupRestore;
         if(rec.on || resetBusy)throw Error("Stop recording or resetting before loading a project.");
-        var imported=window.PO33PreviewAdapter.adapt(event.data.project,ctx());
-        stopSeq();
-        sampleVoices.slice().forEach(function(v){cancelVoice(v,ctx().currentTime);});
-        samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;
-        tweaks=imported.tweaks;patternSettings=Array(16).fill(null);
-        params.bpm=imported.bpm;SWING=0;patternChain=imported.chain;
-        chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
-        state.slot=1;state.mode="PLAY";masterVolume=8;
-        if(mixVolume)mixVolume.gain.value=masterVolume/16;
-        paint();
+        var imported=adoptHardware(event.data.project);
         window.parent.postMessage({type:"po33-preview-loaded",summary:imported.summary},window.location.origin);
       } catch(error) {
         window.parent.postMessage({type:"po33-preview-error",error:error.message},window.location.origin);

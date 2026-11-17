@@ -8,6 +8,7 @@ import { decodeMulaw, SAMPLE_RATE } from '../../decoder/vendor/so-sample/mulaw.t
 import { readCell, readEffects } from '../../decoder/vendor/so-sample/pattern.ts';
 import { readChain, readSwing, readTempo } from '../../decoder/vendor/so-sample/globals.ts';
 import { TAG } from '../../decoder/vendor/so-sample/packets.ts';
+export { encodePO33Backup, transferTimeline } from './po33Encode.ts';
 export interface PO33Slice {
     startSample: number;
     endSample: number;
@@ -117,6 +118,7 @@ export interface PO33SliceDiagnostic {
 export interface PO33DecodeOptions {
     /** Called at slice resolution for each out-of-pool range; no logging by default. */
     onSliceDiagnostic?: (diagnostic: PO33SliceDiagnostic) => void;
+    onProgress?: (phase: string, completed: number, total: number) => void;
 }
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
@@ -191,15 +193,15 @@ function validatePcm(input: PO33PcmInput): WavData {
                 throw Error('Non-finite audio sample');
     return { sampleRate: input.sampleRate, channels: [Float64Array.from(input.left), Float64Array.from(input.right)], bitsPerSample: 32, format: 'float' };
 }
-function demodulate(wav: WavData): ReturnType<typeof decodePilotFrame> & {
+function demodulate(wav: WavData, progress?: PO33DecodeOptions['onProgress']): ReturnType<typeof decodePilotFrame> & {
     channelOrder: 'normal' | 'swapped';
 } {
     try {
-        return { ...decodePilotFrame(wav), channelOrder: 'normal' };
+        return { ...decodePilotFrame(wav, progress), channelOrder: 'normal' };
     }
     catch (normalError) {
         try {
-            return { ...decodePilotFrame({ ...wav, channels: [wav.channels[1], wav.channels[0]] }), channelOrder: 'swapped' };
+            return { ...decodePilotFrame({ ...wav, channels: [wav.channels[1], wav.channels[0]] }, progress), channelOrder: 'swapped' };
         }
         catch (swappedError) {
             throw Error(`No complete checksum-valid PO-33 frame. Normal: ${(normalError as Error).message}; swapped: ${(swappedError as Error).message}`);
@@ -222,7 +224,8 @@ export function demodulateToBitstream(left: Float32Array, right: Float32Array, s
 export function decodePO33Backup(wavOrPcm: ArrayBuffer | Uint8Array | PO33PcmInput, options: PO33DecodeOptions = {}): PO33Project {
     const fromWav = wavOrPcm instanceof ArrayBuffer || wavOrPcm instanceof Uint8Array;
     const wav = fromWav ? readWav(wavOrPcm) : validatePcm(wavOrPcm);
-    const recovered = demodulate(wav), state = parseFrame(recovered.frame);
+    const recovered = demodulate(wav, options.onProgress), state = parseFrame(recovered.frame);
+    options.onProgress?.('validated', 1, 1);
     // Capture actual unwhitened payload bytes, not a re-encoded numeric header.
     const rawHeaders = new Map<number, Uint8Array>();
     let selectedRecord = -1;

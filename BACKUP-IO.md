@@ -1,140 +1,135 @@
-# Hardware Backup I/O — implementation and evidence
+# Hardware project audio transfer
 
-## Current status
+Implemented locally on 2026-11-17. Serve this folder with HTTPS or localhost
+(for example `python -m http.server 8765`) and open `index.html`.
+No release package or deployment has been prepared.
 
-The three official Transfer packs have now been tested against this page:
-two PCM16 packs load and save byte-identically; the 24-bit Escalate pack is
-rejected. None imports as an editable project. See [actual fixture results](OFFICIAL-BACKUP-TESTS.md).
+## Panel controls
 
-Stage 1 software is implemented in `backup.html`, `backup-ui.js`,
-`backup-worklet.js` and `backup-wav.js`. Physical PO-33 loopback acceptance has
-**not** been tested. An offline pure TypeScript DQPSK decoder, packet CRC
-validator and sample/pattern parser now exist in `src/codec/po33Codec.ts`.
-All three real official packs pass packet validation; see [decoder details](decoder/README.md),
-including Escalate's ten unresolved sample ranges. The raw page links to
-`project-import.html`, which decodes WAVs in a worker and auditions them in
-an isolated instance of the original panel. Saved sampler projects are untouched;
-some native parameter locks and swing are not yet reproduced. The raw replay
-controls retain their PCM16 restrictions. Hardware-project encoding/export and
-live decoding are not implemented. There is no claim
-that the web sampler's beat WAV export is a hardware backup.
+- **WRITE + SOUND + RECORD** opens receive mode, with `rcv` on the existing LCD.
+  Choose **Open WAV** for a backup file, or **Line in** for a stereo interface.
+- **WRITE + SOUND + PLAY** encodes the current project. Choose **Save WAV**
+  or put the hardware in receive mode and choose **Line out**.
+- Keep the two modifiers held and tap the third key. Shift+mouse holds work.
+  For one-finger touch, hold WRITE for 500 ms and release, hold SOUND for
+  500 ms and release, then tap RECORD or PLAY. Latched keys have a thin orange
+  outline, clear on another tap/outside tap/blur, and expire after eight seconds.
+- **I/O → Find devices** lists interface inputs/outputs. Where output selection
+  is unsupported, choose the system default in OS settings. Permissions are
+  requested only for an explicit input/device action.
+- **Stop / Close** cancels transfer. No signal plays automatically.
+  **Undo restore**, available in the current session, returns to the preceding
+  project; it is distinct from factory reset.
 
-The new path records/replays an existing raw backup audio signal. It never
-imports that signal into sample slots and never overwrites the web project.
-It does not transmit anything automatically. Device permissions and playback
-always require user actions. No audio or device identifiers are uploaded.
+These combinations match the [official data-transfer controls](https://teenage.engineering/guides/po-33/en).
+Original geometry and ordinary performance controls are unchanged outside
+transfer mode. Transfer controls temporarily share the small screen with a
+scaled instance of the same panel.
 
-## Open and test
+## Display state machine
 
-Serve this repository with HTTPS or localhost. For local development, run
-`python -m http.server 8765` in this folder and open
-`http://localhost:8765/backup.html`. AudioWorklet module loading is not supported
-reliably from `file://`; there is no ScriptProcessor fallback.
+| State | Seven-segment display | 32 squares | Numeric-key LEDs / I/O |
+| --- | --- | --- | --- |
+| Receive ready | `rcv` | Empty | Off; input icon activates when capture opens |
+| Listening | `rcv` | Real input peak level | IN white; 60-second no-signal timeout |
+| Receiving stream | `rcv` | Real input peak level | IN white; no fabricated total percentage |
+| Reading local file | `rcv` | Actual bytes read | Off |
+| Validating audio | `rcv`, CHECK label | Carrier-recovery processing progress | Processing cursor |
+| Preparing send | `Snd` | Actual synthesized sample count | Processing cursor |
+| Send ready | `Snd` | Empty | No audio output yet |
+| Sending | `Snd` | Output frame count / total, left-to-right | OUT white; LEDs follow actual selectors |
+| Successful restore / saved or sent backup | `End` | All 32 | All 16 LEDs bright; return after 2.5 seconds |
+| Failure | `err` | Empty | No transfer lights; reason in controls |
 
-The main panel's WRITE + SOUND + PLAY opens the raw replay page, and
-WRITE + SOUND + RECORD opens the raw receive page. Shift+mouse holds work for
-these combinations. The sampler output is stopped/suspended first, so its
-musical processing does not mix with a transfer. The transfer page is separate
-from the established 240×282 panel.
+There is **no duration-derived percentage for a stream of unknown length**.
+The current non-streaming decoder verifies the full signal after recording
+stops. It cannot know an exact remaining-byte count while listening.
+After two seconds below the input threshold, recording stops and validation
+starts; Stop can finish input manually. A silent/no-signal capture, overload,
+track disconnection, active-signal render gap, hidden page or bad CRC cannot
+result in a successful restore. Empty startup quanta before carrier arrival
+are outside the signal; active-signal gaps remain errors.
 
-1. Select the USB audio interface. Device enumeration requires permission;
-   the permission-only stream is stopped immediately. Output selection requires
-   `AudioContext.setSinkId`; otherwise explicitly choose the desired default
-   output in the operating system.
-2. Record from PO-33 line out using WRITE + SOUND + PLAY on the hardware.
-   The capture context explicitly requests 44100 Hz; the track requests exactly
-   44100 Hz and two channels, with echo cancellation, noise suppression and AGC
-   disabled. Reported settings must confirm these values. Unknown settings fail
-   closed. The worklet independently rejects a mono source; it never duplicates
-   it to stereo. Monitoring output remains silent to avoid feedback.
-3. Stop after the hardware finishes. The worklet flushes the final partial
-   block before acknowledging stop. The main thread checks block sequence and
-   frame counts. Gaps, channel mismatch or device disconnection discard capture.
-4. Save the original stereo PCM16/44100 WAV. Or open/drop an existing file in
-   that format. The strict parser does not call `decodeAudioData` and rejects
-   MP3, mono, other rates/bit depths and malformed/truncated input.
-5. Connect output to PO-33 line in. Put hardware in receive mode with
-   WRITE + SOUND + RECORD. Receiving replaces its sounds/patterns. Replay the
-   raw WAV and verify progress/no `Err` on the hardware. Configure system
-   volume and disable EQ/spatial/effects manually; the page uses unity gain.
+The observed packet layout is globals → patterns → sound records, not a
+hard-coded sound-first animation. Sending LEDs use byte-derived selector
+positions in the encoded stream. LED/display timing and terminal duration
+are an app simulation, not verified captures of every hardware transition.
 
-The browser checks its context/track format, not the physical ADC/DAC or OS
-audio engine. A 44100 Hz context alone cannot prove absence of resampling in
-the OS/interface. The explicit requirements are enforced as far as observable;
-hardware loopback remains the acceptance criterion.
+`End` on receive means complete frame, CRC and state parsing passed and the
+project was loaded. `End` on send means output finished; **the browser cannot
+confirm that a physical PO-33 accepted it**. Check the receiving hardware.
 
-There is a 10-minute audio limit and a 128 MB input-file limit. Recording is
-memory-backed; use a desktop for long transfers. Tab hiding aborts recording.
-Peak meters and rising-crossing frequency estimates are calibration aids,
-**not** SNR measurement, modem lock, frame CRC validation or proof of completion.
-The page does not automatically stop at a presumed END frame.
+## Codec and audio path
 
-## Reference audit and corrections to the proposed plan
+`src/codec/po33Codec.ts` exports the decoder and `encodePO33Backup`.
+`po33Encode.ts` serializes/whitens packets, emits a 4096-byte preamble and
+7812.5-symbol/s stereo DQPSK, and constructs a 44-byte PCM16 RIFF header.
+The same source builds the checked-in `decoder/browser` modules. A module
+worker does CPU-heavy work. Newly generated WAVs are signal-decoded and
+validated before Save or Line out becomes available.
 
-Consulted on 2026-11-17:
+`po33WebProject.ts` translates current web samples, slices, notes, lengths,
+retriggers, FX and chain. New samples use polyphase conversion to 23437.5 Hz,
+signed mu-law, shared-pool allocation and the 241-page capacity check.
+Fresh web projects additionally enforce a 40-second source budget. These
+musical-sample conversions never touch the modem output signal.
 
-- [cspotcode/PO-33-KO-backup-re](https://github.com/cspotcode/PO-33-KO-backup-re)
-  and its [original discussion](https://www.reddit.com/r/pocketoperators/comments/d1hd9o/deconstructing_po33_backup_format/)
-  are early phase/symbol observations and partial tooling, not a complete
-  editable-project specification. The README's 7800 Hz is an approximation.
-- [rileyjshaw/po-33](https://github.com/rileyjshaw/po-33) plays ordinary audio
-  sample chains into a drum bank. It is not the backup modem or complete
-  samples/patterns binary project serializer. No source code from it is copied.
-- [ericlewis/libpo](https://github.com/ericlewis/libpo), observed revision
-  `bd56423d1ab20a36870a94c9373da5938ebadf34`, provides more recent MIT-licensed
-  [stereo transport](https://github.com/ericlewis/libpo/blob/bd56423d1ab20a36870a94c9373da5938ebadf34/core/docs/api/STEREO.md)
-  and [PO-33 format evidence](https://github.com/ericlewis/libpo/blob/bd56423d1ab20a36870a94c9373da5938ebadf34/core/docs/formats/PO33.md).
-  Its modem uses **7812.5 symbols/s**, not an exact 7800 constant. The sample
-  data lead is 8-bit mu-law at 23437.5 Hz, distinct from transfer WAV PCM16/44100.
-  This repository's new Stage 1 code is original; no libpo C code is vendored.
-- The libpo format notes establish 510-byte settings and 1032-byte pattern
-  records, while explicitly retaining raw/unknown fields. Numerical note,
-  timing, retrigger and some knob mappings are unresolved. A carrier alone is
-  insufficient: channel order, differential mapping, clock recovery, framing,
-  whitening, CRC and termination must all agree.
-- Sample capacity accounting includes shared pools, allocation rounding and
-  audio outside trims. An array of independently copied Float32 samples and
-  a naive sum of visible slice lengths is not a hardware-equivalent schema.
+An unchanged received project re-exports every original frame byte, including
+unknown fields, parameter-only cells and Escalate's unresolved references.
+Note edits preserve unrelated raw patterns and original sample allocation.
+Sample/trim edits rebuild allocation; unresolved pads cannot be recreated,
+and the send UI reports this limitation. New or edited web parameter locks
+use approximate mappings and are not hardware calibrated. Native filter,
+level/resonance automation and swing survive untouched exports but remain
+incompletely reproduced by musical playback.
 
-Relevant platform references: [AudioWorkletNode](https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletNode),
-[track settings](https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/getSettings),
-[output selection](https://developer.mozilla.org/en-US/docs/Web/API/AudioContext/setSinkId).
+`backup-worklet.js` transports independent stereo channels, monitors input
+silently, checks block ordering/frame continuity and reports real peaks.
+The transfer context bypasses sampler volume, filters, saturation and FX.
+Live capture accepts verified stereo at the actual 44100/48000 context rate,
+disables echo cancellation/noise suppression/AGC, and rejects mono. Output
+requires the encoded rate; no modem resampling/downmix is used. Browser
+settings cannot prove the OS or USB converter is unprocessed. Actual USB
+routing in R1 Creation remains unverified.
 
-## Next gated milestones
+## Storage and recovery
 
-1. **Hardware loopback:** save a real capture, replay it unchanged, and record
-   the physical acceptance result plus interface/browser/settings. This is
-   still required to complete Stage 1 acceptance.
-2. **Opaque transport first:** implement/port the pinned modem and packet
-   validation, with original raw frame retention. Compare against known
-   captures and an independent decoder. Re-modulate unchanged bytes and test
-   hardware acceptance before enabling edits. A generated self-roundtrip alone
-   cannot establish protocol correctness. Preserve left/right order and raw
-   unknown packet tags, boundaries and fields.
-3. **Editable records:** keep raw settings, pattern cells, FX nibbles and source
-   pool topology alongside any semantic project view. Use controlled hardware
-   changes/readbacks to resolve displayed note/length/retrigger/parameter units.
-   Do not guess them, normalize raw zeros, discard parameter-only rows, or map
-   web FX button numbers to stored codes without evidence. Reject unsupported
-   edits explicitly. Preserve per-pattern web BPM/swing as web extensions;
-   hardware settings expose a global tempo, not these app-specific values.
-4. **Sample conversion and complete serialization:** separately validate mu-law
-   conversion, rate adaptation for ordinary sample audio, shared aliases, guard
-   and allocation limits, raw retained state, full frame checksums/termination,
-   and hardware edited-project acceptance. Resampling ordinary sample PCM to
-   the internal sample rate is distinct from and must never alter the modem
-   transfer audio path.
+Only a complete validated receive replaces the in-memory project. Cancel or
+failure leaves it intact. Original `po33.*` creationStorage/localStorage keys
+are retained. Received projects and subsequent edits checkpoint in the
+separate `po33-hardware-project` IndexedDB database, retaining native raw
+state and full-rate sample assets; startup restores that checkpoint. Undo
+returns to the preceding session project. Factory reset clears the checkpoint
+and usual sampler keys. Checkpoint failure is reported as memory-only restore.
 
-## Automated checks
+Large backups are memory intensive. R1 memory limits and WebView support
+must be measured on device. No audio or device identifiers are uploaded.
 
-`node test-backup.cjs` exhaustively roundtrips all 65536 signed PCM16 values,
-checks exact stereo WAV bytes and strict format rejection, then tests worklet
-capture/flush, mono and frame-gap rejection, silent monitoring and exact replay.
+## Tests and evidence
 
-`python -X utf8 test-backup-browser.py` serves localhost and tests actual Edge
-AudioWorklet playback/capture, file saving, devices, rejection, and the panel
-entry. Capture uses a simulated compliant interface fed by a real stereo Web
-Audio source. Audio is muted by the test browser. This does not test physical
-USB ADC/DAC fidelity or PO-33 acceptance.
+- `node --expose-gc decoder/test-encode.cjs`: all three real official WAVs →
+  UI snapshot → encode → decode, with identical full source frames; 44.1/48 kHz,
+  preserved unknown ranges, isolated note edits, fresh web-factory encoding.
+  Generates the short synthetic 48 kHz fixture used below.
+- `node test-backup.cjs`: stereo preservation, Worklet output, ordered capture,
+  mono rejection and pre/post-carrier gap behavior.
+- `python -X utf8 test-transfer-panel.py`: actual three-key and one-finger
+  combinations; rcv/err/End/Snd, 32 squares, LEDs/OUT, validated file restore,
+  cancel, checkpoint reload, downloads and protected original storage keys.
+- `python -X utf8 test-transfer-live.py`: real browser MediaStream → Worklet →
+  decoder at 48 kHz with synthetic modulation, silence stop, meter/IN and mono
+  rejection, 60-second timeout, overload/disconnection, undo and reload.
+  This is not physical USB/PO-33 acceptance.
+- `python -X utf8 test-backup-browser.py`: legacy raw-page capture/replay
+  regression and integrated entry. `backup.html` remains a separate strict
+  PCM16/44100 raw recorder/replayer, not the main restore interface.
 
-简体中文：现阶段只完成原始备份音频的双声道录制、WAV 保存和回放。尚未实现调制解调、工程解码、编辑后生成硬件备份，也没有通过实体 PO-33 验收。请使用 localhost／HTTPS 打开 `backup.html`；不要将普通 beat WAV 当作硬件备份。下一阶段需要真实备份录音及原样回写的硬件结果作基准。
+The panel's downloaded Escalate backup decodes to source frame SHA-256
+`1580c178c32b2f0d57bccd6f0a912ad0bf02dc7a653fcc5b6ffd3e82e1fe3f50`.
+See [fixture results](OFFICIAL-BACKUP-TESTS.md), [codec details](decoder/README.md),
+[slice audit](decoder/ESCALATE-SLICES.md) and [licenses](THIRD-PARTY-NOTICES.md).
+
+简体中文：主面板组合键已整合工程 WAV 导入、导出和独立双声道音频传输。
+接收只有校验成功才载入工程；七段码显示 rcv／End／err，32 格分别显示真实
+电平、处理进度或已知长度的发送进度。已做浏览器模拟回环与真实备份回读，
+尚未通过 R1 USB 声卡与实体 PO-33 验收。普通 beat WAV 不等于工程备份。

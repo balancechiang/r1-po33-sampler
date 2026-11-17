@@ -34,7 +34,7 @@ function interpolate(x: Float64Array, t: number): number {
     const i = Math.floor(t), u = t - i, a = x[i - 1], b = x[i], c = x[i + 1], d = x[i + 2];
     return b + .5 * u * (c - a + u * (2 * a - 5 * b + 4 * c - d + u * (3 * (b - c) + d - a)));
 }
-export function decodePilotFrame(wav: WavData): {
+export function decodePilotFrame(wav: WavData, progress?: (phase: string, completed: number, total: number) => void): {
     frame: Frame;
     wire: Uint8Array;
     syncStartSample: number;
@@ -46,6 +46,7 @@ export function decodePilotFrame(wav: WavData): {
     const hp = biquad(200, rate, Math.SQRT1_2, true), lp1 = firstOrder(3, rate), lp2 = biquad(3, rate, 1, false);
     for (const channel of x)
         zeroPhase(channel, hp);
+    progress?.('filter', 1, 1);
     const step = 2 * Math.PI * frequency / rate, cs = Math.cos(step), sn = Math.sin(step);
     let oscR = 1, oscI = 0;
     for (let i = 0; i < n; i++) {
@@ -64,10 +65,12 @@ export function decodePilotFrame(wav: WavData): {
         zeroPhase(channel, lp1);
         zeroPhase(channel, lp2);
     }
+    progress?.('clock', 1, 1);
     const nibbles = new Uint8Array(Math.ceil(n * frequency / rate) + 16), previous = [0, 0], eighth = rate / (frequency * 8);
     const samplePositions = new Float64Array(nibbles.length);
     let lastAngle = 0, unwrapped = 0, lastClock = 0, havePrevious = false, count = 0;
     for (let i = 0; i < n; i++) {
+        if ((i & 65535) === 0) progress?.('demodulate', i, n);
         const angle = Math.atan2(pilot[1][i], pilot[0][i]);
         let delta = angle - lastAngle;
         if (delta > Math.PI)

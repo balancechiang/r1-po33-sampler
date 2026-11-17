@@ -1,0 +1,6 @@
+#transferControls{display:none;position:fixed;bottom:0;left:0;right:0;z-index:40;background:#111;color:white;border-top:1px solid #555;padding:5px;font:11px/1.25 Arial,sans-serif;max-height:43vh;overflow:auto;touch-action:pan-y}
+body.transfer-open #transferControls{display:block}body.transfer-open{justify-content:flex-start}body.transfer-open #panel{width:min(100vw,calc((100vh - var(--transfer-height,110px))*.85106383))}
+#transferControls button,#transferControls select{font:11px Arial,sans-serif;min-height:26px;background:#333;color:#fff;border:1px solid #777;border-radius:3px;padding:3px 6px;margin:2px;touch-action:manipulation}
+#transferControls button.primary{background:#fe5000;color:#000}#transferControls button:disabled{opacity:.4}
+#transferControls p{margin:3px 2px}#transferControls input[type=file]{display:none}#transferDevices label{display:block}#transferDevices select{max-width:65%}#transferDevices[hidden]{display:none}
+#panel .cbtn.transfer-latched{outline:1px solid #fe5000;outline-offset:-3px}
