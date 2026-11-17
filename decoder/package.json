@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node --expose-gc test-decoder.cjs",
-    "typecheck": "tsc --project tsconfig.json"
+    "typecheck": "tsc --project tsconfig.json",
+    "build:browser": "node build-browser.cjs"
   },
   "engines": {
     "node": ">=24.12"

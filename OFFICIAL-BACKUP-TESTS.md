@@ -13,8 +13,14 @@ patterns. Escalate has ten unresolved source sample ranges (preserved and
 flagged); #16operators has sixteen genuinely empty patterns. See
 [decoder API, tests and limitations](decoder/README.md).
 
-The table below describes the existing raw replay page, which remains
-separate. The decoder is not yet wired into editable sampler import.
+The isolated `project-import.html` audition now loads Escalate into the original
+panel: 16 slots, 16 patterns, 274 notes and 120 BPM. Browser tests measure
+nonzero output for all 16 patterns, silence for invalid slice16/key7 and output
+for valid slice16/key1. Import, playback and reload preserve saved project
+storage. See `test-project-import.py`. This is preview-only: native filter,
+volume/resonance locks, parameter-only events and swing remain unmapped.
+
+The table below describes the existing raw replay page, which remains separate.
 
 ## Raw replay page results
 

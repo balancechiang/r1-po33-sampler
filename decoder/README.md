@@ -3,7 +3,8 @@
 The first decoder milestone of the Rabbit R1 hardware compatibility spec.
 Entry point: [`../src/codec/po33Codec.ts`](../src/codec/po33Codec.ts).
 Runtime code is pure TypeScript without Node, Web Audio, native or WASM calls.
-It is not yet connected to the sampler UI or USB capture page.
+It is connected to the isolated [project audition page](../project-import.html),
+not to persistent project replacement or USB live decoding.
 
 ```ts
 import { decodePO33Backup, parseWavStereo, demodulateToBitstream }
@@ -46,9 +47,32 @@ const transport = demodulateToBitstream(
   R1 UI integration; desktop test timings are not R1 performance evidence.
 
 `encodePO33Backup`, live Worklet demodulation, USB 48 kHz capture integration,
-editable sampler import and physical hardware acceptance remain pending.
+persistent sampler import and physical hardware acceptance remain pending.
 There is deliberately no encoder placeholder returning an ordinary audio WAV.
 The existing raw PCM16 replay page keeps its original format restrictions.
+
+## Browser audition
+
+Serve the repository with HTTP/HTTPS and open `project-import.html`. Choose a
+backup WAV, wait for validation, then use the original panel in the iframe.
+The decoder runs in a module worker; checked-in browser JS is generated from
+the same TypeScript. Rebuild after codec changes with `npm run build:browser`
+in this directory (or `node decoder/build-browser.cjs path/to/tsc.js` from root).
+
+The embedded panel's `backupPreview=1` mode never reads/writes project storage.
+Reopening the normal sampler restores the previously saved project. Preview
+edits are discarded on reload. No transmission, playback or save occurs
+automatically. The local ignored Escalate fixture can be loaded for testing
+with `project-import.html?fixture=escalate`; it is not included in releases.
+
+`project-preview-adapter.js` maps native shared pools to shared Web Audio
+buffers and uses slice offsets instead of equal-sized drum slicing. Unresolved
+source ranges are silent. Notes, note lengths, retriggers, pitch locks, chain
+and FX map into the existing web engine. Filter/volume/resonance locks and
+parameter-only changes are not yet mapped; native swing is previewed straight.
+This is an audition of recovered data, not verified hardware-identical playback.
+Run `python -X utf8 test-project-import.py` for real Escalate import, all sixteen
+patterns' measured output, invalid-slice silence and storage isolation checks.
 
 ## Actual official fixture results (2026-11-17)
 

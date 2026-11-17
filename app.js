@@ -8,6 +8,8 @@
    Everything not restored is synthesized with the Web Audio API. */
 (function () {
   "use strict";
+  // Hardware projects can be auditioned without reading or writing saved projects.
+  var backupPreview = new URLSearchParams(window.location.search).get("backupPreview") === "1";
 
   // ---------- constants & state ----------
   var MELODIC_SLOTS = 8; // slots 1-8 melodic, 9-16 drum
@@ -93,6 +95,7 @@
   }
 
   function storageCandidate() {
+    if (backupPreview) return null;
     var cs = window.creationStorage;
     try {
       if (cs && cs.plain && typeof cs.plain.getItem === "function") return cs.plain;
@@ -2664,4 +2667,27 @@
     try { ctx(); } catch (err) { /* the first tap opens it instead */ }
   }
   startupRestore=startRestore();
+  if (backupPreview && window.parent !== window) {
+    window.addEventListener("message", async function(event) {
+      if(event.source!==window.parent || event.origin!==window.location.origin || !event.data || event.data.type!=="po33-preview-project")return;
+      try {
+        await startupRestore;
+        if(rec.on || resetBusy)throw Error("Stop recording or resetting before loading a project.");
+        var imported=window.PO33PreviewAdapter.adapt(event.data.project,ctx());
+        stopSeq();
+        sampleVoices.slice().forEach(function(v){cancelVoice(v,ctx().currentTime);});
+        samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;
+        tweaks=imported.tweaks;patternSettings=Array(16).fill(null);
+        params.bpm=imported.bpm;SWING=0;patternChain=imported.chain;
+        chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
+        state.slot=1;state.mode="PLAY";masterVolume=8;
+        if(mixVolume)mixVolume.gain.value=masterVolume/16;
+        paint();
+        window.parent.postMessage({type:"po33-preview-loaded",summary:imported.summary},window.location.origin);
+      } catch(error) {
+        window.parent.postMessage({type:"po33-preview-error",error:error.message},window.location.origin);
+      }
+    });
+    window.parent.postMessage({type:"po33-preview-ready"},window.location.origin);
+  }
 })();

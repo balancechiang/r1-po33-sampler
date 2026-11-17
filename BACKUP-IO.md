@@ -11,8 +11,11 @@ Stage 1 software is implemented in `backup.html`, `backup-ui.js`,
 **not** been tested. An offline pure TypeScript DQPSK decoder, packet CRC
 validator and sample/pattern parser now exist in `src/codec/po33Codec.ts`.
 All three real official packs pass packet validation; see [decoder details](decoder/README.md),
-including Escalate's ten unresolved sample ranges. The raw page is not yet
-connected to this project decoder. Hardware-project encoding/export and
+including Escalate's ten unresolved sample ranges. The raw page links to
+`project-import.html`, which decodes WAVs in a worker and auditions them in
+an isolated instance of the original panel. Saved sampler projects are untouched;
+some native parameter locks and swing are not yet reproduced. The raw replay
+controls retain their PCM16 restrictions. Hardware-project encoding/export and
 live decoding are not implemented. There is no claim
 that the web sampler's beat WAV export is a hardware backup.
 
