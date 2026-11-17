@@ -573,6 +573,7 @@
   var KNOB_SWEEP = 280; // total mechanical travel, shared by both knobs
 
   var factoryMuted = [], knobAngles = [0,0];
+  var parameterDisplay=false;
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
   var r1Focused=true;
@@ -1889,7 +1890,7 @@
     }
     if (fxHeld && seq.playing) {
       modifierUsed.fx=true;
-      if(n===16) fxRelease(); else fxEngage(n);
+      if(n===16){fxRelease();showNumber("00","FX");}else fxEngage(n);
       if(state.mode==="STEP" || writeHeld) { if(n===16)patternExtras[seq.pattern-1].effects=[];else patternExtras[seq.pattern-1].effects[seq.step]=n; persistSoon(); }
       paint(); return;
     }
@@ -1964,7 +1965,7 @@
       if(act==="fx") {
         fxHeld=false;fxRelease();
         if(!modifierUsed.fx && e.type!=="pointercancel") {
-          tweakMode=(tweakMode+1)%3;
+          tweakMode=(tweakMode+1)%3; parameterDisplay=true;
           showNumber(["ton","FLt","tri"][tweakMode],["TONE","FILTER","TRIM"][tweakMode]);
         }
       }
@@ -2010,6 +2011,7 @@
     setRecHeld(sideRecArmed || modifierPointers.rec!==undefined);
   });
   function wheelAdjust(dir) {
+    parameterDisplay=false;
     params.bpm=Math.max(60,Math.min(240,params.bpm+dir));
     showNumber(params.bpm,"BPM");persistSoon();paint();
   }
@@ -2046,15 +2048,18 @@
     var target=d.getElementById("lcdNumber"); if(!target)return;
     var label=params.bpm===80?"HIP-HOP":params.bpm===120?"DISCO":params.bpm===140?"TECHNO":"BPM";
     var number=String(params.bpm);
+    if(parameterDisplay){label=["TONE","FILTER","TRIM"][tweakMode];number=["ton","FLt","tri"][tweakMode];}
     if(state.mode==="SOUND"){label="SOUND";number=String(state.slot);}
     if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
     if(displayValue && Date.now()<displayUntil){label=displayValue.label;number=String(displayValue.value);}
-    if(rec.on){label="REC";number=memLeft().toFixed(1);}
-    else if(recHeld){label=mic.error || "REC READY";number=memLeft().toFixed(1);}
-    if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind);}
+    if(rec.on){label="REC";number=String(Math.max(0,Math.ceil(memLeft()))).padStart(2,"0");}
+    else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":"rEC";}
+    if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
+    if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
+    if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
     d.getElementById("lcdMode").textContent=label;
-    d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",rec.on?"#fff":"#222");
+    d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
     d.getElementById("lcdPlay").setAttribute("fill",seq.playing?"#fff":"#222");
     if(target.getAttribute("data-value")!==number){
       target.textContent=number;
@@ -2099,10 +2104,12 @@
     if(!bpmHeld && writeHeld && seq.playing && tweakMode!==2) {
       modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},t);
     }
-    showNumber(Math.round(value),spec[3]);persistSoon();paint();
+    if(!bpmHeld)parameterDisplay=true;
+    var code=(!bpmHeld && tweakMode===1 && index===0)?(value<0?"LPF":value>0?"HPF":"noF"):Math.round(value);
+    showNumber(code,spec[3]);persistSoon();paint();
   }
   d.getElementById("bpmMode").addEventListener("pointerdown",function(e){
-    e.preventDefault();bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=false;paint();
+    e.preventDefault();parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=false;paint();
   });
   ["knobA","knobB"].forEach(function(id,index){
     var knob=d.getElementById(id), active=false,lastY=0;
@@ -2153,7 +2160,7 @@
     shakeReady=false;shakeLastPeak=now;shakeCount++;
     if(shakeTimer)clearTimeout(shakeTimer);
     if(shakeCount>=3 && !shakeCancelled){
-      shakeCancelled=true;cancelShakeFx();showNumber(0,"FX OFF");paint();
+      shakeCancelled=true;cancelShakeFx();showNumber("00","FX OFF");paint();
     }
     // Wait for quiet before committing two; a third shake wins without a transient FX.
     shakeTimer=setTimeout(finishShakeGroup,550);
