@@ -20,6 +20,25 @@ for valid slice16/key1. Import, playback and reload preserve saved project
 storage. See `test-project-import.py`. This is preview-only: native filter,
 volume/resonance locks, parameter-only events and swing remain unmapped.
 
+The same browser path was also tested with Frekvens and #16operators:
+
+| Pack | Populated sample slots | Pattern notes | BPM | Unresolved slices | Browser result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Frekvens | 10 | 300 | 128 | 0 | 14 populated patterns produce measured output; empty patterns12/16 add no voices; all ten sample slots manually trigger |
+| #16operators | 16 | 0 | 120 | 0 | All sixteen patterns add no voices; all sixteen sample slots manually trigger |
+
+All sixteen patterns per file were selected and tested in the actual panel.
+Empty patterns can retain a previous sound's tail, so the empty-pattern check
+counts new AudioBufferSource starts rather than misclassifying a decay as a
+stored note. Both imports and the final reload preserve saved project storage,
+and generate no page errors. Tests: `python -X utf8 test-project-import.py
+--packs frekvens 16operators`. Machine-readable results stay in ignored
+`t/official-backup-tests/project-import-browser-results.json`.
+
+Local audition links use `project-import.html?fixture=frekvens` or
+`?fixture=16operators`; only the three known fixture names are accepted.
+These URLs require the local ignored WAVs, which are not distributed.
+
 The table below describes the existing raw replay page, which remains separate.
 
 ## Raw replay page results

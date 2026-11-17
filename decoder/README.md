@@ -62,8 +62,9 @@ in this directory (or `node decoder/build-browser.cjs path/to/tsc.js` from root)
 The embedded panel's `backupPreview=1` mode never reads/writes project storage.
 Reopening the normal sampler restores the previously saved project. Preview
 edits are discarded on reload. No transmission, playback or save occurs
-automatically. The local ignored Escalate fixture can be loaded for testing
-with `project-import.html?fixture=escalate`; it is not included in releases.
+automatically. Local ignored fixtures can be loaded for testing with
+`project-import.html?fixture=escalate`, `?fixture=frekvens` or `?fixture=16operators`;
+the audio is not included in releases.
 
 `project-preview-adapter.js` maps native shared pools to shared Web Audio
 buffers and uses slice offsets instead of equal-sized drum slicing. Unresolved
@@ -71,8 +72,10 @@ source ranges are silent. Notes, note lengths, retriggers, pitch locks, chain
 and FX map into the existing web engine. Filter/volume/resonance locks and
 parameter-only changes are not yet mapped; native swing is previewed straight.
 This is an audition of recovered data, not verified hardware-identical playback.
-Run `python -X utf8 test-project-import.py` for real Escalate import, all sixteen
-patterns' measured output, invalid-slice silence and storage isolation checks.
+Run `python -X utf8 test-project-import.py` for all three real imports, all
+sixteen patterns per pack, populated slots' manual playback, invalid/empty
+pad silence and storage isolation checks. To check only selected packs, add
+`--packs frekvens 16operators`.
 
 ## Actual official fixture results (2026-11-17)
 
