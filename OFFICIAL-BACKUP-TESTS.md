@@ -4,6 +4,20 @@ Tested 2026-11-17 against the actual Transfer WAV sources embedded in the
 [official sound-pack page](https://teenage.engineering/downloads/po-33).
 The demo MP3 files were not used.
 
+## Offline project decoder added
+
+The separate pure TypeScript API now validates and parses all three files,
+including the PCM24 Escalate source. Every packet passes CRC: Escalate 4453,
+Frekvens 3393, #16operators 4164. Each returns 16 slot descriptors and 16
+patterns. Escalate has ten unresolved source sample ranges (preserved and
+flagged); #16operators has sixteen genuinely empty patterns. See
+[decoder API, tests and limitations](decoder/README.md).
+
+The table below describes the existing raw replay page, which remains
+separate. The decoder is not yet wired into editable sampler import.
+
+## Raw replay page results
+
 | Pack | PCM format | Duration | Current raw backup page | Editable sampler project |
 | --- | --- | --- | --- | --- |
 | Escalate | Stereo, 44100 Hz, 24-bit | 268.333333 s | Explicitly rejected by the PCM16 requirement | Not imported |

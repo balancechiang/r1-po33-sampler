@@ -1,0 +1,15 @@
+{
+  "name": "po33-backup-decoder",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --expose-gc test-decoder.cjs",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "engines": {
+    "node": ">=24.12"
+  },
+  "devDependencies": {
+    "typescript": "6.0.2"
+  }
+}

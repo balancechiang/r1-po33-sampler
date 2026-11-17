@@ -8,8 +8,12 @@ rejected. None imports as an editable project. See [actual fixture results](OFFI
 
 Stage 1 software is implemented in `backup.html`, `backup-ui.js`,
 `backup-worklet.js` and `backup-wav.js`. Physical PO-33 loopback acceptance has
-**not** been tested. Stages 2 and 3 — DQPSK modem, frame codec and editable
-hardware-project import/export — are **not implemented**. There is no claim
+**not** been tested. An offline pure TypeScript DQPSK decoder, packet CRC
+validator and sample/pattern parser now exist in `src/codec/po33Codec.ts`.
+All three real official packs pass packet validation; see [decoder details](decoder/README.md),
+including Escalate's ten unresolved sample ranges. The raw page is not yet
+connected to this project decoder. Hardware-project encoding/export and
+live decoding are not implemented. There is no claim
 that the web sampler's beat WAV export is a hardware backup.
 
 The new path records/replays an existing raw backup audio signal. It never
