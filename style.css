@@ -1,0 +1,556 @@
+:root {
+  --orange: #fe5000;
+  --amber: #ffb000;
+  --cyan: #00e5ff;
+  --bg: #0a0a0a;
+  --ink: #120800;
+  --red: #ff1a1a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  color: #fff;
+  font-family: ui-monospace, "Consolas", "Courier New", monospace;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 1. top slim status bar — 25px */
+#hdr {
+  flex: 0 0 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 4px;
+  background: #141414;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+#hdrMain {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+#hdrTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 12px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+/* the transport mascot: markup is verbatim (64x32 attributes kept); CSS fits it
+   into the 25px bar, and its viewBox padding keeps the ink inside the bar. */
+#boxing-rabbit-svg {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 24px;
+  display: block;
+  overflow: visible;
+}
+#mode { color: var(--orange); }
+#pat { color: #9ad4ff; }
+#slot { color: #fff; }
+#mem { color: var(--amber); }
+
+#hint {
+  height: 9px;
+  line-height: 9px;
+  font-size: 7px;
+  letter-spacing: 0.2px;
+  color: #8a6446;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.hbtn {
+  flex: 0 0 auto;
+  height: 21px;
+  width: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1b1b1b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 3px;
+  font: inherit;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+#paramBtn { width: 48px; }
+.hname {
+  font-size: 6px;
+  line-height: 8px;
+  letter-spacing: 0.4px;
+  color: var(--cyan);
+}
+.hval {
+  font-size: 9px;
+  line-height: 11px;
+  font-weight: 700;
+}
+#paramBtn.p2 .hname { color: var(--amber); }
+#paramBtn.p3 .hname { color: #9ad4ff; }
+
+#expBtn { font-size: 8px; font-weight: 700; letter-spacing: 0.2px; }
+#expBtn.armed {
+  background: var(--cyan);
+  border-color: var(--cyan);
+  color: #04202a;
+}
+body.exporting #expBtn {
+  background: var(--cyan);
+  border-color: #fff;
+  color: #04202a;
+}
+
+/* 2. middle control row — 5 large buttons */
+#ctl {
+  flex: 0 0 46px;
+  height: 46px;
+  display: flex;
+  gap: 2px;
+  padding: 0 3px;
+}
+
+.cbtn {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #1b1b1b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 0;
+  touch-action: manipulation;
+  transition: background 0.06s, color 0.06s, border-color 0.06s;
+}
+.cbtn:active { background: #2a2a2a; }
+.cbtn.on {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--ink);
+}
+
+@keyframes recblink {
+  0%, 49% { background: var(--red); border-color: var(--red); color: #fff; }
+  50%, 100% { background: #2a0d0d; border-color: #6b2020; color: #ff9a9a; }
+}
+.cbtn.blink { animation: recblink 0.8s steps(1, end) infinite; }
+
+/* 3. main 4x4 grid — 211px of the 282px screen */
+#wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#grid {
+  width: 211px;
+  height: 211px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.pad {
+  position: relative;
+  background: #181818;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: background 0.06s, color 0.06s, transform 0.06s;
+}
+.pad:active { background: #2b2b2b; }
+
+.pad .num {
+  line-height: 1;
+  transform: translateY(2px);
+}
+
+.pad .sub {
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 6px;
+  line-height: 7px;
+  letter-spacing: 0.2px;
+  color: #7fd8d8;
+  pointer-events: none;
+}
+body[data-mode="PATTERN"] .pad .sub { color: #9ad4ff; }
+body[data-mode="PATTERN"] .pad.pat-cur .sub { color: var(--amber); }
+
+.pad .led {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #3a2a20;
+}
+
+.pad.hit {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--ink);
+  transform: scale(0.95);
+}
+.pad.hit .led {
+  background: #fff;
+  box-shadow: 0 0 5px #fff;
+}
+
+/* chase light: the step the sequencer is on */
+.pad.cur {
+  border-color: #fff;
+  box-shadow: 0 0 8px 1px rgba(254, 80, 0, 0.95);
+}
+.pad.cur .led {
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+
+/* SOUND armed: slot select */
+body[data-mode="SOUND"] .pad {
+  background: #26170e;
+  border-color: #5c3418;
+}
+body[data-mode="SOUND"] .pad .num { color: var(--amber); }
+body[data-mode="SOUND"] .pad.cur-slot {
+  border-color: var(--orange);
+  box-shadow: none;
+}
+body[data-mode="SOUND"] .pad.cur-slot .led {
+  background: var(--orange);
+  box-shadow: 0 0 5px var(--orange);
+}
+
+/* a pad that holds a user take */
+.pad.sampled .led {
+  background: #4dff88;
+  box-shadow: 0 0 5px #4dff88;
+}
+
+/* recording: status bar and target pad go bright red */
+body.recording #hdr {
+  background: var(--red);
+  border-bottom-color: var(--red);
+}
+body.recording #mode,
+body.recording #pat,
+body.recording #slot,
+body.recording #mem,
+body.recording #hint {
+  color: #fff;
+}
+body.recording .hbtn { border-color: #fff; }
+body.recording .cbtn[data-act="rec"] {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+  animation: none;
+}
+
+.pad.rec-target {
+  background: var(--red);
+  border-color: #fff;
+  color: #fff;
+  transform: scale(0.95);
+}
+.pad.rec-target .led {
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+
+/* STEP EDIT: the grid shows the 16 steps of the current pattern */
+body[data-mode="STEP"] .pad {
+  background: #1a1210;
+  border-color: #4a2f1c;
+  font-size: 15px;
+}
+body[data-mode="STEP"] .pad .num { color: #c98b5a; transform: translateY(1px); }
+body[data-mode="STEP"] .pad .led { background: #3a2a20; }
+body[data-mode="STEP"] .pad.step-on {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+body[data-mode="STEP"] .pad.step-on .num { color: var(--ink); }
+body[data-mode="STEP"] .pad.step-on .led {
+  background: #fff;
+  box-shadow: 0 0 5px #fff;
+}
+body[data-mode="STEP"] .pad.sampled .led { background: #4dff88; }
+body[data-mode="STEP"] .pad.cur {
+  border-color: #fff;
+  box-shadow: 0 0 8px 1px rgba(0, 229, 255, 0.9);
+}
+
+/* PATTERN: the grid shows the 16 pattern slots */
+body[data-mode="PATTERN"] .pad {
+  background: #101820;
+  border-color: #24405a;
+  font-size: 15px;
+}
+body[data-mode="PATTERN"] .pad .num { color: #9ad4ff; transform: translateY(1px); }
+body[data-mode="PATTERN"] .pad .led { background: #1e3446; }
+body[data-mode="PATTERN"] .pad.pat-on {
+  background: #1d3d52;
+  border-color: var(--cyan);
+}
+body[data-mode="PATTERN"] .pad.pat-on .num { color: #d8f6ff; }
+body[data-mode="PATTERN"] .pad.pat-on .led {
+  background: var(--cyan);
+  box-shadow: 0 0 5px var(--cyan);
+}
+body[data-mode="PATTERN"] .pad.pat-cur {
+  border-color: var(--amber);
+  box-shadow: 0 0 7px 1px rgba(255, 176, 0, 0.8);
+}
+body[data-mode="PATTERN"] .pad.pat-cur .num { color: var(--amber); }
+body[data-mode="PATTERN"] .pad.pat-queued {
+  border-color: #fff;
+  border-style: dashed;
+}
+
+/* FX punch-in: pads 1-8 are live effects */
+body[data-mode="FX"] .pad {
+  background: #101a1a;
+  border-color: #1f4a4a;
+  font-size: 16px;
+}
+body[data-mode="FX"] .pad .num { color: #7fd8d8; transform: translateY(1px); }
+body[data-mode="FX"] .pad.fx-live {
+  background: var(--cyan);
+  border-color: #fff;
+  color: #04202a;
+}
+body[data-mode="FX"] .pad.fx-live .num { color: #04202a; }
+body[data-mode="FX"] .pad.fx-live .sub { color: #04202a; }
+body[data-mode="FX"] .pad.fx-live .led {
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+}
+
+/* FX held: the status bar goes bright cyan / orange */
+body.fxhold-cyan #hdr {
+  background: var(--cyan);
+  border-bottom-color: var(--cyan);
+}
+body.fxhold-orange #hdr {
+  background: var(--orange);
+  border-bottom-color: var(--orange);
+}
+body.fxhold-cyan #mode,
+body.fxhold-cyan #pat,
+body.fxhold-cyan #slot,
+body.fxhold-cyan #mem,
+body.fxhold-cyan #hint,
+body.fxhold-cyan .hname,
+body.fxhold-cyan .hval,
+body.fxhold-orange #mode,
+body.fxhold-orange #pat,
+body.fxhold-orange #slot,
+body.fxhold-orange #mem,
+body.fxhold-orange #hint,
+body.fxhold-orange .hname,
+body.fxhold-orange .hval {
+  color: #06121a;
+}
+body.fxhold-cyan .hbtn,
+body.fxhold-orange .hbtn {
+  background: #06121a;
+  border-color: #06121a;
+}
+body.fxhold-cyan .hbtn .hname,
+body.fxhold-cyan .hbtn .hval,
+body.fxhold-orange .hbtn .hname,
+body.fxhold-orange .hbtn .hval { color: #eafcff; }
+
+/* export running: a steel-cyan bar so the progress text reads */
+body.exporting #hdr {
+  background: #06384a;
+  border-bottom-color: var(--cyan);
+}
+body.exporting #mode,
+body.exporting #pat,
+body.exporting #slot,
+body.exporting #mem,
+body.exporting #hint {
+  color: #c9f6ff;
+}
+
+/* PO-style exposed switches. Keep the status display and event targets intact. */
+#ctl {
+  gap: 3px;
+  padding: 2px 5px 0;
+  background: #0a0a0a;
+}
+.cbtn {
+  position: relative;
+  isolation: isolate;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding-top: 30px;
+  font-family: Arial, sans-serif;
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #eee;
+  transition: color 60ms;
+}
+.cbtn::before, .pad::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border: 1px solid #888;
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, transparent 12%, #d2ae61 12% 22%, transparent 22% 76%, #d2ae61 76% 86%, transparent 86%) center / 100% 100% no-repeat,
+    linear-gradient(135deg, #ededeb, #b3b4b1 55%, #858783);
+  box-shadow: inset 2px 2px 0 #f8f8ee, inset -2px -2px 0 #686b69, 0 2px 0 #303331;
+}
+.cbtn::before { width: 25px; height: 25px; top: 2px; left: calc(50% - 12.5px); }
+.cbtn::after, .pad::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  border: 2px solid #272928;
+  background: linear-gradient(135deg, #60615e, #454744);
+  box-shadow: inset 1px 1px 0 #81837e, 0 1px 0 #e6e6dc;
+}
+.cbtn::after { width: 14px; height: 14px; top: 7px; left: calc(50% - 7px); }
+.cbtn.on, .cbtn:active, body.recording .cbtn[data-act="rec"] {
+  background: radial-gradient(circle at 50% 15px, #fe5000 0 17px, transparent 18px);
+  border: 0;
+  color: #ff6328;
+}
+.cbtn[data-act="rec"] { color: #ff6328; }
+.cbtn[data-act="fx"]::before {
+  background: repeating-linear-gradient(135deg, #d6d7cf 0 3px, #313432 3px 5px);
+}
+.cbtn:active::after { transform: translateY(1px); background: #333632; }
+.cbtn.blink { animation: switch-record 800ms steps(1, end) infinite; }
+@keyframes switch-record { 50% { color: #ff6328; } 0%, 100% { color: #fff; } }
+#wrap { padding: 2px 0; background: #0a0a0a; }
+#grid {
+  width: min(226px, 100vw - 10px);
+  height: 100%;
+  max-height: 211px;
+  gap: 2px 7px;
+}
+/* Extra specificity keeps the metal housing consistent across editing modes. */
+body[data-mode] .pad {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  color: #eee;
+}
+.pad::before {
+  width: 31px;
+  height: 30px;
+  left: calc(50% - 15.5px);
+  top: 2px;
+}
+.pad::after {
+  width: 18px;
+  height: 18px;
+  left: calc(50% - 9px);
+  top: 8px;
+}
+body[data-mode] .pad .num {
+  position: absolute;
+  top: 35px;
+  left: 0;
+  right: 0;
+  font-size: 12px;
+  line-height: 12px;
+  transform: none;
+  color: #eee;
+}
+body[data-mode] .pad .sub {
+  bottom: 0;
+  font-size: 5px;
+  line-height: 6px;
+  color: #b9c4ba;
+}
+.pad .led { top: 3px; right: 3px; width: 3px; height: 3px; z-index: 1; }
+body[data-mode] .pad.hit,
+body[data-mode="SOUND"] .pad.cur-slot,
+body[data-mode="STEP"] .pad.step-on,
+body[data-mode="PATTERN"] .pad.pat-cur,
+body[data-mode="FX"] .pad.fx-live,
+body[data-mode] .pad.rec-target {
+  background: radial-gradient(circle at 50% 17px, #fe5000 0 20px, transparent 21px);
+}
+body[data-mode] .pad.hit::after, body[data-mode] .pad:active::after {
+  transform: translateY(1px);
+  background: #30332f;
+  box-shadow: inset 1px 2px 2px #111, 0 1px 0 #deded3;
+}
+body[data-mode] .pad.cur::before { outline: 1px solid #fff; outline-offset: 1px; }
+body[data-mode] .pad.rec-target { background: radial-gradient(circle at 50% 17px, #ff2424 0 20px, transparent 21px); }
+body[data-mode] .pad.pat-queued::before { outline: 1px dashed #ffb000; outline-offset: 1px; }
+body[data-mode] .pad.step-on .num,
+body[data-mode] .pad.pat-cur .num,
+body[data-mode] .pad.fx-live .num { color: #ff7137; }
+button:focus-visible { outline: 1px solid #ffb000; outline-offset: -1px; }
+@media (max-height: 270px) {
+  body[data-mode] .pad .num { top: auto; bottom: 5px; font-size: 10px; }
+  .pad::before { height: 25px; width: 27px; left: calc(50% - 13.5px); }
+  .pad::after { top: 6px; width: 17px; height: 17px; left: calc(50% - 8.5px); }
+}
+/* Reserve a separate baseline for the per-pad parameter caption. */
+@media (min-height: 271px) {
+  body[data-mode] .pad .num { top: 33px; font-size: 11px; line-height: 11px; }
+}

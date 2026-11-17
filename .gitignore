@@ -1,0 +1,21 @@
+# Local history copies and generated artifacts
+/backup-*/
+*.bak
+/t/
+*-preview.png
+*-preview.wav
+*.zip
+*.tmp
+*.log
+
+# Python and optional development dependencies
+__pycache__/
+*.py[cod]
+node_modules/
+
+# Local credentials and OS files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
