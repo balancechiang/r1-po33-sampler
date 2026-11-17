@@ -132,3 +132,19 @@ remain as documented in BACKUP-IO.md.
 打开终端显示的 HTTPS 地址管理本地文件。R1 接收菜单打开 LAN HUB、输入电脑 IP，
 滚轮选文件、侧键确认。自签名证书需要设备侧手动处理信任，且浏览器的信任例外
 不保证适用于 Creation WebView；失败时用 Load File。目录和证书不会上传 GitHub。
+
+## R1 in-panel connection test
+
+Creation may have no standalone browser or certificate confirmation screen.
+CONNECT tests the selected protocol on port 33033. TEST HTTP :33034 tests
+a separate plain HTTP diagnostic server; start it on the computer with:
+
+```powershell
+node --input-type=module -e "import {startHub} from './scripts/local-hub.mjs'; await startHub({port:33034,forceHTTP:true});"
+```
+
+The status shows the exact endpoint and reports Bridge OK only after receiving
+a valid bridge list. A timeout cannot distinguish TLS, network or WebView restrictions.
+Page CSP violations are reported when the browser exposes them; other iframe
+failures do not provide a reliable detailed error to the parent page. No security
+restrictions or certificate checks are bypassed. Load File remains available.

@@ -2,24 +2,24 @@
 (function(root){'use strict';
  root.PO33LocalHub={create(parent,hooks){
   const dialog=document.createElement('dialog');dialog.id='localHubPanel';
-  dialog.innerHTML='<h2>LAN HUB (:33033)</h2><label>Computer IP / 电脑 IP<input id="hubIP" inputmode="decimal" placeholder="192.168.1.x" autocomplete="off"></label><p>Port :33033 · <select id="hubProtocol" aria-label="Hub protocol"><option value="https">HTTPS (default)</option><option value="http">HTTP fallback</option></select></p><div><button id="hubConnect">CONNECT / 连接</button><button id="hubLoadFile">Load File</button><button id="hubClose">Close</button></div><p id="hubStatus" role="status"></p><a id="hubTrust" target="_blank" rel="noopener" hidden>Open hub / 打开证书信任页面</a><div id="hubFiles" role="list" aria-label="Local projects"></div>';
+  dialog.innerHTML='<h2>LAN HUB (:33033)</h2><label>Computer IP / 电脑 IP<input id="hubIP" inputmode="decimal" placeholder="192.168.1.x" autocomplete="off"></label><p>Port :33033 · <select id="hubProtocol" aria-label="Hub protocol"><option value="https">HTTPS (default)</option><option value="http">HTTP fallback</option></select></p><div><button id="hubConnect">CONNECT / 连接</button><button id="hubTestHTTP">TEST HTTP :33034</button><button id="hubLoadFile">Load File</button><button id="hubClose">Close</button></div><p id="hubStatus" role="status"></p><a id="hubTrust" target="_blank" rel="noopener" hidden>Open hub / 打开证书信任页面</a><div id="hubFiles" role="list" aria-label="Local projects"></div>';
   parent.append(dialog);const $=id=>dialog.querySelector('#'+id);
   let frame=null,origin='',timer=null,pending=null,connected=false,generation=0;
   function hint(text){$('hubStatus').textContent=text;}
   function cleanup(){generation++;clearTimeout(timer);frame?.remove();frame=null;pending=null;connected=false;}
-  function controls(busy){$('hubConnect').disabled=busy;for(const b of $('hubFiles').querySelectorAll('button'))b.disabled=busy;}
+  function controls(busy){$('hubConnect').disabled=busy;$('hubTestHTTP').disabled=busy;for(const b of $('hubFiles').querySelectorAll('button'))b.disabled=busy;}
   function error(message){clearTimeout(timer);pending=null;controls(false);hint(message);}
   function send(message){frame?.contentWindow.postMessage({target:'po33-local-hub',...message},'*');}
   function open(){cleanup();$('hubFiles').replaceChildren();$('hubTrust').hidden=true;try{$('hubIP').value=localStorage.getItem('po33.localHub.ip')||'';}catch{}$('hubProtocol').value='https';controls(false);hint('Enter computer IP. Start npm run hub on computer. / 输入电脑 IP，电脑运行 npm run hub。');dialog.showModal();}
   function close(){cleanup();if(dialog.open)dialog.close();}
-  async function connect(){
+  async function connect(testHTTP=false){
    cleanup();const ip=$('hubIP').value.trim();
    if(ip!=='localhost' && !(/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)&&ip.split('.').every(n=>Number(n)<=255)))return error('Enter IPv4 only, without port / 仅输入 IPv4，无需端口');
    try{localStorage.setItem('po33.localHub.ip',ip);}catch{}
-   origin=$('hubProtocol').value+'://'+ip+':33033';$('hubTrust').href=origin;$('hubTrust').hidden=false;$('hubFiles').replaceChildren();
+   origin=(testHTTP?'http':$('hubProtocol').value)+'://'+ip+':'+(testHTTP?'33034':'33033');$('hubTrust').href=origin;$('hubTrust').hidden=false;$('hubFiles').replaceChildren();
    frame=document.createElement('iframe');frame.hidden=true;frame.title='PO-33 Local Hub bridge';frame.src=origin+'/bridge';dialog.append(frame);
-   controls(true);hint('Connecting / 正在连接…');
-   timer=setTimeout(()=>{frame?.remove();frame=null;connected=false;error('3s timeout / 连接超时。1) 电脑运行 npm run hub；2) 同一 Wi-Fi；3) 自签名 HTTPS：先在设备浏览器打开 '+origin+'，若允许则手动选择“高级 → 继续前往”，再返回刷新。浏览器例外不一定适用于 Creation WebView。HTTP iframe 也可能被 HTTPS 页面拦截；请用 Load File。');},3000);
+   controls(true);hint('Connecting '+origin+' / 正在连接…');
+   timer=setTimeout(()=>{frame?.remove();frame=null;connected=false;error('3s timeout · '+origin+' / 未收到桥接回应。电脑需启动对应端口服务，并与 R1 同一 Wi-Fi。Creation 没有浏览器证书确认入口：HTTPS 可能因证书被拒绝；HTTP 可能被混合内容策略拦截。超时本身无法区分网络、证书或 WebView 限制。请尝试另一协议，或用 Load File。');},3000);
   }
   function requestFile(file){
    if(!connected)return;pending=file.name;controls(true);hint('Loading '+file.name+' / 正在读取本地工程');
@@ -36,7 +36,7 @@
     if(!connected || !Array.isArray(m.payload))return;
     clearTimeout(timer);controls(false);$('hubFiles').replaceChildren();
     const files=m.payload.filter(f=>typeof f?.name==='string' && /\.(wav|json)$/i.test(f.name) && Number.isFinite(f.sizeBytes));
-    hint(files.length+' projects / 个工程');
+    hint(origin+' · '+files.length+' projects / 个工程 · Bridge OK');
     for(const file of files){const button=document.createElement('button');button.type='button';button.textContent=file.name+' · '+(file.sizeBytes/1048576).toFixed(1)+' MB';button.setAttribute('role','listitem');button.onclick=()=>requestFile(file);$('hubFiles').append(button);}
     $('hubFiles button')?.focus({preventScroll:true});
    }else if(m.type==='FILE_RESULT'){
@@ -45,7 +45,10 @@
     const name=pending,buffer=m.buffer;close();hooks.onFile(name,buffer);
    }else if(m.type==='ERROR')error(m.message || 'Hub error');
   });
-  $('hubConnect').onclick=connect;$('hubClose').onclick=()=>{close();hooks.onClose();};
+  document.addEventListener('securitypolicyviolation',e=>{
+   if(frame && e.blockedURI && (e.blockedURI===origin || e.blockedURI.startsWith(origin+'/'))){cleanup();controls(false);hint('Blocked by page security policy / 页面安全策略阻止连接：'+e.effectiveDirective+'。可改用 Load File。');}
+  });
+  $('hubConnect').onclick=()=>connect(false);$('hubTestHTTP').onclick=()=>connect(true);$('hubClose').onclick=()=>{close();hooks.onClose();};
   $('hubLoadFile').onclick=()=>{close();hooks.onClose();hooks.loadFile();};
   dialog.addEventListener('cancel',e=>{e.preventDefault();close();hooks.onClose();});
   return {open,close,get active(){return dialog.open;},moveFocus(direction){

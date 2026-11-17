@@ -56,7 +56,7 @@ try:
   page.locator('#hubIP').fill('127.0.0.2');page.locator('#hubConnect').click()
   page.wait_for_function('document.querySelector("#hubStatus").textContent.includes("3s timeout")',timeout=7000)
   assert 'Load File' in page.locator('#hubStatus').text_content()
-  assert '高级' in page.locator('#hubStatus').text_content()
+  assert 'WebView' in page.locator('#hubStatus').text_content()
   page.screenshot(path=str(root/'t/official-backup-tests/hub-timeout-preview.png'))
   page.locator('#hubLoadFile').click()
   assert not page.locator('#localHubPanel').is_visible()
