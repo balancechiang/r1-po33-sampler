@@ -38,6 +38,10 @@ Receive → Scan QR imports a backup from its HTTPS WAV download code. Camera
 decoding runs on device; a direct link with CORS support is required. Try the
 [original WAV QR test](demo/qr-test/index.html) on another screen.
 
+[LAN HUB (:33033)](LAN-HUB.md) adds an optional zero-dependency Node HTTPS
+manager and iframe-based WAV/lossless JSON synchronization. Run `npm run hub`
+or `node scripts/local-hub.mjs`; local projects and certificates stay out of Git.
+
 The original procedural factory sounds and sequences are offered under CC0-1.0. This does not assign that license to the entire application or its artwork. The bundled DSEG font retains its SIL OFL-1.1 license; see [the font license](fonts/DSEG-LICENSE.txt).
 
 [Controls](R1-CONTROLS.md) · [Factory sounds & patterns](PRESETS.md) · [Publishing](DEPLOY.md)

@@ -1,10 +1,17 @@
-import {decodePO33Backup,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js';
+import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js';
+import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js';
+import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js';
 import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js';
 self.onmessage=({data:m})=>{
   try{
     if(m.command==='decode'){
-      const project=decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
+      const project=m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
       self.postMessage({type:'decoded',project});
+    }else if(m.command==='export-json'){
+      const built=buildHardwareProject(m.snapshot,m.native,m.baseline);
+      const project=decodePO33Frame(encodePO33Frame(built.raw.state));
+      const buffer=new TextEncoder().encode(projectToJSON(project)).buffer;
+      self.postMessage({type:'json-exported',buffer},[buffer]);
     }else if(m.command==='encode'){
       const built=buildHardwareProject(m.snapshot,m.native,m.baseline);
       const wav=encodePO33Backup(built,m.rate || 44100,p=>self.postMessage({type:'progress',...p}));

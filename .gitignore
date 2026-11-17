@@ -12,6 +12,8 @@
 __pycache__/
 *.py[cod]
 node_modules/
+/my-po33-projects/
+/.certs/
 
 # Local credentials and OS files
 .env

@@ -7,7 +7,7 @@ import { parseFrame } from "../../decoder/vendor/so-sample/state.js";
 import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js";
 import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js";
 import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js";
-import { TAG } from "../../decoder/vendor/so-sample/packets.js";
+import { TAG, decodeFrame } from "../../decoder/vendor/so-sample/packets.js";
 export { encodePO33Backup, transferTimeline } from "./po33Encode.js";
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
@@ -102,7 +102,23 @@ export function demodulateToBitstream(left, right, sampleRate) {
 export function decodePO33Backup(wavOrPcm, options = {}) {
     const fromWav = wavOrPcm instanceof ArrayBuffer || wavOrPcm instanceof Uint8Array;
     const wav = fromWav ? readWav(wavOrPcm) : validatePcm(wavOrPcm);
-    const recovered = demodulate(wav, options.onProgress), state = parseFrame(recovered.frame);
+    const recovered = demodulate(wav, options.onProgress);
+    return projectFromFrame(recovered, wav.sampleRate, fromWav ? wav.bitsPerSample : null, options);
+}
+/** Decode a complete original transport frame without synthesizing/demodulating WAV. */
+export function decodePO33Frame(wire) {
+    if (wire.length < 4106 || wire.length > 8 * 1024 * 1024)
+        throw Error('Invalid project frame size');
+    for (let i = 0; i < 4096; i++)
+        if (wire[i] !== (i < 4092 ? i & 255 : [0x4d, 0xb8, 0x16, 0x5d][i - 4092]))
+            throw Error('Invalid project preamble');
+    const frame = decodeFrame(wire, 4096);
+    if (frame.endByte !== wire.length)
+        throw Error('Trailing project frame bytes');
+    return projectFromFrame({ frame, wire, syncStartSample: 0, channelOrder: 'normal' }, 0, null, {});
+}
+function projectFromFrame(recovered, inputSampleRate, inputBitsPerSample, options) {
+    const state = parseFrame(recovered.frame);
     options.onProgress?.('validated', 1, 1);
     // Capture actual unwhitened payload bytes, not a re-encoded numeric header.
     const rawHeaders = new Map();
@@ -198,6 +214,6 @@ export function decodePO33Backup(wavOrPcm, options = {}) {
     if (bpm < 60 || bpm > 240)
         throw Error('Out-of-range hardware BPM');
     return { sliceDiagnostics, meta: { bpm, swing: swingRaw / 18 * 100, masterVolume: 16, swingRaw, defaultedFields: ['masterVolume'] }, slots, patterns, patternChain, pools, raw: { state, frameBytes: recovered.wire },
-        validation: { checksumErrors: 0, packetCount: recovered.frame.packets.length, complete: true, syncStartSample: recovered.syncStartSample, inputSampleRate: wav.sampleRate, inputBitsPerSample: fromWav ? wav.bitsPerSample : null, channelOrder: recovered.channelOrder, unresolvedAudioRanges: rangeWarnings.length },
+        validation: { checksumErrors: 0, packetCount: recovered.frame.packets.length, complete: true, syncStartSample: recovered.syncStartSample, inputSampleRate, inputBitsPerSample, channelOrder: recovered.channelOrder, unresolvedAudioRanges: rangeWarnings.length },
         warnings: [...rangeWarnings, 'masterVolume is an explicit unity audition default; not recovered from a verified hardware field.', 'Slice pitch/volume/filter values are audition defaults. Pattern locks retain raw hardware codes; no unverified Hz/gain conversion is applied.', 'Drum audioBuffer concatenates slice previews; shared hardware allocation remains in pools/raw.state. Capacity must count unique pools, not previews.'] };
 }

@@ -36,6 +36,8 @@ WRITE + SOUND + RECORD で受信、WRITE + SOUND + PLAY で保存／送信を準
 
 受信メニューの Scan QR は WAV ダウンロードコードを端末内で読み取ります。HTTPS の直接リンクと CORS 対応が必要です。[テスト用 QR](demo/qr-test/index.html)を別の画面に表示して r1 で読み取れます。
 
+[LAN HUB (:33033)](LAN-HUB.md) は追加 npm 依存なしのローカル HTTPS 管理と WAV／可逆 JSON 同期を提供します。`node scripts/local-hub.mjs` または `npm run hub` で起動します。自己署名証明書を信頼できない WebView では Load File を使ってください。
+
 オリジナルのプログラム合成音色とシーケンスは CC0-1.0 で提供します。このライセンスはアプリ全体やアートワークには自動的に適用されません。DSEG フォントには SIL OFL-1.1 が適用されます。[フォントライセンス](fonts/DSEG-LICENSE.txt)をご覧ください。
 
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)

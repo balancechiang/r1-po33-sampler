@@ -65,6 +65,12 @@ The decoder runs in a module worker; checked-in browser JS is generated from
 the same TypeScript. Rebuild after codec changes with `npm run build:browser`
 in this directory (or `node decoder/build-browser.cjs path/to/tsc.js` from root).
 
+Lossless Base64 JSON import/export is implemented in `po33JSON.ts`, retaining
+Float32 bytes, raw frame bytes, native sample codes and unknown headers. See
+[JSON schema, local HTTPS Hub and tests](../LAN-HUB.md). `projectFromJSON`
+validates the retained native frame and rebuilds its preview instead of trusting
+an arbitrary JSON validation flag.
+
 The embedded panel's `backupPreview=1` mode never reads/writes project storage.
 Reopening the normal sampler restores the previously saved project. Preview
 edits are discarded on reload. No transmission, playback or save occurs

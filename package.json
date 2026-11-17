@@ -1,0 +1,6 @@
+{
+  "name": "r1-po33-sampler",
+  "private": true,
+  "scripts": { "hub": "node scripts/local-hub.mjs" },
+  "engines": { "node": ">=24.12" }
+}

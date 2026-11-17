@@ -23,19 +23,20 @@ try:
   page.evaluate('PO33Transfer.open("receive")')
   event('scrollDown');assert focus()=='transferFile'
   event('scrollDown');assert focus()=='transferScan'
+  event('scrollDown');assert focus()=='transferHub'
   event('scrollDown');assert focus()=='transferRecord'
   event('scrollDown');assert focus()=='transferClose' # skips hidden/disabled controls
   event('scrollUp');assert focus()=='transferRecord'
-  assert page.evaluate('pulses')==[12]*5
+  assert page.evaluate('pulses')==[12]*6
   page.evaluate('window.dispatchEvent(new WheelEvent("wheel",{deltaY:1,cancelable:true}))')
-  assert focus()=='transferClose';assert page.evaluate('pulses.length')==6
+  assert focus()=='transferClose';assert page.evaluate('pulses.length')==7
   page.locator('#transferDeviceToggle').click()
   event('scrollDown');assert focus()=='transferRefresh'
-  assert page.evaluate('pulses.length')==7
+  assert page.evaluate('pulses.length')==8
   page.evaluate('document.querySelectorAll("#transferControls button,#transferControls select").forEach(e=>e.disabled=e.id!=="transferRefresh")')
-  event('scrollDown');assert focus()=='transferRefresh';assert page.evaluate('pulses.length')==7
+  event('scrollDown');assert focus()=='transferRefresh';assert page.evaluate('pulses.length')==8
   page.evaluate('document.querySelector("#transferRefresh").disabled=true')
-  event('scrollUp');assert page.evaluate('pulses.length')==7
+  event('scrollUp');assert page.evaluate('pulses.length')==8
   page.evaluate('Object.defineProperty(navigator,"vibrate",{value:undefined});document.querySelector("#transferFile").disabled=false')
   event('scrollDown');assert focus()=='transferFile'
   page.evaluate('PO33Transfer.close()')

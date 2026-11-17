@@ -36,6 +36,8 @@ WRITE + SOUND + RECORD는 수신, WRITE + SOUND + PLAY는 저장／송신 준비
 
 수신 메뉴의 Scan QR는 기기에서 WAV 다운로드 코드를 읽습니다. HTTPS 직접 링크와 CORS 지원이 필요합니다. 다른 화면에서 [테스트 QR](demo/qr-test/index.html)을 열고 r1으로 스캔하세요.
 
+[LAN HUB (:33033)](LAN-HUB.md)는 추가 npm 의존성 없이 로컬 HTTPS 관리와 WAV／무손실 JSON 동기화를 제공합니다. `node scripts/local-hub.mjs` 또는 `npm run hub`로 실행합니다. 자체 서명 인증서를 신뢰하지 않는 WebView에서는 Load File을 사용하세요.
+
 프로그램으로 합성한 오리지널 프리셋 사운드와 시퀀스는 CC0-1.0으로 제공합니다. 이 라이선스가 앱 전체나 아트워크에 자동 적용되는 것은 아닙니다. DSEG 글꼴의 SIL OFL-1.1 라이선스는 유지됩니다. [글꼴 라이선스](fonts/DSEG-LICENSE.txt)를 확인하세요.
 
 [조작 안내](R1-CONTROLS.ko.md) · [프리셋 사운드와 패턴](PRESETS.ko.md) · [배포 안내](DEPLOY.ko.md)

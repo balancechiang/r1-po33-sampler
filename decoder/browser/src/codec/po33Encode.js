@@ -3,6 +3,14 @@
  */
 import { encodePackets, TAG } from "../../decoder/vendor/so-sample/packets.js";
 import { serializeState } from "../../decoder/vendor/so-sample/state.js";
+export function encodePO33Frame(state) {
+    const body = encodePackets(serializeState(state)), wire = new Uint8Array(4096 + body.length);
+    for (let i = 0; i < 4092; i++)
+        wire[i] = i & 255;
+    wire.set([0x4d, 0xb8, 0x16, 0x5d], 4092);
+    wire.set(body, 4096);
+    return wire;
+}
 export function encodePO33Backup(project, targetSampleRate = 44100, onProgress) {
     if (![44100, 48000, 96000].includes(targetSampleRate))
         throw Error('Backup output rate must be 44100, 48000 or 96000 Hz');

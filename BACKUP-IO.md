@@ -2,12 +2,14 @@
 
 Implemented locally on 2026-11-17. Serve this folder with HTTPS or localhost
 (for example `python -m http.server 8765`) and open `index.html`.
-No release package or deployment has been prepared.
+The current static app is deployed to the existing GitHub Pages address.
+No ZIP release is required for the optional [local HTTPS Hub](LAN-HUB.md).
 
 ## Panel controls
 
 - **WRITE + SOUND + RECORD** opens receive mode, with `rcv` on the existing LCD.
-  Choose **Open WAV** for a backup file, or **Line in** for a stereo interface.
+  Choose **Load File** for a WAV/JSON project, **LAN HUB (:33033)** for local
+  computer files, or **Line in** for a stereo interface.
 - **Scan QR / 扫码** opens a camera preview. Scan a QR containing a public
   HTTPS WAV direct-download URL (plain URL or JSON `wavUrl`/`url`). The camera
   stops before download; the downloaded file must pass full frame CRC before

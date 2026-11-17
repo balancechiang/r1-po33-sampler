@@ -6,6 +6,10 @@
     document.body.append(box);const $=id=>document.getElementById(id);
     const scanButton=document.createElement('button');scanButton.id='transferScan';scanButton.textContent='Scan QR / 扫码';$('transferFile').after(scanButton);
     const scanner=root.PO33QRCamera.create(box);
+    const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
+    const jsonButton=document.createElement('button');jsonButton.id='transferJSON';jsonButton.textContent='Save JSON';$('transferSave').after(jsonButton);
+    $('transferFileInput').accept='.wav,.json';$('transferFile').textContent='Load File';
+    const hub=root.PO33LocalHub.create(box,{onFile:(name,buffer)=>loadBuffer(name,buffer),onClose:()=>set('waiting','rcv · Ready / 就绪',{progress:0}),loadFile:()=>$('transferFileInput').click()});
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
@@ -13,8 +17,9 @@
     const storage=root.PO33TransferStorage;
     function moveFocus(direction){
       if(!view.active || !direction)return;
-      const scope=scanner.active?box.querySelector('#transferQR'):box;
-      const choices=[...scope.querySelectorAll('button,select,input[type=url]')].filter(e=>!e.disabled && e.getClientRects().length);
+      if(hub.active && hub.moveFocus(direction))return;
+      const scope=hub.active?box.querySelector('#localHubPanel'):scanner.active?box.querySelector('#transferQR'):box;
+      const choices=[...scope.querySelectorAll('button,select,input:not([type=file])')].filter(e=>!e.disabled && e.getClientRects().length);
       if(!choices.length)return;
       const previous=document.activeElement,index=choices.indexOf(previous);
       const next=choices[index<0?(direction>0?0:choices.length-1):(index+(direction>0?1:-1)+choices.length)%choices.length];
@@ -27,9 +32,10 @@
     }
     function render(){
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=probing || ['encoding','decoding','sending','receiving','listening','scanning','downloading'].includes(view.state);
+      const busy=probing || ['encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
       scanButton.hidden=view.mode!=='receive';scanButton.disabled=busy;
+      hubButton.hidden=view.mode!=='receive';hubButton.disabled=busy;jsonButton.hidden=view.mode!=='send';jsonButton.disabled=busy;
       $('transferSend').hidden=view.mode!=='send';$('transferSave').hidden=view.mode!=='send';
       $('transferFile').disabled=busy;$('transferRecord').disabled=busy;$('transferSend').disabled=!encoded||busy;$('transferSave').disabled=!encoded||busy;
       $('transferStop').disabled=!['receiving','listening','sending','downloading'].includes(view.state);$('transferUndo').hidden=!undo;
@@ -87,14 +93,17 @@
         }
         terminate();
         if(m.type==='decoded'){try{await accept(m.project);}catch(error){await fail(error);}}
+        if(m.type==='json-exported'){
+          const url=URL.createObjectURL(new Blob([m.buffer],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='po33-project.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Lossless JSON saved / 已保存无损 JSON');
+        }
         if(m.type==='encoded'){
           encoded=m;timeline=m.timeline;set('ready',`Backup ready · ${m.packets} checked packets. ${m.warnings.join(' ')} Put PO-33 in receive mode before Line out.`,{progress:0,phase:'ready'});
         }
       };
-      worker.postMessage({command,...data});
+      worker.postMessage({command,...data},data.wav instanceof ArrayBuffer?[data.wav]:[]);
     }
     async function open(mode){
-      if(['encoding','decoding','receiving','listening','sending','scanning','downloading'].includes(view.state))return;
+      if(['encoding','decoding','receiving','listening','sending','scanning','downloading','hub'].includes(view.state))return;
       clearTimeout(timer);generation++;encoded=null;view={active:true,state:'waiting',mode,progress:0,level:0,record:0,phase:''};
       hooks.stop();
       set('waiting',mode==='receive'?'rcv · Choose WAV or Line in / 选择工程 WAV 或立体声输入':'Preparing current project / 正在准备当前工程');
@@ -108,9 +117,17 @@
         const reader=file.stream().getReader(),parts=[];let received=0;
         for(;;){const {value,done}=await reader.read();if(token!==generation){await reader.cancel();return;}if(done)break;parts.push(value);received+=value.length;view.progress=received/file.size;render();}
         const bytes=new Uint8Array(received);let offset=0;for(const p of parts){bytes.set(p,offset);offset+=p.length;}
-        view.progress=0;set('decoding','Checking carrier, packets and CRC / 解调与校验');run('decode',{wav:bytes.buffer});
+        loadBuffer(file.name,bytes.buffer);
       }catch(error){if(token===generation)await fail(error);}
     }
+    function loadBuffer(filename,buffer){
+      if(!view.active)return;
+      generation++;set('decoding','Checking project / 正在校验工程',{progress:0});
+      if(!/\.(wav|json)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a WAV or JSON project under 128 MB'));return;}
+      run('decode',{wav:buffer,filename});
+    }
+    hubButton.onclick=()=>{set('hub','LAN HUB (:33033)',{progress:0,level:0});hub.open();};
+    jsonButton.onclick=()=>{set('encoding','Saving lossless project JSON / 正在保存无损工程 JSON',{progress:0});run('export-json',{snapshot:hooks.snapshot(),native,baseline});};
     function downloadURL(text){
       let value=String(text).trim();
       if(value.startsWith('{')){let obj;try{obj=JSON.parse(value);}catch(error){throw Error('Invalid QR link / 二维码不是有效网址');}value=obj.wavUrl || obj.url;}
@@ -222,7 +239,7 @@
       try{set('sending','Opening stereo output / 正在打开输出',{progress:0,level:0});if(!await makeAudio(encoded.rate,token))return;set('sending','Sending stereo backup / 正在发送立体声工程');node.port.postMessage({command:'play',left:encoded.left,right:encoded.right});}
       catch(error){if(token===generation)await fail(error);}
     }
-    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
+    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
     async function devices(){
       let permission;
       try{
@@ -262,7 +279,7 @@
     $('transferDeviceToggle').onclick=()=>$('transferDevices').hidden=!$('transferDevices').hidden;$('transferRefresh').onclick=devices;
     $('transferCheckInput').onclick=checkInput;
     document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));if(document.hidden && view.state==='downloading')close();});
-    root.addEventListener('pagehide',()=>{scanner.close();downloadAbort?.abort();closeAudio();terminate();});
+    root.addEventListener('pagehide',()=>{scanner.close();hub.close();downloadAbort?.abort();closeAudio();terminate();});
     root.addEventListener('resize',()=>{if(view.active)render();});
     navigator.mediaDevices?.addEventListener('devicechange',async()=>{
       if(!['sending','receiving','listening'].includes(view.state))return;
@@ -270,7 +287,7 @@
       if(!id)return;
       try{const devices=await navigator.mediaDevices.enumerateDevices();if(!devices.some(d=>d.deviceId===id && d.kind===(input?'audioinput':'audiooutput')))await fail(Error('Selected audio interface disconnected'));}catch(error){await fail(error);}
     });
-    return {open,close,readFile,moveFocus,get view(){return view;},get hasSession(){return session;},checkpoint,
+    return {open,close,readFile,moveFocus,activateFocus(){const e=document.activeElement;if(box.contains(e)&&e.tagName==='BUTTON'&&!e.disabled)e.click();},get view(){return view;},get hasSession(){return session;},checkpoint,
       flush:writeCheckpoint,
       async restore(){if(hooks.preview)return;try{const saved=await storage.get();if(saved){undo={snapshot:hooks.snapshot(),native:null,baseline:null,session:false};native=saved.native;baseline=saved.baseline;session=true;hooks.restoreSnapshot(saved.snapshot);}}catch(error){hooks.hint('CHECKPOINT UNAVAILABLE');}},
       async reset(){clearTimeout(saveTimer);await close();session=false;native=null;baseline=null;undo=null;await saveChain.catch(()=>{});if(!hooks.preview)await storage.clear();}

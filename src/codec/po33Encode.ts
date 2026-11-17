@@ -6,6 +6,10 @@ import { serializeState, type DeviceState } from '../../decoder/vendor/so-sample
 import type { PO33Project } from './po33Codec.ts';
 
 export interface TransferProgress { phase: string; completed: number; total: number; record?: number; }
+export function encodePO33Frame(state:DeviceState):Uint8Array{
+    const body=encodePackets(serializeState(state)),wire=new Uint8Array(4096+body.length);
+    for(let i=0;i<4092;i++)wire[i]=i&255;wire.set([0x4d,0xb8,0x16,0x5d],4092);wire.set(body,4096);return wire;
+}
 export function encodePO33Backup(project: PO33Project | { raw: { state: DeviceState } }, targetSampleRate = 44100,
     onProgress?: (p: TransferProgress) => void): ArrayBuffer {
     if (![44100, 48000, 96000].includes(targetSampleRate)) throw Error('Backup output rate must be 44100, 48000 or 96000 Hz');

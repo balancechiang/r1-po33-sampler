@@ -36,6 +36,8 @@ WRITE + SOUND + RECORD 接收工程，WRITE + SOUND + PLAY 准备保存或输出
 
 接收菜单的“扫码”可通过摄像头识别工程 WAV 下载码，识别在本机完成；下载需 HTTPS 直链及跨域支持。请在另一屏幕打开[原创工程扫码测试](demo/qr-test/index.html)，再用 R1 扫描。
 
+[LAN HUB (:33033)](LAN-HUB.md) 提供零 npm 依赖的本地 HTTPS 文件管理与 WAV／无损 JSON 同步。电脑运行 `node scripts/local-hub.mjs`（或 `npm run hub`），项目和证书均不上传 GitHub。自签名证书信任受设备限制，失败可用 Load File。
+
 原创程序合成预置音色与音序按 CC0-1.0 提供；此许可不自动适用于整个应用或美术素材。本地 DSEG 字体保留 SIL OFL-1.1 许可，详见[字体许可](fonts/DSEG-LICENSE.txt)。
 
 [操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)
