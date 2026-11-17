@@ -20,7 +20,9 @@ with sync_playwright() as p:
     page.locator('#bpmMode').evaluate('e=>{e.disabled=true;e.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,button:0}));e.disabled=false;}')
     assert page.evaluate('pulses.length')==count+1
     assert page.evaluate('pulses.every(n=>n===12)')
+    page.locator('#factoryReset rect').dispatch_event('pointerdown',{'button':0})
+    assert page.evaluate('pulses.length')==count+2
     page.evaluate('Object.defineProperty(navigator,"vibrate",{value:undefined})')
     page.locator('#bpmMode').dispatch_event('pointerdown',{'button':0})
-    print('PASS: all 25 rendered controls request one 12ms pulse; background, gaps, status area, hidden/disabled controls and right-click do not; unsupported vibration is tolerated.')
+    print('PASS: all 25 buttons and the rabbit reset control request one 12ms pulse; background, gaps, other status areas, hidden/disabled controls and right-click do not; unsupported vibration is tolerated.')
     browser.close()

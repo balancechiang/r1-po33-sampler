@@ -100,6 +100,7 @@ body[data-mode="PATTERN"] #panel .pad.pat-cur .led,
 .bank-label::before { top:0; border-top:calc(1 * var(--unit,1px)) solid #ff5705; }
 .bank-label::after { bottom:0; border-bottom:calc(1 * var(--unit,1px)) solid #ff5705; }
 #lcdNumber { font-family:DSEG7,monospace; font-variant-numeric:tabular-nums; letter-spacing:.5px; }
+#lcd #factoryReset { pointer-events:all; touch-action:none; cursor:pointer; outline:none; }
 body #panel .pad.step-edit { outline:1px solid #ff5705; outline-offset:1px; }
 
 /* Step LEDs: distinct steady levels, with a single resolved context per lamp. */

@@ -4,6 +4,8 @@
 
 ## Screen controls
 
+**Factory reset:** continuously hold the rabbit head for 5 seconds. `RST` appears and the app reloads its original sounds and patterns, erasing this sampler's saved recordings/settings. Release early or move outside the head to cancel. [Factory patterns and tempo settings](PRESETS.md).
+
 | Control | Action |
 | --- | --- |
 | sound + 1–16 | Select a sound. Release sound to play the numbered pads. |

@@ -17,9 +17,20 @@ All factory sounds are generated from sine waves, harmonics, FM and deterministi
 
 Each drum kit contains 16 equal-length slices: kick, snare, closed hat, clap, rim, tom, shaker, open hat and variations. Slots **5–8 and 13–16 are empty** until you record or copy into them.
 
-Patterns **1–4** are **Night Circuit**, **Broken Glass**, **Velvet Steps** and **Moon Return**. They combine bass, pluck, bell, pad and four drum layers within a C-minor note set. Hold pattern and press 1, 2, 3, 4 to loop through all four.
+Patterns **1–4** use original C-minor sequences with different grooves:
+
+| Pattern | Name | Style | BPM | Swing |
+| --- | --- | --- | --- | --- |
+| 1 | Night Circuit | Four-on-the-floor house | 120 | 0% |
+| 2 | Broken Glass | Syncopated breakbeat | 132 | 8% |
+| 3 | Velvet Steps | Relaxed lo-fi | 84 | 28% |
+| 4 | Moon Return | Half-time electronic | 140 | 0% |
+
+Hold pattern and press 1, 2, 3, 4 to chain all four. Selecting/chaining patterns recalls their BPM and swing. Manual tempo/swing changes are saved for that pattern; pattern copies include these settings. Blank patterns inherit the current tempo until edited.
 
 Factory assets load from the bundled presets.js, without an external sound service. They count toward the 40-second sample pool. Deleting a factory sound keeps it deleted after reload. Initialization preserves existing recordings and non-empty patterns.
+
+To load these revised presets over an existing saved setup, continuously hold the rabbit head for **5 seconds**. `RST` appears, this sampler's saved recordings/patterns/settings are erased, and the page reloads into the factory setup. Releasing early, moving outside the head, cancelling the touch or leaving the page cancels the hold. Other websites' data and the published URL are untouched. An interrupted reset resumes on startup; a storage failure shows `err` and can be retried by holding the head again. The same hold is available with Enter/Space while the head control has keyboard focus.
 
 The original generated sounds and these four sequences are offered under **CC0-1.0**. This statement applies only to those preset assets, not to the whole app or its artwork.
 

@@ -41,6 +41,7 @@
   var WAV_RATE = 16000; // what a take is stored at
   var PK = {
     meta: "po33.meta",
+    reset: "po33.reset",
     slot: function (n) { return "po33.slot" + n; },
     pat: function (n) { return "po33.pat" + n; }
   };
@@ -56,6 +57,8 @@
   var restored = 0; // slots brought back from storage
   var storageWarn = ""; // what the restore had to report
   var storageReady = false;
+  var resetBusy=false,resetFailure=false,resetUntil=0,resetHoldTimer=null,resetPointer=null,resetKey=null;
+  var resetHoldStarted=0;
 
   for (var sg0 = 0; sg0 < TOTAL_SLOTS; sg0++) { savedSig.push(undefined); patSig.push(undefined); }
 
@@ -106,8 +109,8 @@
       function fin(ok, val) { if (!done) { done = true; resolve({ ok: ok, value: val }); } }
       setTimeout(function () { fin(false); }, 4000); // a hung bridge must not wedge the saves
       try {
+        if(m==="set" && v===undefined){fin(false);return;}
         var r = m === "set" ? api.setItem(k, v) : (m === "get" ? api.getItem(k) : api.removeItem(k));
-        if (v === undefined && m !== "get") { fin(true); return; } // never send undefined as a value
         if (r && typeof r.then === "function") {
           r.then(function (val) { fin(true, val); }, function () { fin(false); });
         } else {
@@ -122,7 +125,7 @@
   }
 
   function storePump() {
-    if (saveRunning) return;
+    if (saveRunning || resetBusy || resetFailure) return;
     if (!store) { saveQueue = []; saveQueued = {}; return; }
     var job = saveQueue.shift();
     if (!job) return;
@@ -384,7 +387,7 @@
         swing: SWING,
         trim: params.trim,
         pitch: params.pitch,
-        slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryMuted: factoryMuted, lastNotes:lastNotes
+        slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
       })
     });
   }
@@ -448,7 +451,10 @@
       savedSig[index]=slotSig(samples[index]);
     });
     if(!meta || !meta.factoryRevision)factory.patterns.forEach(function(p,i){
-      if(!patternHasData(patterns[i])){patterns[i]={lanes:p.lanes.map(function(l){return l.slice();})};seeded.push(i+1);}
+      if(!patternHasData(patterns[i])){
+        patterns[i]={lanes:p.lanes.map(function(l){return l.slice();})};
+        patternSettings[i]={bpm:p.bpm,swing:p.swing};seeded.push(i+1);
+      }
     });
     return seeded;
   }
@@ -490,6 +496,9 @@
         } catch (e2) { /* a bad pattern is left empty */ }
       }
       if (meta) {
+        if(Array.isArray(meta.patternSettings) && meta.patternSettings.length===16)patternSettings=meta.patternSettings.map(function(p){
+          return p && Number.isFinite(p.bpm) ? {bpm:Math.max(60,Math.min(240,p.bpm)),swing:Math.max(0,Math.min(.5,p.swing || 0))} : null;
+        });
         if(Array.isArray(meta.lastNotes) && meta.lastNotes.length===16)lastNotes=meta.lastNotes.map(function(n){return Math.max(0,Math.min(15,n|0));});
         if(Array.isArray(meta.factoryMuted))factoryMuted=meta.factoryMuted;
         if (Array.isArray(meta.tweaks) && meta.tweaks.length === 16) tweaks = meta.tweaks;
@@ -563,6 +572,7 @@
 
   function persistDone(meta) {
     var seeded = seedFactory(meta);
+    if(seeded.indexOf(seq.pattern)>=0)applyPatternTempo(seq.pattern);
     persistPaused = false;
     storageReady = true;
     seeded.forEach(function(n){writePattern(n);});
@@ -631,6 +641,7 @@
   var tweakMode = 0, bpmHeld = false, fxHeld = false, writeHeld = false;
   var modifierPointers = {}, modifierUsed = {}, previousMode = "PLAY";
   var patternSelection = [], patternChain = [], chainPosition = 0;
+  var patternSettings=Array(16).fill(null);
   var lastNote = 0, displayValue = null, displayUntil = 0;
   var lastNotes = Array(16).fill(0), lastWasSlice=false;
   var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null;
@@ -1101,6 +1112,11 @@
   function stepDur() {
     return 60 / params.bpm / 4;
   }
+  function savePatternTempo(){patternSettings[seq.pattern-1]={bpm:params.bpm,swing:SWING};}
+  function applyPatternTempo(n){
+    var settings=patternSettings[n-1];if(!settings)return;
+    params.bpm=settings.bpm;SWING=settings.swing;
+  }
 
   var visQueue = [];
 
@@ -1157,11 +1173,12 @@
         seq.schedStep = 0;
         if (patternChain.length > 1 && !patternHeld) {
           chainPosition = (chainPosition + 1) % patternChain.length;
-          seq.pattern = patternChain[chainPosition]; paint();
+          seq.pattern = patternChain[chainPosition];applyPatternTempo(seq.pattern);paint();
         }
         if (seq.queued) {
           seq.pattern = seq.queued;
           seq.queued = 0;
+          applyPatternTempo(seq.pattern);
           paint();
         }
       }
@@ -1292,6 +1309,7 @@
     } else {
       seq.pattern = n;
       seq.queued = 0;
+      applyPatternTempo(n);
       flashHint("PATTERN " + n);
     }
     persistSoon();
@@ -1301,6 +1319,7 @@
   function copyPatternTo(n) {
     if (n < 1 || n > PATTERNS) return;
     patterns[n - 1] = clonePattern(patterns[seq.pattern - 1]);
+    patternSettings[n-1]=patternSettings[seq.pattern-1] ? Object.assign({},patternSettings[seq.pattern-1]) : null;
     writePattern(n);
     flashHint("COPY P" + seq.pattern + ">P" + n);
     paint();
@@ -1639,6 +1658,7 @@
         }
       })
       .then(function (stream) {
+        if(resetBusy || resetFailure){stream.getTracks().forEach(function(track){track.stop();});return false;}
         mic.stream = stream;
         mic.node = c.createMediaStreamSource(stream);
         mic.proc = c.createScriptProcessor(4096, 1, 1);
@@ -1832,7 +1852,7 @@
   var d = document;
   // One short tactile pulse per press. Unsupported WebViews keep operating normally.
   function vibrateButton(e) {
-    var button = e.target.closest ? e.target.closest("button") : null;
+    var button = e.target.closest ? e.target.closest("button, [role='button']") : null;
     var panel = d.getElementById("panel");
     // Only rendered virtual controls are haptic targets, never the page or hidden legacy controls.
     if (!button || button.disabled || !panel.contains(button) || !button.getClientRects().length) return;
@@ -1889,6 +1909,8 @@
   })();
 
   function hintText() {
+    if(resetBusy)return "RESTORING FACTORY PRESETS";
+    if(resetFailure)return "RESET FAILED - HOLD HEAD TO RETRY";
     if (exporting) {
       var bar = Math.min(EXPORT_BARS, 1 + Math.floor(expFrames / (expPerBar || 1)));
       return "REC BEAT: BAR " + bar + "/" + EXPORT_BARS;
@@ -2154,7 +2176,7 @@
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {
         if(!modifierUsed.bpm && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
-        bpmHeld=false;persistSoon();
+        bpmHeld=false;savePatternTempo();persistSoon();
       }
       if(act==="rec") { recPointer=undefined;setRecHeld(false); }
       if(act==="write") { writeHeld=false;if(!modifierUsed.write && e.type!=="pointercancel")setMode(state.mode==="STEP"?"PLAY":"STEP"); }
@@ -2212,6 +2234,7 @@
     if(stepEdit){adjustKnob(0,dir);return;}
     parameterDisplay=false;
     params.bpm=Math.max(60,Math.min(240,params.bpm+dir));
+    savePatternTempo();
     showNumber(params.bpm,"BPM");persistSoon();paint();
   }
 
@@ -2257,6 +2280,7 @@
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
+    if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
     d.getElementById("lcdPlay").setAttribute("fill",seq.playing?"#fff":"#222");
@@ -2332,7 +2356,7 @@
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
     var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir));
     knobAngles[index]=Math.max(-140,Math.min(140,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*280));
-    if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;}
+    if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;savePatternTempo();}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
     else if(tweakMode===1) {if(index===0)t.filter=value;else t.resonance=value;}
     else {if(index===0)sl.start=value;else sl.length=value;}
@@ -2483,6 +2507,101 @@
 
   paint();
 
+  // Factory reset is deliberately a continuous five-second gesture on the head.
+  // A stored marker makes an interrupted/failed clear resume on the next load.
+  var resetControl=d.getElementById("factoryReset"),startupRestore=null;
+  function cancelResetHold(){
+    if(resetHoldTimer)clearTimeout(resetHoldTimer);
+    resetHoldTimer=null;resetPointer=null;resetKey=null;
+  }
+  function beginResetHold(pointer,key){
+    if(resetBusy || resetHoldTimer)return;
+    resetPointer=pointer;resetKey=key;resetHoldStarted=performance.now();
+    resetHoldTimer=setTimeout(function check(){
+      var remaining=5000-(performance.now()-resetHoldStarted);
+      if(remaining>0){resetHoldTimer=setTimeout(check,remaining);return;}
+      cancelResetHold();factoryReset(false);
+    },5000);
+  }
+  resetControl.addEventListener("pointerdown",function(e){
+    if(e.button!==0 || resetPointer!==null)return;
+    e.preventDefault();beginResetHold(e.pointerId,null);
+    try{resetControl.setPointerCapture(e.pointerId);}catch(err){}
+  });
+  window.addEventListener("pointermove",function(e){
+    if(e.pointerId!==resetPointer)return;
+    var r=resetControl.getBoundingClientRect();
+    if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom)cancelResetHold();
+  });
+  ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){
+    window.addEventListener(type,function(e){if(e.pointerId===resetPointer)cancelResetHold();});
+  });
+  resetControl.addEventListener("keydown",function(e){
+    if(e.key!=="Enter" && e.key!==" ")return;
+    e.preventDefault();e.stopPropagation();if(!e.repeat)beginResetHold(null,e.key);
+  });
+  resetControl.addEventListener("keyup",function(e){
+    if(e.key!=="Enter" && e.key!==" ")return;
+    e.preventDefault();e.stopPropagation();if(e.key===resetKey)cancelResetHold();
+  });
+  resetControl.addEventListener("blur",cancelResetHold);
+  window.addEventListener("blur",cancelResetHold);
+  d.addEventListener("visibilitychange",function(){if(d.hidden)cancelResetHold();});
+  window.addEventListener("pointerdown",function(e){if(resetPointer!==null && e.pointerId!==resetPointer)cancelResetHold();},true);
+  ["pointerdown","pointermove","pointerup","keydown","keyup","wheel","sideClick","longPressStart","longPressEnd","scrollUp","scrollDown"].forEach(function(type){
+    window.addEventListener(type,function(e){
+      var onHead=e.target && e.target.nodeType && resetControl.contains(e.target);
+      var releasingHold=resetPointer!==null && e.pointerId===resetPointer && (type==="pointerup" || type==="pointermove");
+      if(!resetBusy && (!resetFailure || onHead || releasingHold))return;
+      if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
+    },{capture:true,passive:false});
+  });
+  async function clearSamplerStorage(){
+    var keys=[PK.meta];
+    for(var i=1;i<=16;i++){keys.push(PK.slot(i));keys.push(PK.pat(i));}
+    for(var k=0;k<keys.length;k++){
+      if(!(await callStore(store,"remove",keys[k])).ok)throw new Error("reset storage failed");
+    }
+  }
+  async function factoryReset(recover){
+    if(resetBusy)return;
+    resetBusy=true;resetFailure=false;persistPaused=true;cancelResetHold();
+    d.body.setAttribute("data-resetting","true");paint();
+    try{
+      if(!recover && startupRestore)await startupRestore;
+      persistPaused=true;
+      if(metaTimer){clearTimeout(metaTimer);metaTimer=null;}
+      saveQueue=[];saveQueued={};
+      endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
+      sideRecArmed=sideRecHeld=recHeld=false;
+      rec.on=false;rec.chunks=[];rec.replacing=null;
+      if(rec.timer){clearInterval(rec.timer);rec.timer=null;}
+      d.body.classList.remove("recording");
+      if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
+      [mic.node,mic.proc,mic.silent].forEach(function(node){if(node){try{node.disconnect();}catch(err){}}});
+      stopSeq();stopShakeSensors();cancelShakeFx();stopTransportAnimation();clearFxTimers();transportGeneration++;
+      var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
+      // Let an already dispatched storage write finish before removing its key.
+      while(saveRunning)await new Promise(function(resolve){setTimeout(resolve,20);});
+      store=store || storageCandidate();if(!store)throw new Error("storage unavailable");
+      if(!recover && !(await callStore(store,"set",PK.reset,"1")).ok)throw new Error("reset marker failed");
+      await clearSamplerStorage();
+      if(recover){
+        if(!(await callStore(store,"remove",PK.reset)).ok)throw new Error("reset marker failed");
+        resetBusy=false;persistPaused=false;
+        resetUntil=Date.now()+1500;d.body.removeAttribute("data-resetting");
+        await restoreAll();resetUntil=Date.now()+1500;paint();
+      } else {
+        // A fresh document also discards audio buffers, microphone state and FX history.
+        await new Promise(function(resolve){setTimeout(resolve,700);});
+        window.location.reload();
+      }
+    }catch(err){
+      resetBusy=false;resetFailure=true;persistPaused=true;
+      d.body.removeAttribute("data-resetting");paint();
+    }
+  }
+
   // ---------- startup: restore what was stored, then keep writing ----------
   function flushOnHide() {
     if (rec.on) finishRec();
@@ -2494,14 +2613,17 @@
   window.addEventListener("pagehide", flushOnHide);
   window.addEventListener("beforeunload", flushOnHide);
 
-  function startRestore() {
+  async function startRestore() {
     if (!storageCandidate()) { store = null; storageReady = true; return; }
-    restoreAll();
+    store=storageCandidate();
+    var marker=await callStore(store,"get",PK.reset);
+    if(marker.ok && marker.value)await factoryReset(true);
+    else await restoreAll();
   }
   if (store && !ac) {
     // nothing has needed audio yet: open the context without a sound, so the
     // takes come back by themselves
     try { ctx(); } catch (err) { /* the first tap opens it instead */ }
   }
-  startRestore();
+  startupRestore=startRestore();
 })();
