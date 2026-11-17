@@ -16,5 +16,13 @@ assert.equal(lit({mode:'trim',start:90,length:100}).at(-1),31);
 assert.deepEqual(lit({mode:'level',value:5}), [0,1,2,3,4]);
 assert.equal(lit({mode:'level',value:100}).length,32);
 assert.deepEqual(lit({mode:'level',value:-10}), []);
+assert.deepEqual(lit({mode:'level',value:4,origin:'center'}), [14,15,16,17]);
+assert.deepEqual(lit({mode:'level',value:1,origin:'center'}), [15,16]);
+assert.deepEqual(lit({mode:'level',value:0,origin:'center'}), []);
+for(let value=0;value<=32;value++){
+  const states=segments({mode:'level',value,origin:'center'});
+  assert(states.every((on,i)=>on===states[31-i]));
+  assert.equal(states.filter(Boolean).length,Math.ceil(value/2)*2);
+}
 assert.throws(()=>segments({mode:'unknown'}), TypeError);
 console.log('PASS: 32 states; signed centered pitch at 2 cells/semitone; neutral and saturation; trim intervals, clipping and empty ranges; proportional level and invalid mode.');

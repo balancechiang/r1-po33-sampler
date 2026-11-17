@@ -28,6 +28,12 @@
 
 In drum TRIM mode, edit the last-triggered slice. While playing, hold write and adjust TONE or FILTER to save parameter locks at the current step.
 
+### Shift + mouse combinations
+
+Hold Shift and click SOUND, PATTERN, WRITE, RECORD, FX or BPM to keep that key held after releasing the mouse. Click another control or drag a knob to complete the combination. Several modifiers can be held this way; releasing Shift releases them in reverse order. Shift-click a held key again to release only that key. Blur, a hidden page or mouse cancellation clears the holds.
+
+Examples: Shift + SOUND, then a number selects a sound; Shift + WRITE, SOUND, target slot copies a sound when Shift is released; Shift + FX, a number holds that effect until Shift is released. Shift-click an existing step in write mode to edit it with the knobs using one mouse. Numbered pads used for slot/pattern/copy selection remain ordinary clicks. PLAY remains an immediate action, and the factory-reset head still requires a real continuous five-second hold. Touch/multiple-finger operation is preserved.
+
 Punch-in FX now follow official numbering: 01–04 loop, 05–06 unison, 07–08 octave, 09–10 stutter, 11–12 scratch, 13 6/8 quantize, 14 retrigger pattern, 15 reverse, 16/00 bypass. Reverse follows each sound's trimmed region; retrigger restarts the actual pattern. See [FX behavior and emulation limits](FX.md). The knobs retain their TONE/FILTER/TRIM roles.
 
 ### Step editing and sound copying
@@ -52,7 +58,7 @@ Punch-in FX now follow official numbering: 01–04 loop, 05–06 unison, 07–08
 
 - **IN:** highlighted when the microphone is available and record is held or recording is active. The meter shows input; OUT is dimmed.
 - **OUT:** highlighted when output is detected outside input-monitoring mode, including manually triggered notes and their tails.
-- **32-square bar:** TONE shows pitch around the center (two squares per semitone); TRIM shows the selected audio interval; FX/input/output uses a left-to-right level. Holding BPM shows volume. See [component props and mapping](LCD-INDICATOR.md).
+- **32-square bar:** TONE shows pitch around the center (two squares per semitone); TRIM shows the selected audio interval. Playback level, including FX, expands symmetrically from the center. Input/idle level and held-BPM volume fill from the left. See [component props and mapping](LCD-INDICATOR.md).
 - **Red LEDs:** show recorded samples, selection, steps, patterns or FX according to the current mode.
 - **Step LED brightness:** in write mode or during playback, programmed steps in the selected sound lane are dim red; events in other lanes are a fainter red; empty steps are off. The currently playing step is bright, with a short brighter pulse on step 1. Pattern chains follow the pattern currently heard. Sound, pattern, FX and volume selection temporarily take priority over the step display.
 - Rabbit and glove motion follows the audio clock/BPM. It resets on stop and respects reduced-motion settings.

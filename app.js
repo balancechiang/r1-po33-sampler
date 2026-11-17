@@ -2072,6 +2072,7 @@
   }
 
   function pid(e) {
+    if(e && e.po33PointerId!==undefined)return e.po33PointerId;
     return e && e.pointerId !== undefined ? e.pointerId : null;
   }
 
@@ -2165,9 +2166,9 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
     if(padPointer!==undefined && pid(e)===padPointer) {
-      if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
       padPointer=undefined; heldPad=0;
     }
     Object.keys(modifierPointers).forEach(function(act){
@@ -2199,6 +2200,7 @@
   window.addEventListener("pointerup",releaseControls);
   window.addEventListener("pointercancel",releaseControls);
   window.addEventListener("blur",function(){
+    shiftHolds={};
     r1Focused=false;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
     endStepEdit(true);commitSoundCopy(true);
@@ -2211,6 +2213,37 @@
     if(Date.now()-lastPointer<600 || !e.target.closest(".cbtn"))return;
     onCtlDown(e); releaseControls(e);
   });
+
+  // Shift + mouse emulates distinct held fingers; native pointer IDs are never
+  // reused for latched keys, so clicking the next control cannot release them.
+  var shiftHolds={},shiftPointerSerial=-1;
+  function releaseShiftHolds(cancel){
+    var held=Object.keys(shiftHolds).map(function(key){return shiftHolds[key];});
+    shiftHolds={};
+    held.reverse().forEach(function(hold){releaseControls({pointerId:hold.id,type:cancel?"pointercancel":"pointerup"});});
+  }
+  window.addEventListener("pointerdown",function(e){
+    if(resetBusy || resetFailure || e.pointerType!=="mouse" || e.button!==0 || !e.shiftKey)return;
+    var target=e.target.closest ? e.target.closest(".cbtn,#bpmMode,.pad") : null;
+    if(!target)return;
+    var act=target.id==="bpmMode"?"bpm":target.getAttribute("data-act");
+    var number=target.getAttribute("data-pad");
+    var latch=act && act!=="play";
+    if(number)latch=(fxHeld && seq.playing && !bpmHeld && !patternHeld && !soundHeld) ||
+      (state.mode==="STEP" && !bpmHeld && !patternHeld && !soundHeld && !recHeld && !writeHeld);
+    if(!latch)return;
+    lastPointer=Date.now();
+    var key=act || "pad"+number;
+    if(shiftHolds[key]){
+      var previous=shiftHolds[key];delete shiftHolds[key];
+      vibrateButton(e);releaseControls({pointerId:previous.id,type:"pointerup"});
+      e.preventDefault();e.stopImmediatePropagation();return;
+    }
+    var id=shiftPointerSerial--;shiftHolds[key]={id:id};e.po33PointerId=id;
+  },true);
+  window.addEventListener("keyup",function(e){if(e.key==="Shift" && !e.shiftKey)releaseShiftHolds(false);});
+  window.addEventListener("pointercancel",function(e){if(e.pointerType==="mouse")releaseShiftHolds(true);});
+  d.addEventListener("visibilitychange",function(){if(d.hidden)releaseShiftHolds(true);});
 
   // stop long-press selection / context menus anywhere in the app
   d.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -2302,9 +2335,9 @@
     lcdIndicator.setProps(indicatorProps(level,inputActive));
   }
   function indicatorProps(level,inputActive) {
-    var meter={mode:"level",value:Math.ceil(Math.min(1,level*1.5)*32)};
+    var meter={mode:"level",origin:seq.playing && !inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
     if(inputActive || fx.kind)return meter;
-    if(bpmHeld)return {mode:"level",value:masterVolume*2};
+    if(bpmHeld)return {mode:"level",origin:"left",value:masterVolume*2};
     if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:tweaks[stepEdit.slot-1].pitch+patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]};
     if(!parameterDisplay)return meter;
     if(tweakMode===0)return {mode:"pitch",pitch:tweaks[state.slot-1].pitch};

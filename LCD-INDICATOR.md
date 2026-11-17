@@ -27,7 +27,8 @@ display details have been verified against physical hardware.
 | `pitch` | number | 0 | Semitone offset; two squares per semitone, left for negative and right for positive. |
 | `start` | number | 0 | Trim start as an absolute percentage, 0–100. |
 | `length` | number | 100 | Absolute width of the selected interval, 0–100; clips at 100 minus start. |
-| `value` | number | 0 | Number of squares lit from the left, 0–32; rounded and clamped. |
+| `value` | number | 0 | Level amount, 0–32; rounded and clamped. `origin` chooses the fill direction. |
+| `origin` | `'left' \| 'center'` | `'left'` | Level fill direction. Center lights mirrored pairs; odd counts round up to the next pair. Zero remains off. |
 | `onColor` | string | `'#fff'` | Active fill. |
 | `offColor` | string | `'#222'` | Inactive fill. |
 
@@ -57,8 +58,9 @@ The optional third `create()` argument controls static geometry:
 - TRIM displays the actual selected region. The existing melodic/copied-slice
   length is stored as a percentage of the remaining sound, so the adapter converts
   it to absolute interval width. A native drum slice is positioned within its take.
-- Normal playback/idle uses the level meter. Existing IN/OUT logic is unchanged.
+- Normal playback uses a centered level meter that expands equally left and right. Idle/manual audition, input monitoring and BPM volume selection use the left origin. Existing IN/OUT logic is unchanged.
 
 简体中文：接口支持 `pitch`、`trim`、`level` 三种模式；`setProps()` 可随时切换。
 零音高用中间两格标记，正值向右、负值向左，每半音两格，超过 ±8 半音时指示条封顶，数字显示不变。
 `start` 和 `length` 都是整个区间的百分比；空区间不点亮。
+播放电平使用 `origin:'center'`，左右成对扩开；输入监听与音量设置保持 `origin:'left'`。奇数格数向上取整为一对，零值全灭。

@@ -15,6 +15,7 @@
    * @property {number} [start=0] Trim start, in percent (0–100).
    * @property {number} [length=100] Trim length, in percent (0–100).
    * @property {number} [value=0] Level/FX count (0–32).
+   * @property {"left"|"center"} [origin="left"] Level fill direction; center uses symmetric pairs.
    * @property {string} [onColor="#fff"] Solid active color.
    * @property {string} [offColor="#222"] Solid inactive color.
    */
@@ -45,7 +46,12 @@
       if (length > 0) for (let i = first; i < end; i++) result[i] = true;
     } else if (props.mode === "level") {
       const count = Math.round(clamp(props.value === undefined ? 0 : props.value, 0, SEGMENT_COUNT));
-      for (let i = 0; i < count; i++) result[i] = true;
+      if (props.origin === "center") {
+        const pairs = Math.ceil(count / 2);
+        for (let i = 0; i < pairs; i++) result[15 - i] = result[16 + i] = true;
+      } else {
+        for (let i = 0; i < count; i++) result[i] = true;
+      }
     } else {
       throw new TypeError('Indicator mode must be "pitch", "trim" or "level".');
     }
@@ -61,7 +67,7 @@
    */
   function create(container, initialProps, layout) {
     const geometry = Object.assign({ x: 0, y: 0, size: 4.5, gap: 1.8 }, layout);
-    let props = Object.assign({ mode: "level", value: 0, pitch: 0, start: 0, length: 100,
+    let props = Object.assign({ mode: "level", value: 0, origin: "left", pitch: 0, start: 0, length: 100,
       onColor: "#fff", offColor: "#222" }, initialProps);
     // Validate before touching an existing drawing.
     segments(props);
@@ -88,6 +94,7 @@
         square.setAttribute("data-active", String(active[i]));
       });
       container.setAttribute("data-indicator-mode", props.mode);
+      container.setAttribute("data-indicator-origin", props.mode === "level" ? props.origin : "");
       const detail = props.mode === "pitch" ? props.pitch + " semitones"
         : props.mode === "trim" ? props.start + "% start, " + props.length + "% length"
         : clamp(props.value, 0, SEGMENT_COUNT) + "/32";
@@ -102,6 +109,7 @@
         container.removeAttribute("role");
         container.removeAttribute("aria-label");
         container.removeAttribute("data-indicator-mode");
+        container.removeAttribute("data-indicator-origin");
       }
     };
   }
