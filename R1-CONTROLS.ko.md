@@ -61,3 +61,5 @@ FX는 공식 번호를 따릅니다: 01–04 루프, 05–06 유니슨, 07–08 
 IN/OUT 점등 임계값은 이 앱의 구현이며 실기기와 프레임 단위로 동일한지는 확인하지 않았습니다. 지원 환경에서는 각 키가 12ms의 짧은 진동을 요청합니다. 누르는 순간 색이 바뀌는 효과는 없습니다. 진동과 흔들기 감도는 실기기에서 확인하세요.
 
 [조작 안내](R1-CONTROLS.ko.md) · [프리셋 사운드와 패턴](PRESETS.ko.md) · [배포 안내](DEPLOY.ko.md)
+
+Hardware Backup I/O: WRITE + SOUND + PLAY / RECORD opens the separate raw replay / receive page. This does not yet decode or generate hardware projects. [Details](BACKUP-IO.md).

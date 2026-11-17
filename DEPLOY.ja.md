@@ -24,3 +24,5 @@
 参考：[GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site) · [rabbit Creations](https://www.rabbit.tech/support/article/how-to-use-r1-creations)
 
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)
+
+Hardware Backup I/O: include backup.html, backup.css, backup-ui.js, backup-wav.js and backup-worklet.js when publishing. AudioWorklet requires HTTPS or localhost; see [status and hardware tests](BACKUP-IO.md).

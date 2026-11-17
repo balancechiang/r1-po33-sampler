@@ -66,3 +66,5 @@ Punch-in FX 按官方编号：01–04 循环、05–06 叠音、07–08 八度�
 IN/OUT 的高亮门限是本应用的实现，尚未验证与真机逐帧一致。按键在设备支持时请求 12ms 短震动，没有瞬时按下变色效果。晃动灵敏度和震动需真机确认。
 
 [操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)
+
+Hardware Backup I/O: WRITE + SOUND + PLAY / RECORD opens the separate raw replay / receive page. This does not yet decode or generate hardware projects. [Details](BACKUP-IO.md).

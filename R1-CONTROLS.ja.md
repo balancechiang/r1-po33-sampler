@@ -61,3 +61,5 @@ FX は公式番号順です：01–04 ループ、05–06 ユニゾン、07–08
 IN/OUT の点灯しきい値は本アプリ独自の実装で、実機とのフレーム単位の一致は未確認です。対応環境では各キーで 12ms の短い振動を要求します。押した瞬間の色変化はありません。振動とシェイク感度は実機で確認してください。
 
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)
+
+Hardware Backup I/O: WRITE + SOUND + PLAY / RECORD opens the separate raw replay / receive page. This does not yet decode or generate hardware projects. [Details](BACKUP-IO.md).

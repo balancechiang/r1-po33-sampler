@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PO-33 · Hardware Backup</title><link rel="stylesheet" href="backup.css"></head>
+<body><main>
+<header><a href="index.html">← Sampler</a><h1>Hardware backup</h1><p>Raw stereo recording and replay · 44.1 kHz / 16-bit PCM</p></header>
+<p class="notice">This records or replays an existing hardware backup signal. Decoding it into editable sounds/patterns, and generating a hardware backup from the web project, are not implemented yet.</p>
+<section><h2>1 · Connect</h2><p>Use a stereo audio interface and a stereo cable. Disable system sound effects, EQ and spatial audio. The browser can verify its own format, but cannot verify the operating system or interface signal path.</p>
+<button id="devices">Allow audio access & refresh devices</button>
+<label>Audio input<select id="input"><option value="">System default</option></select></label>
+<label>Audio output<select id="output"><option value="">System default</option></select></label>
+<p id="format">A verified two-channel 44.1 kHz input is required for recording.</p></section>
+<section><h2>2 · Receive from PO-33</h2><p>Connect PO-33 line out to the interface input. Start recording here, then press <strong>WRITE + SOUND + PLAY</strong> on the PO-33. Stop here after its transfer finishes.</p>
+<div class="meters"><label>L <meter id="left" min="0" max="1" value="0"></meter><span id="leftValue">0%</span></label><label>R <meter id="right" min="0" max="1" value="0"></meter><span id="rightValue">0%</span></label></div>
+<p id="signal">No signal measured.</p>
+<div class="actions"><button id="record">Record raw backup</button><button id="stop" disabled>Stop</button></div></section>
+<section id="drop"><h2>3 · Save or replay</h2><label>Open a stereo PCM16 / 44.1 kHz WAV<input id="file" type="file" accept=".wav,audio/wav"></label><p>Or drop a WAV here. MP3 and other formats are not converted in the backup path.</p>
+<p id="fileInfo">No backup audio loaded.</p>
+<button id="save" disabled>Save raw WAV</button>
+<p>To replay to hardware: connect the selected output to PO-33 line in, set the PO-33 to receive with <strong>WRITE + SOUND + RECORD</strong>, then play below. Receiving replaces the hardware's current sounds and patterns. Set and test interface volume manually; this page applies no gain or normalization.</p>
+<button id="play" disabled>Play raw backup to output</button></section>
+<p id="status" role="status" aria-live="polite">Ready. Hardware acceptance has not been verified.</p>
+<footer><a href="BACKUP-IO.md">Implementation status and test procedure</a></footer>
+</main><script src="backup-wav.js"></script><script src="backup-ui.js"></script></body></html>

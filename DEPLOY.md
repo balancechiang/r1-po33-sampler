@@ -24,3 +24,5 @@ The release includes runtime files, documentation, icons and the font license. I
 References: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site) · [rabbit Creations](https://www.rabbit.tech/support/article/how-to-use-r1-creations)
 
 [Controls](R1-CONTROLS.md) · [Factory sounds & patterns](PRESETS.md) · [Publishing](DEPLOY.md)
+
+Hardware Backup I/O: include backup.html, backup.css, backup-ui.js, backup-wav.js and backup-worklet.js when publishing. AudioWorklet requires HTTPS or localhost; see [status and hardware tests](BACKUP-IO.md).

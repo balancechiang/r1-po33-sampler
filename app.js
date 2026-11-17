@@ -2149,6 +2149,11 @@
     var act=btn.getAttribute("data-act");
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=false;
+    if(writeHeld && soundHeld && (act==="play" || act==="rec")){
+      modifierUsed.write=true;stopSeq();
+      var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
+      ctx().suspend();window.open("./backup.html#"+(act==="play"?"replay":"receive"),"po33-hardware-backup");return;
+    }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true); ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
     if(act==="write") { writeHeld=true; return; }

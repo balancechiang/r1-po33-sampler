@@ -66,3 +66,5 @@ Punch-in FX now follow official numbering: 01–04 loop, 05–06 unison, 07–08
 IN/OUT highlight thresholds are an app implementation, not a verified frame-for-frame recreation of the hardware. All keys request a 12ms vibration pulse where supported, without a transient pressed-color effect. Shake sensitivity and vibration require real-device testing.
 
 [Controls](R1-CONTROLS.md) · [Factory sounds & patterns](PRESETS.md) · [Publishing](DEPLOY.md)
+
+Hardware Backup I/O: WRITE + SOUND + PLAY / RECORD opens the separate raw replay / receive page. This does not yet decode or generate hardware projects. [Details](BACKUP-IO.md).
