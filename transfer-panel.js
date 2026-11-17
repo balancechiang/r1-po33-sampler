@@ -2,12 +2,12 @@
 (function(root){'use strict';
   function create(hooks){
     const box=document.createElement('section');box.id='transferControls';box.setAttribute('aria-label','Hardware project transfer');
-    box.innerHTML='<p id="transferHint" role="status" aria-live="polite"></p><div><button id="transferFile">Open WAV</button><input id="transferFileInput" type="file" accept=".wav,audio/wav"><button id="transferRecord">Line in</button><button id="transferSend" class="primary">Line out</button><button id="transferSave">Save WAV</button><button id="transferStop">Stop</button><button id="transferClose">Close</button><button id="transferUndo">Undo restore</button><button id="transferDeviceToggle">I/O</button></div><div id="transferDevices" hidden><button id="transferRefresh">Find devices</button><label>Input <select id="transferInput"><option value="">System default</option></select></label><label>Output <select id="transferOutput"><option value="">System default</option></select></label></div>';
+    box.innerHTML='<p id="transferHint" role="status" aria-live="polite"></p><div><button id="transferFile">Open WAV</button><input id="transferFileInput" type="file" accept=".wav,audio/wav"><button id="transferRecord">Line in</button><button id="transferSend" class="primary">Line out</button><button id="transferSave">Save WAV</button><button id="transferStop">Stop</button><button id="transferClose">Close</button><button id="transferUndo">Undo restore</button><button id="transferDeviceToggle">I/O</button></div><div id="transferDevices" hidden><button id="transferRefresh">Find devices</button><button id="transferCheckInput">Check input</button><p id="transferInputReport" role="status"></p><label>Input <select id="transferInput"><option value="">System default</option></select></label><label>Output <select id="transferOutput"><option value="">System default</option></select></label></div>';
     document.body.append(box);const $=id=>document.getElementById(id);
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
-    let generation=0,saveChain=Promise.resolve();
+    let generation=0,saveChain=Promise.resolve(),probing=false;
     const storage=root.PO33TransferStorage;
     function moveFocus(direction){
       if(!view.active || !direction)return;
@@ -24,12 +24,13 @@
     }
     function render(){
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=['encoding','decoding','sending','receiving','listening'].includes(view.state);
+      const busy=probing || ['encoding','decoding','sending','receiving','listening'].includes(view.state);
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
       $('transferSend').hidden=view.mode!=='send';$('transferSave').hidden=view.mode!=='send';
       $('transferFile').disabled=busy;$('transferRecord').disabled=busy;$('transferSend').disabled=!encoded||busy;$('transferSave').disabled=!encoded||busy;
       $('transferStop').disabled=!['receiving','listening','sending'].includes(view.state);$('transferUndo').hidden=!undo;
       $('transferUndo').disabled=busy;$('transferRefresh').disabled=busy;
+      $('transferCheckInput').disabled=busy;
       $('transferInput').disabled=busy;$('transferOutput').disabled=busy;
       if(view.active)document.body.style.setProperty('--transfer-height',(box.offsetHeight+4)+'px');
       hooks.paint();
@@ -42,7 +43,14 @@
       const context=audio;audio=null;if(context)await context.close();
     }
     function terminate(){if(worker)worker.terminate();worker=null;}
-    async function fail(error){generation++;terminate();await closeAudio();chunks=[];set('error',error.message||String(error),{progress:0,level:0});}
+    function errorText(error){
+      if(error?.name==='OverconstrainedError'){
+        const constraint=error.constraint || 'unknown';
+        return `Input constraint rejected: ${constraint} / 输入条件不支持。`+(constraint==='channelCount'?' Stereo (2 channels) was rejected. / 双声道请求被拒绝。':constraint==='deviceId'?' Refresh devices and reselect USB input. / 请刷新并重选 USB 输入。':'')+' I/O → Check input. '+(error.message || '');
+      }
+      return [error?.name && error.name!=='Error'?error.name:'',error?.message || (typeof error==='string'?error:'Operation failed')].filter(Boolean).join(': ');
+    }
+    async function fail(error){generation++;terminate();await closeAudio();chunks=[];$('transferHint').dataset.errorName=error?.name || 'Error';$('transferHint').dataset.constraint=error?.constraint || '';set('error',errorText(error),{progress:0,level:0});}
     function end(hint){set('success',hint,{progress:1,level:0,record:0});clearTimeout(timer);timer=setTimeout(()=>{view.active=false;view.state='idle';render();},2500);}
     function checkpoint(){
       if(!session||hooks.preview)return;
@@ -181,7 +189,24 @@
           const select=$(id),list=await navigator.mediaDevices.enumerateDevices();select.replaceChildren(new Option('System default',''));
           list.filter(d=>d.kind===kind).forEach(d=>select.add(new Option(d.label||kind,d.deviceId)));
         }
-      }catch(error){$('transferHint').textContent=error.message;}finally{permission?.getTracks().forEach(t=>t.stop());}
+      }catch(error){$('transferHint').textContent=errorText(error);}finally{permission?.getTracks().forEach(t=>t.stop());}
+    }
+    async function checkInput(){
+      const token=generation;let probe;
+      probing=true;render();$('transferInputReport').textContent='Checking selected input / 正在检查所选输入…';
+      try{
+        const constraints={channelCount:{ideal:2},echoCancellation:false,noiseSuppression:false,autoGainControl:false};
+        if($('transferInput').value)constraints.deviceId={exact:$('transferInput').value};
+        // Diagnostic only: ideal stereo permits observing a mono track. It is
+        // never connected to the backup recorder or represented as stereo.
+        probe=await navigator.mediaDevices.getUserMedia({audio:constraints});
+        if(token!==generation || !view.active)return;
+        const track=probe.getAudioTracks()[0],s=track.getSettings(),cap=track.getCapabilities?.() || {};
+        const range=cap.channelCount?`${cap.channelCount.min}–${cap.channelCount.max}`:'not reported';
+        const flags=['echoCancellation','noiseSuppression','autoGainControl'].map(k=>`${k}=${s[k]===undefined?'unknown':s[k]}`).join(', ');
+        $('transferInputReport').textContent=`${track.label || 'Selected input'} · channels=${s.channelCount??'unknown'} · rate=${s.sampleRate??'unknown'} Hz · channel range=${range} · ${flags}. `+(s.channelCount===1?'Only mono is exposed in this request / 当前请求仅提供单声道，不能当作工程立体声输入。':s.channelCount===2?'Stereo reported; strict capture and CRC still required / 已报告双声道，仍需严格采集和校验。':'Channel count not reported / 未报告声道数。');
+      }catch(error){if(token===generation)$('transferInputReport').textContent=errorText(error);}
+      finally{probe?.getTracks().forEach(t=>t.stop());probing=false;render();}
     }
     $('transferFile').onclick=()=>$('transferFileInput').click();$('transferFileInput').onchange=e=>{const file=e.target.files[0];e.target.value='';readFile(file);};
     $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=close;
@@ -193,6 +218,7 @@
       await close();
     };
     $('transferDeviceToggle').onclick=()=>$('transferDevices').hidden=!$('transferDevices').hidden;$('transferRefresh').onclick=devices;
+    $('transferCheckInput').onclick=checkInput;
     document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));});
     root.addEventListener('pagehide',()=>{closeAudio();terminate();});
     root.addEventListener('resize',()=>{if(view.active)render();});

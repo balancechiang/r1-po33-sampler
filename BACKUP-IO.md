@@ -20,6 +20,11 @@ No release package or deployment has been prepared.
 - In transfer mode, the R1 wheel moves focus through visible, enabled controls;
   each actual move requests one 12 ms vibration and shows an orange outline.
   Outside transfer mode the wheel keeps its normal BPM/held-step behavior.
+- **I/O → Check input** probes the selected input with an ideal stereo request,
+  reports actual channels/rate/channel capability range and processing flags,
+  then stops the track. It does not record or relax the real backup input's
+  strict stereo requirement. Overconstrained errors show the failed constraint;
+  they do not by themselves prove that the Creation SDK forbids USB audio.
 - **Stop / Close** cancels transfer. No signal plays automatically.
   **Undo restore**, available in the current session, returns to the preceding
   project; it is distinct from factory reset.
