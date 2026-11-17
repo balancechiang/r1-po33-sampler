@@ -60,7 +60,7 @@ try:
   page.screenshot(path=str(root/'t/official-backup-tests/hub-timeout-preview.png'))
   page.locator('#hubLoadFile').click()
   assert not page.locator('#localHubPanel').is_visible()
-  assert page.locator('#transferFileInput').get_attribute('accept')=='.wav,.json'
+  assert page.locator('#transferFileInput').get_attribute('accept')=='.wav,.json,.po33frame,.gz'
   assert not errors,errors
   print('PASS HTTPS manager upload/delete; genuine cross-origin hidden iframe READY/list/transferable WAV and lossless JSON -> CRC restore; hardware-side activation, IP persistence, forged message rejection, JSON export/reimport, 3s trust/HTTP/Load File fallback. Self-signed trust bypass confined to test browser; physical R1 unverified.')
   browser.close()

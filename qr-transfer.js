@@ -24,5 +24,5 @@
    return result;
   }};
  }
- root.PO33QRTransfer={encode,receiver};
+ root.PO33QRTransfer={encode,receiver,unpackFrame:bytes=>transform(bytes,'unzip')};
 })(globalThis);

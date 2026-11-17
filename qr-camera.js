@@ -2,7 +2,7 @@
 (function(root){'use strict';
   function create(parent){
     const dialog=document.createElement('dialog');dialog.id='transferQR';
-    dialog.innerHTML='<p>Scan URL or animated project QR / 扫描网址或动态工程码</p><video id="transferQRVideo" autoplay muted playsinline></video><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p><form id="transferQRForm"><label>WAV URL / 下载网址<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button type="submit">Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
+    dialog.innerHTML='<p>Scan URL or animated project QR / 扫描网址或动态工程码</p><video id="transferQRVideo" autoplay muted playsinline></video><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p><form id="transferQRForm"><label>Project URL / 工程直链<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button type="submit">Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
     parent.append(dialog);
     const video=dialog.querySelector('video'),status=dialog.querySelector('#transferQRStatus'),input=dialog.querySelector('input');
     let stream=null,worker=null,timer=null,finish=null,session=0,busy=false,receiver=null;

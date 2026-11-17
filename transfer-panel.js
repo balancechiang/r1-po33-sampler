@@ -8,7 +8,7 @@
     const scanner=root.PO33QRCamera.create(box);
     const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
     const jsonButton=document.createElement('button');jsonButton.id='transferJSON';jsonButton.textContent='Save JSON';$('transferSave').after(jsonButton);
-    $('transferFileInput').accept='.wav,.json';$('transferFile').textContent='Load File';
+    $('transferFileInput').accept='.wav,.json,.po33frame,.gz';$('transferFile').textContent='Load File';
     const hub=root.PO33LocalHub.create(box,{onFile:(name,buffer)=>loadBuffer(name,buffer),onClose:()=>set('waiting','rcv · Ready / 就绪',{progress:0}),loadFile:()=>$('transferFileInput').click()});
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
@@ -123,7 +123,7 @@
     function loadBuffer(filename,buffer){
       if(!view.active)return;
       generation++;set('decoding','Checking project / 正在校验工程',{progress:0});
-      if(!/\.(wav|json|po33frame)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a WAV or JSON project under 128 MB'));return;}
+      if(!/\.(wav|json|po33frame|po33\.gz)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a WAV or JSON project under 128 MB'));return;}
       run('decode',{wav:buffer,filename});
     }
     hubButton.onclick=()=>{set('hub','LAN HUB (:33033)',{progress:0,level:0});hub.open();};
@@ -143,12 +143,12 @@
       const token=++generation;let timeout,controller,lan=false;
       try{
         const url=downloadURL(text);lan=new URL(url).protocol==='http:';controller=new AbortController();downloadAbort=controller;timeout=setTimeout(()=>controller.abort(),120000);
-        set('downloading','Downloading WAV / 正在下载工程音频',{progress:null,level:0});
+        set('downloading','Downloading project / 正在下载工程',{progress:null,level:0});
         const response=await fetch(url,{signal:downloadAbort.signal,credentials:'omit',referrerPolicy:'no-referrer'});
         if(token!==generation)return;
         if(!response.ok)throw Error('Download HTTP '+response.status);
         downloadURL(response.url);
-        if((response.headers.get('Content-Type') || '').includes('text/html'))throw Error('Link returned a web page, not WAV / 请使用 WAV 直链');
+        if((response.headers.get('Content-Type') || '').includes('text/html'))throw Error('Link returned a web page / 请使用工程文件直链');
         const total=Number(response.headers.get('Content-Length')) || 0,max=128*1024*1024;
         if(total>max)throw Error('Backup exceeds 128 MB');
         if(!response.body?.getReader)throw Error('Streaming downloads unavailable / 此浏览器不支持流式下载');
@@ -156,8 +156,12 @@
         for(;;){const {value,done}=await reader.read();if(token!==generation){await reader.cancel();return;}if(done)break;received+=value.length;if(received>max){await reader.cancel();throw Error('Backup exceeds 128 MB');}parts.push(value);view.progress=total?Math.min(.99,received/total):null;render();}
         if(!received)throw Error('Empty download / 下载文件为空');
         const bytes=new Uint8Array(received);let at=0;for(const p of parts){bytes.set(p,at);at+=p.length;}
-        if(String.fromCharCode(...bytes.subarray(0,4))!=='RIFF' || String.fromCharCode(...bytes.subarray(8,12))!=='WAVE')throw Error('Downloaded file is not RIFF/WAV / 下载内容不是 WAV');
-        set('decoding','Checking downloaded backup / 正在校验下载工程',{progress:0});run('decode',{wav:bytes.buffer});
+        let filename;
+        if(bytes[0]===0x1f && bytes[1]===0x8b)filename='download.po33.gz';
+        else if(String.fromCharCode(...bytes.subarray(0,4))==='RIFF' && String.fromCharCode(...bytes.subarray(8,12))==='WAVE')filename='download.wav';
+        else if(new URL(response.url).pathname.toLowerCase().endsWith('.json'))filename='download.json';
+        else throw Error('Downloaded file is not RIFF/WAV or a supported project / 下载内容不是支持的工程文件');
+        set('decoding','Checking downloaded backup / 正在校验下载工程',{progress:0});run('decode',{wav:bytes.buffer,filename});
       }catch(error){controller?.abort();if(token===generation)await fail(error.name==='TypeError'?Error(lan?'LAN download blocked or unreachable: check same Wi-Fi, local-network permission and HTTP/CORS policy / 局域网未连接或被浏览器限制':'Download failed: network or CORS. Use a public WAV direct link with cross-origin access / 网络或跨域限制，请使用允许跨域的 WAV 直链'):error.name==='AbortError'?Error('Download timed out / 下载超时'):error);}
       finally{clearTimeout(timeout);if(downloadAbort===controller)downloadAbort=null;}
     }

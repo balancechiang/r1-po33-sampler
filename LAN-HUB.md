@@ -156,3 +156,27 @@ QR sender is at [demo/animated-qr/](demo/animated-qr/). Start with Small test
 and scan using Receive → Scan QR. This needs no LAN bridge or file download
 on the R1, but still requires camera permission. See its README for size,
 compatibility and physical-test limitations.
+
+## Single-QR HTTPS compressed project download
+
+Receive → Scan QR accepts HTTPS direct links to `.po33.gz` gzip-compressed
+native frames. The response is bounded to 128 MiB, decompression to 8 MiB,
+then the native preamble/layout/packet CRC is verified before adoption.
+Load File also accepts `.po33.gz` and `.po33frame`, besides WAV/JSON.
+A gzip header is detected on downloaded files; downloaded JSON needs a `.json`
+URL suffix. The server must permit CORS. No trust or browser policy is bypassed.
+
+For a temporary test, `python tools/share-project.py --file <selected-file>`
+binds a read-only single-file endpoint to 127.0.0.1:33035. Only the random
+printed path serves the chosen file; there is no directory listing, upload,
+delete or Hub bridge. Point a separately installed trusted HTTPS tunnel at
+that origin, then encode its HTTPS hostname plus the printed path as a URL QR.
+Anyone who obtains the URL can download this file while the server and tunnel
+remain running. Do not expose the management Hub through a public tunnel.
+Temporary provider hostnames expire when the tunnel stops and can be blocked
+by networks; this is not a permanent distribution URL.
+
+Verification: `python -X utf8 test-project-download.py <Escalate-HTTPS-URL>`
+checks a real QR camera pipeline, cross-origin compressed download and native
+restore of all 16 slots, plus rejection of an invalid decompressed frame
+without replacing the loaded project. This is not physical R1 validation.
