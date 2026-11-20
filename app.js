@@ -1968,6 +1968,35 @@
     }
   })();
 
+  // HOLD is a visual state only; existing chord/step/knob behavior owns its lifetime.
+  var holdControls=Array.from(d.querySelectorAll('#ctl .cbtn,#bpmMode,.pad,.knob'));
+  var holdTimers={},holdPointers={},physicalHolds=new Set();
+  holdControls.forEach(function(button){var label=d.createElement('span');label.className='hold-indicator';label.textContent='HOLD';label.setAttribute('aria-hidden','true');button.appendChild(label);});
+  function paintHolds(){
+    holdControls.forEach(function(button){
+      var act=button.id==='bpmMode'?'bpm':button.getAttribute('data-act'),pad=button.getAttribute('data-pad');
+      var sticky=act && touchChord && touchChord[act]!==undefined && modifierPointers[act]===touchChord[act];
+      var shifted=shiftHolds && shiftHolds[act || 'pad'+pad];
+      var step=pad && stepEdit && stepEdit.used && stepEdit.step===+pad-1;
+      var side=act==='rec' && sideRecHeld;
+      button.classList.toggle('hold-active',!!(physicalHolds.has(button)||sticky||shifted||step||side));
+    });
+  }
+  function releaseHoldVisual(e){
+    var id=e.pointerId,entry=holdPointers[id];clearTimeout(holdTimers[id]);delete holdTimers[id];
+    if(entry){physicalHolds.delete(entry.button);delete holdPointers[id];}paintHolds();
+  }
+  d.addEventListener('pointerdown',function(e){
+    if(e.button!==0 || e.shiftKey)return;
+    var button=e.target.closest && e.target.closest('#ctl .cbtn,#bpmMode,.pad,.knob');if(!button)return;
+    var id=e.pointerId;clearTimeout(holdTimers[id]);holdPointers[id]={button:button,x:e.clientX,y:e.clientY};
+    var occupied=button.classList.contains('pad') && state.mode==='STEP' && patterns[seq.pattern-1].lanes[state.slot-1][+button.dataset.pad-1]>=0;
+    holdTimers[id]=setTimeout(function(){if(holdPointers[id]){physicalHolds.add(button);paintHolds();}},occupied?1000:500);
+  },true);
+  d.addEventListener('pointermove',function(e){var entry=holdPointers[e.pointerId];if(!entry || physicalHolds.has(entry.button))return;var unit=d.getElementById('panel').getBoundingClientRect().width/240;if(Math.hypot(e.clientX-entry.x,e.clientY-entry.y)>4*unit){clearTimeout(holdTimers[e.pointerId]);delete holdTimers[e.pointerId];}},true);
+  window.addEventListener('pointerup',releaseHoldVisual);window.addEventListener('pointercancel',releaseHoldVisual);d.addEventListener('lostpointercapture',releaseHoldVisual,true);
+  window.addEventListener('blur',function(){Object.keys(holdTimers).forEach(function(id){clearTimeout(holdTimers[id]);});holdTimers={};holdPointers={};physicalHolds.clear();paintHolds();});
+
   function hintText() {
     if(resetBusy)return "RESTORING FACTORY PRESETS";
     if(ac && (seq.playing||rec.on) && window.PO33Runtime.isBlocked(ac))return "TAP TO RESUME AUDIO";
@@ -2017,7 +2046,8 @@
   function paintStepLeds() {
     var patternNumber = seq.playing ? (seq.visualPattern || seq.pattern) : seq.pattern;
     var pat = patterns[patternNumber - 1], lane = pat.lanes[state.slot - 1];
-    var stepView = state.mode === "STEP" || seq.playing;
+    var editing = state.mode === "STEP" || writeHeld;
+    var stepView = editing || seq.playing;
     d.getElementById("panel").style.setProperty("--led-pulse", Math.min(110,stepDur()*700)+"ms");
     var now=ac?ac.currentTime:0,sounding=Array(16).fill(null);
     if(seq.playing)sampleVoices.forEach(function(v){var end=Math.min(v.end,v.cutAt===undefined?Infinity:v.cutAt);if(v.start<=now && end>now && (!v.controls || v.controls.volume.gain.value>.0001)){var old=sounding[v.slot-1];if(!old || v.start>old.start)sounding[v.slot-1]={start:v.start,end:end};}});
@@ -2043,8 +2073,8 @@
       } else if(fxHeld || shakeFx) {
         if(p+1===fx.kind){level="bright";reason="effect";}
       } else if(stepView) {
-        if(lane[p]>=0){level="dim";reason="own-step";}
-        else {
+        if(editing && lane[p]>=0){level="dim";reason="own-step";}
+        else if(editing) {
           for(var track=0;track<TOTAL_SLOTS;track++) {
             if(track!==state.slot-1 && pat.lanes[track][p]>=0){level="low";reason="other-step";break;}
           }
@@ -2053,7 +2083,7 @@
         var hit=sounding[p];
         if(hit){var release=Math.min(.035,(hit.end-hit.start)*.2);level=now<hit.end-release?"bright":"off";reason="sound-trigger";pads[p].setAttribute("data-led-onset",String(hit.start));pads[p].setAttribute("data-led-end",String(hit.end));}
         else {pads[p].removeAttribute("data-led-onset");pads[p].removeAttribute("data-led-end");}
-      } else if(samples[p]) {level="dim";reason="sample";}
+      }
       if(!recHeld && Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
       pads[p].setAttribute("data-led-level",level);
@@ -2113,7 +2143,7 @@
         else sub.textContent = "";
       }
     }
-    paintStepLeds();
+    paintStepLeds();paintHolds();
   }
 
   var flashTimers = [];
@@ -2232,7 +2262,7 @@
     var pointer=pid(e);
     touchChordTimers[pointer]=setTimeout(function(){
       if(modifierPointers[act]!==pointer || modifierUsed[act] || heldPad)return;
-      touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");
+      touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");paintHolds();
       clearTimeout(touchChordIdle);touchChordIdle=setTimeout(clearTouchChord,8000);
     },500);
   }
@@ -2293,6 +2323,7 @@
     Object.keys(modifierPointers).forEach(function(act){
       if(modifierPointers[act]!==pid(e))return;
       if(touchChord[act]===pid(e) && e.type!=="pointercancel")return;
+      if(e.type==="pointercancel" && touchChord[act]===pid(e)){delete touchChord[act];var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove('transfer-latched');}
       delete modifierPointers[act];
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {

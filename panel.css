@@ -133,3 +133,12 @@ body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:
 
 /* Lightweight mechanical art; 12 x 5 lamps align with the cap's upper edge. */
 #panel button .led { left:34.21052631578947%; top:3.260869565217391%; width:31.57894736842105%; height:10.869565217391305%; border-radius:calc(1.5 * var(--unit,1px)); }
+
+/* Long presses replace the central face, without changing hit areas or rotor pivots. */
+#panel button .hold-indicator { display:none; position:absolute; left:17.105263157894736%; top:26.08695652173913%; width:65.78947368421052%; height:30.434782608695652%; align-items:center; justify-content:center; background:#999; color:#f00; font-family:Arial,Helvetica,sans-serif; font-weight:900; font-size:calc(8 * var(--unit,1px)); letter-spacing:0; line-height:1; white-space:nowrap; overflow:hidden; pointer-events:none; z-index:2; }
+#panel button.hold-active .hold-indicator { display:flex; }
+#panel .knob .hold-indicator { background:transparent; }
+#panel #knobA .hold-indicator { left:14.274733693976167%; top:18.73296217484908%; width:72.68158762078536%; height:62.77046203613281%; }
+#panel #knobB .hold-indicator { left:15.24708798057153%; top:18.73296217484908%; width:72.68158762078536%; height:62.77046203613281%; }
+#panel .knob.hold-active .knob-rotor { visibility:hidden; }
+body #panel .cbtn.transfer-latched, body #panel #bpmMode.transfer-latched, body #panel .pad.step-edit, #panel .knob.hold-active.trim-wheel-focus { outline:none; }

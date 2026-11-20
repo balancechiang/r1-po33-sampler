@@ -70,7 +70,7 @@ with sync_playwright() as p:
     assert meta()['extras'][0]['steps']['0:0']['length']==4
     assert meta()['bpm']==120
     assert page.locator('#knobA').evaluate('e=>parseFloat(e.style.getPropertyValue("--knob-angle"))')>0
-    assert abs(page.evaluate('lastSource.testStopTimes.at(-1)-starts.at(-1).args[0]')-.53)<.005
+    assert abs(page.evaluate('lastSource.testStopTimes.at(-1)-starts.at(-1).args[0]')-page.evaluate('Math.min(.5,starts.at(-1).buffer/starts.at(-1).rate)+.03'))<.005
     # Long press copies the edited step, then an empty step adopts its state.
     down(pad(1));page.wait_for_timeout(1050);up();tap(pad(2))
     assert stored('po33.pat1')[0][1]==4
