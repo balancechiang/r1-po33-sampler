@@ -130,3 +130,6 @@ body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:
 #panel .cbtn[data-act="play"][data-led-level="off"] .led { background:#24100c; }
 #panel .cbtn[data-act="play"][data-led-level="bright"] .led { background:#ff3020; }
 #panel #bpmMode.transfer-latched { outline:1px solid #fe5000; outline-offset:-3px; }
+
+/* Lightweight mechanical art; 12 x 5 lamps align with the cap's upper edge. */
+#panel button .led { left:34.21052631578947%; top:3.260869565217391%; width:31.57894736842105%; height:10.869565217391305%; border-radius:calc(1.5 * var(--unit,1px)); }
