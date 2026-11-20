@@ -45,3 +45,22 @@ or `node scripts/local-hub.mjs`; local projects and certificates stay out of Git
 The original procedural factory sounds and sequences are offered under CC0-1.0. This does not assign that license to the entire application or its artwork. The bundled DSEG font retains its SIL OFL-1.1 license; see [the font license](fonts/DSEG-LICENSE.txt).
 
 [Controls](R1-CONTROLS.md) · [Factory sounds & patterns](PRESETS.md) · [Publishing](DEPLOY.md)
+
+### Sampling playback compatibility
+
+New recordings into drum slots use onset-based transient slicing (up to 16
+regions); unused pads are silent. Melodic-to-drum copies still evenly divide
+the trimmed source, and imported native slice addresses stay unchanged.
+All slots choke their preceding voice; a global four-voice allocator steals
+the oldest sounding voice when full. A 2 ms fade avoids abrupt click artifacts.
+Future sequencer hits are preserved when a live hit arrives during lookahead.
+Transient thresholds, padding of unused slices and oldest-voice arbitration
+are behavioral approximations, not verified proprietary firmware algorithms.
+Existing saved equal-slice takes are not automatically re-sliced.
+
+Validation: `node test-sampling.cjs` covers onset positions at three sample
+rates, silence/sustain, the 16-slice cap and out-of-order voice scheduling.
+`python -X utf8 test-sampling-browser.py` records synthetic microphone audio
+through the actual recorder, checks irregular slice positions, silent-pad
+choke, live cutting, four-voice allocation, equal-copy slicing and persistence.
+These checks do not establish bit-identical PO-33 firmware behavior.

@@ -842,8 +842,17 @@
   function trackVoice(src,g,start,end) {
     var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
       gate:voiceGate,tweak:JSON.parse(JSON.stringify(tweaks[slotNumForVoice-1])),effect:voiceEffect};
-    sampleVoices.push(entry);
+    window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
     src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);};
+  }
+  function cutSampleVoice(v,at) {
+    // Tiny release avoids clicks. Keep scheduled future voices in the timeline.
+    var when=Math.max(ctx().currentTime,at),gain=v.gain.gain;
+    try {
+      if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(when);
+      else {gain.cancelScheduledValues(when);gain.setValueAtTime(when<=v.start?0:.95,when);}
+      gain.linearRampToValueAtTime(0,when+.002);v.src.stop(when+.002);
+    } catch(err) {}
   }
   function cancelVoice(v,now) {
     try{
@@ -1045,12 +1054,12 @@
     g.gain.linearRampToValueAtTime(0.0001, t + dur);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
-    trackVoice(src,g,t,t+dur);
     src.start(t, off,dur*rate);
     src.stop(t + dur + 0.03);
+    trackVoice(src,g,t,t+dur);
   }
 
-  // drum bank: the take is cut into 16 equal slices, one per pad
+  // Legacy and melodic-copy takes use equal slices; new recordings/imports use explicit views.
   function playSlice(s, padIndex, when) {
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
@@ -1072,14 +1081,16 @@
     g.gain.linearRampToValueAtTime(0.0001, t + dur/rate);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
-    trackVoice(src,g,t,t+dur/rate);
     src.start(t, off, dur);
+    trackVoice(src,g,t,t+dur/rate);
   }
 
   // slotNum 1..16, padIndex 0..15
   function voice(slotNum, padIndex, when, gateSeconds,effect) {
     slotNumForVoice = slotNum;
     voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
+    var at=when===undefined?ctx().currentTime:when;
+    window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice);
     var s = samples[slotNum - 1], tw = tweaks[slotNum-1];
     if (s) {
       s = Object.assign({},s);
@@ -1112,7 +1123,7 @@
     var u = 0, seen=[];
     function count(s){if(s && seen.indexOf(s.buffer)<0){seen.push(s.buffer);u+=s.buffer.duration;}}
     for (var i = 0; i < TOTAL_SLOTS; i++) if (samples[i]) {
-      if(samples[i].sliceViews)samples[i].sliceViews.forEach(count);else count(samples[i]);
+      count(samples[i]);if(samples[i].sliceViews)samples[i].sliceViews.forEach(count);
     }
     return u;
   }
@@ -1842,6 +1853,13 @@
       trim: pendingTrim[slotNum - 1] || 0,
       pitch: pendingPitch[slotNum - 1] || 0
     };
+    if(slotNum>MELODIC_SLOTS) {
+      samples[slotNum-1].sliceViews=window.PO33Sampling.transientSlices(data,rate).map(function(region){
+        return region ? {buffer:buf,offset:region.start/rate,duration:(region.end-region.start)/rate,trim:0,pitch:0,length:100} : null;
+      });
+      // Fresh slice positions replace previous per-pad trims; slot tone/filter stay intact.
+      tweaks[slotNum-1].start=0;tweaks[slotNum-1].length=100;tweaks[slotNum-1].slices={};
+    }
     rec.replacing = null;
     state.slot = slotNum;
     paint();
