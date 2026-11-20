@@ -45,8 +45,8 @@
  }
  function filterShape(value,rate){
   value=Math.max(-100,Math.min(100,value || 0));var top=Math.min(20000,rate*.45);
-  if(value===0)return {bypass:true,type:'lowpass',frequency:top};
-  return value<0?{bypass:false,type:'lowpass',frequency:100*Math.pow(top/100,1+value/100)}:{bypass:false,type:'highpass',frequency:20*Math.pow(400,value/100)};
+  if(Math.abs(value)<=4)return {bypass:true,type:'lowpass',frequency:top};
+  return value<0?{bypass:false,type:'lowpass',frequency:100*Math.pow(top/100,(value+100)/96)}:{bypass:false,type:'highpass',frequency:20*Math.pow(400,(value-4)/96)};
  }
  const LOCK_KEYS=['pitch','volume','filter','resonance'];
  class Latches {

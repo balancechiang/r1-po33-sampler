@@ -46,7 +46,7 @@ try:
   notes=page.evaluate('notes');assert len(notes)>=3,notes
   for note in notes[:3]:assert abs(note['rate']-2**(7/12))<.00001 and note['filter']=='lowpass' and abs(note['frequency']-100)<.001 and note['bypass']==0
   assert abs(notes[0]['volume']-.3)<.0001 and abs(notes[1]['volume']-.3)<.0001 and abs(notes[2]['volume']-.6)<.0001
-  wheel('A');pad(5);assert abs(page.evaluate('notes.at(-1).rate')-2**(8/12))<.00001
+  wheel('A');pad(5);assert abs(page.evaluate('notes.at(-1).rate')-2**(7.1/12))<.00001
   down('[data-act="rec"]');wheel('A');up();pad(5);assert page.evaluate('notes.at(-1).rate')==1
   tap('[data-act="fx"]');down('[data-act="rec"]');wheel('A');up();pad(5);assert page.evaluate('notes.at(-1).bypass')==1
   page.evaluate('PO33Transfer.open("receive")');page.locator('#transferDeviceToggle').click()

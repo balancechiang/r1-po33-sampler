@@ -1,7 +1,7 @@
 import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js';
 import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js';
 import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js';
-import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=20261120-stability1';
+import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=20261120-live1';
 import './project-compression.js';
 self.onmessage=async({data:m})=>{
   try{

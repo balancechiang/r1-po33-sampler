@@ -90,5 +90,6 @@ export function buildHardwareProject(snapshot: WebSnapshot, native?: PO33Project
         if(native)warnings.push('Sample edits rebuilt pool layout. Unavailable source slices cannot be recreated. Original source frame remains available in the saved checkpoint.');
     }
     if(!native || !baseline || !equal(snapshot.tweaks,baseline.tweaks) || !equal(snapshot.extras.map(e=>e.locks),baseline.extras.map(e=>e.locks)))warnings.push('New web parameter locks use approximate hardware code mappings; filter/level/resonance are not hardware calibrated.');
+    if(snapshot.tweaks.some(t=>!Number.isInteger(t.pitch)) || snapshot.extras.some(e=>Object.values(e.locks).some(t=>t.pitch!==undefined && !Number.isInteger(t.pitch))))warnings.push('Continuous audition pitch is rounded to the native step-code grid on export.');
     return {raw:{state},warnings};
 }

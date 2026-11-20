@@ -99,7 +99,7 @@ with sync_playwright() as p:
     assert not sampled(5)
     up(2);up(1)
     assert sampled(5) and page.locator('#mem').inner_text()==before
-    m=meta();assert m['tweaks'][4]['pitch']==5 and m['tweaks'][4]['volume']==60
+    m=meta();assert abs(m['tweaks'][4]['pitch']-.5)<.00001 and m['tweaks'][4]['volume']==60
     assert m['tweaks'][4]['filter']==3 and m['tweaks'][4]['resonance']==4
     sound=stored('po33.slot5');assert sound['format']==4 and sound['base']['offset']>0
     # Whole melodic region -> evenly divided kit; replace just one slice.
@@ -152,10 +152,8 @@ with sync_playwright() as p:
     assert page.locator('#lcdNumber').get_attribute('data-value')=='0908'
     assert page.evaluate('document.querySelector("#lcdNumber").getBoundingClientRect().left>document.querySelector("#lcdMode").getBoundingClientRect().right')
     tap('#bpmMode',2);page.wait_for_timeout(100)
-    assert page.locator('#lcdMode').text_content()=='FREE SEC'
-    tap('#bpmMode',2);page.wait_for_timeout(100)
-    assert page.locator('#lcdMode').text_content()=='APP REV'
-    assert page.locator('#lcdNumber').get_attribute('data-value')=='3'
+    assert page.locator('#lcdMode').text_content()=='SOUND / NOTE'
+    assert page.locator('#lcdNumber').get_attribute('data-value')=='0908'
     up()
     assert not errors,errors
     # Legacy per-slot WAV values still restore, and a released target pad can

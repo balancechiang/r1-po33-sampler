@@ -32,7 +32,6 @@
   var MELODIC_SLOTS = 8; // slots 1-8 melodic, 9-16 drum
   var TOTAL_SLOTS = 16;
   var MEM_TOTAL = 40.0; // shared sample memory, seconds
-  var APP_REVISION = 3; // app storage/feature revision, not PO-33 firmware
   var MIN_TAKE = 0.12; // shorter takes are thrown away, seconds
 
   var STEPS = 16; // steps in one bar
@@ -628,7 +627,6 @@
   var factoryMuted = [], knobAngles = [0,0];
   var parameterDisplay=false;
   var lcdIndicator=null;
-  var systemInfoPage=0;
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
   var r1Focused=true;
@@ -652,8 +650,8 @@
   function effectiveTweak(slot,when){var now=ac?ac.currentTime:0;parameterLatches.flush(now);return parameterLatches.at(slot,tweaks[slot-1],when===undefined?now:when);}
   function manualParameter(slot,key,value){
     var now=ctx().currentTime;parameterLatches.manual(slot,key,value,now);
-    // Rebuild only unheard lookahead notes so a manual override isn't delayed by a pre-created source.
-    sampleVoices.slice().forEach(function(v){if(v.slot===slot && v.start>now && v.end>v.start){cancelVoice(v,now);voice(v.slot,v.note,v.start,v.gate,v.effect);}});
+    updateLiveSlot(slot,{[key]:value},now);
+    rebuildUnheard(slot);
   }
   function selectedTweak(slot, note) {
     var t = tweaks[slot - 1];
@@ -812,15 +810,16 @@
     for(var i=0;i<src.length;i++)out[i]=src[src.length-1-i];
     reversedBuffers.set(buffer,reversed);return reversed;
   }
-  function trackVoice(src,g,start,end) {
+  function trackVoice(src,g,start,end,details) {
     var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
-      gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect};
+      gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect,...details};
     window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
     window.PO33Runtime.setActive("voices",true);
-    src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);window.PO33Runtime.setActive("voices",sampleVoices.some(function(v){return v.end>ac.currentTime;}));};
+    src.onended=function(){setTimeout(function(){[src,g,...Object.values(entry.controls || {})].forEach(function(node){try{node.disconnect();}catch(error){}});},40);var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);window.PO33Runtime.setActive("voices",sampleVoices.some(function(v){return v.end>ac.currentTime;}));};
   }
   function cutSampleVoice(v,at) {
     // Tiny release avoids clicks. Keep scheduled future voices in the timeline.
+    v.cutAt=Math.min(v.cutAt===undefined?Infinity:v.cutAt,at);
     var when=Math.max(ctx().currentTime,at),gain=v.gain.gain;
     try {
       if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(when);
@@ -841,7 +840,7 @@
     sampleVoices.slice().forEach(function(v){
       if(v.effect===effect || v.end<=now || (!includeActive && v.start<=now))return;
       cancelVoice(v,now);
-      voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,v.tweak);
+      voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,Object.assign({},v.tweak,effectiveTweak(v.slot,Math.max(now,v.start))));
     });
   }
   function restartPatternFx() {
@@ -866,13 +865,61 @@
   }
 
   var slotNumForVoice = 1,voiceNote=0,voiceGate,voiceTweak;
-  function connectVoice(g, slot, when) {
-    var c=ctx(), t=voiceTweak, v=c.createGain(), f=c.createBiquadFilter(),dry=c.createGain(),wet=c.createGain();
-    var shape=window.PO33Sampling.filterShape(t.filter,c.sampleRate);
-    v.gain.value=t.volume/100;f.type=shape.type;f.frequency.value=shape.frequency;f.Q.value=.7+t.resonance/100*15;
-    dry.gain.value=shape.bypass?1:0;wet.gain.value=shape.bypass?0:1;
-    g.connect(dry);dry.connect(v);g.connect(f);f.connect(wet);wet.connect(v);v.connect(master);
+  function smoothParameter(param,value,time,tau){param.setTargetAtTime(value,time,tau);}
+  function setVoiceControls(controls,values,time,initial){
+    var c=ctx(),shape=window.PO33Sampling.filterShape(values.filter,c.sampleRate);
+    function set(param,value,tau){if(initial){param.value=value;param.setValueAtTime(value,time);}else smoothParameter(param,value,time,tau);}
+    set(controls.volume.gain,values.volume/100,.01);
+    set(controls.low.frequency,shape.type==='lowpass'?shape.frequency:Math.min(20000,c.sampleRate*.45),.015);
+    set(controls.high.frequency,shape.type==='highpass'?shape.frequency:20,.015);
+    set(controls.low.Q,.7+values.resonance/100*15,.015);set(controls.high.Q,.7+values.resonance/100*15,.015);
+    set(controls.dry.gain,shape.bypass?1:0,.01);
+    set(controls.lowGain.gain,!shape.bypass && shape.type==='lowpass'?1:0,.01);
+    set(controls.highGain.gain,!shape.bypass && shape.type==='highpass'?1:0,.01);
   }
+  function connectVoice(g,slot,when){
+    var c=ctx(),controls={input:c.createGain(),volume:c.createGain(),low:c.createBiquadFilter(),high:c.createBiquadFilter(),dry:c.createGain(),lowGain:c.createGain(),highGain:c.createGain()};
+    controls.low.type='lowpass';controls.high.type='highpass';
+    controls.input.connect(controls.dry);controls.dry.connect(controls.volume);
+    controls.input.connect(controls.low);controls.low.connect(controls.lowGain);controls.lowGain.connect(controls.volume);
+    controls.input.connect(controls.high);controls.high.connect(controls.highGain);controls.highGain.connect(controls.volume);
+    // The final envelope also mutes resonant filter tails when a voice is choked.
+    controls.volume.connect(g);g.connect(master);
+    setVoiceControls(controls,voiceTweak,when===undefined?c.currentTime:when,true);return controls;
+  }
+  function replanVoice(v){
+    var now=ctx().currentTime,desired=Math.min(v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
+    if(desired<=now){v.end=now;cutSampleVoice(v,now);return;}
+    window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
+    var end=v.end,gain=v.gain.gain,time=Math.max(now,v.start),release=Math.min(.003,Math.max(0,end-time)*.3);
+    if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(time);else{gain.cancelScheduledValues(time);gain.setValueAtTime(.95,time);}
+    if(time<=v.start){gain.setValueAtTime(0,time);gain.linearRampToValueAtTime(.95,time+Math.min(.002,(end-time)*.3));}else gain.setTargetAtTime(.95,time,.001);
+    if(v.cutAt!==undefined && v.cutAt<=end){gain.setValueAtTime(.95,end);gain.linearRampToValueAtTime(0,end+.002);v.src.stop(end+.002);}
+    else {gain.setValueAtTime(.95,end-release);gain.linearRampToValueAtTime(0,end);v.src.stop(end+.03);}
+  }
+  function updateVoiceParameters(v,patch,time,now){
+    var values=effectiveTweak(v.slot,time);v.tweak=JSON.parse(JSON.stringify(effectiveTweak(v.slot,now)));
+    setVoiceControls(v.controls,values,time,false);
+    if(Number.isFinite(patch.pitch)){
+      v.speed.target(time,Math.pow(2,(v.semitones+values.pitch)/12),.015,now);
+      v.speed.apply(v.src.playbackRate,now);replanVoice(v);
+    }
+  }
+  function updateLiveSlot(slot,patch,time){
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){
+      if(v.slot!==slot || v.start>time || v.end<=time || !v.controls)return;
+      updateVoiceParameters(v,patch,time,now);
+      // A slower manual rate can extend this tail across locks previously outside its old end.
+      parameterLatches.events.filter(function(e){return e.slot===slot && e.time>time;}).forEach(function(e){if(e.time<v.end)updateVoiceParameters(v,e.patch,e.time,now);});
+    });
+  }
+  function trimLengthChanged(slot,note){
+    var sample=samples[slot-1],view=slot>8?rawSlice(sample,note):sample;if(!view)return;
+    var trim=slot>8?selectedTweak(slot,note):tweaks[slot-1],r=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate),length=(r.end-r.start)/view.buffer.sampleRate,now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){if(v.slot===slot && (slot<=8 || v.note===note) && v.start<=now && v.end>now && v.speed.state(now).position>length){v.end=now;cutSampleVoice(v,now);}});
+  }
+  function rebuildUnheard(slot){var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){if(v.slot===slot && v.start>now && v.end>v.start){cancelVoice(v,now);voice(v.slot,v.note,v.start,v.gate,v.effect);}});}
   function playMelodic(slot, noteIndex, when) {
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
@@ -1024,11 +1071,11 @@
     g.gain.linearRampToValueAtTime(0.95, t + attack);
     g.gain.setValueAtTime(0.95, t + Math.max(attack, dur - release));
     g.gain.linearRampToValueAtTime(0, t + dur);
-    src.connect(g);
-    connectVoice(g, slotNumForVoice, when);
-    src.start(t, off,dur*rate);
+    var controls=connectVoice(g,slotNumForVoice,when);
+    src.connect(controls.input);
+    src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur);
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:new window.PO33LiveVoice.Speed(t,rate),span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1099,7 +1146,7 @@
       extra.effects[step]=effect || 16;persistSoon();
     }
     for (var i = 0; i < TOTAL_SLOTS; i++) {
-      var lock=extra && extra.locks[i+":"+step];if(lock)parameterLatches.schedule(i+1,lock,when);
+      var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
       if (v >= 0) {
 
@@ -1958,7 +2005,8 @@
       }
       pads[p].classList.toggle("step-edit",!!(stepEdit && stepEdit.used && stepEdit.slot===state.slot && stepEdit.step===p));
       var level="off", reason="empty";
-      if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
+      if(recHeld && !rec.on){level=samples[p]?"bright":"off";reason="record-slots";}
+      else if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
       else if(state.mode==="SOUND") {
         if(samples[p]){level="dim";reason="sample";}
         if(p+1===state.slot){level="bright";reason="selected";}
@@ -1977,7 +2025,7 @@
         }
         if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
       } else if(samples[p]) {level="dim";reason="sample";}
-      if(Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
+      if(!recHeld && Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
       pads[p].setAttribute("data-led-level",level);
       pads[p].setAttribute("data-led-reason",reason);
@@ -2305,6 +2353,7 @@
     var trim=selectedTweak(state.slot,lastNote),r=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate),lo=state.slot>8?0:Math.round((view.offset||0)*view.buffer.sampleRate),hi=state.slot>8?view.buffer.length:Math.round(((view.offset||0)+view.duration)*view.buffer.sampleRate);
     if(wheelTrim.index===0){var length=r.end-r.start;r.start=Math.max(lo,Math.min(hi,r.start+dir*step));r.end=Math.min(hi,r.start+length);}else r.end=Math.max(r.start,Math.min(hi,r.end+dir*step));
     trim.frames=r;
+    if(wheelTrim.index===1)trimLengthChanged(state.slot,lastNote);rebuildUnheard(state.slot);
     if(state.slot<=8){trim.start=(r.start-lo)/(hi-lo)*100;trim.length=hi===r.start?0:(r.end-r.start)/(hi-r.start)*100;}
     parameterDisplay=true;clearTimeout(wheelTrimTimer);wheelTrimTimer=setTimeout(clearWheelTrim,8000);showNumber(((wheelTrim.index?r.end-r.start:r.start)/view.buffer.sampleRate).toFixed(2),wheelTrim.index?'LENGTH SEC':'START SEC');persistSoon();paint();return true;
   }
@@ -2354,12 +2403,13 @@
     if(state.mode==="SOUND"){label="SOUND / NOTE";number=String(state.slot).padStart(2,"0")+String(lastNote+1).padStart(2,"0");}
     if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
-    if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND" || displayValue.label==="FREE SEC" || displayValue.label==="APP REV")){label=displayValue.label;number=String(displayValue.value);}
+    if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND")){label=displayValue.label;number=String(displayValue.value);}
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
-    else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":"rEC";}
+    else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
+    if(recHeld && !rec.on && !writeHeld && !soundHeld && !patternHeld && !bpmHeld){label=mic.error || 'REC READY';number=mic.error?'err':memLeft().toFixed(1);}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
     if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
@@ -2437,7 +2487,7 @@
       reset[key]=key==="volume"?100:0;manualParameter(state.slot,key,reset[key]);recUsedPad=true;persistSoon();showNumber(reset[key],"RESET");paint();return;
     }
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
-    var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir));
+    var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir*(tweakMode===0 && index===0 && !bpmHeld ? .1 : 1)));
     knobAngles[index]=Math.max(-140,Math.min(140,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*280));
     if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;savePatternTempo();}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
@@ -2448,20 +2498,17 @@
       if(index===0){var length=r.end-r.start;r.start=Math.round(value*total/100);r.end=Math.min(total,r.start+length);}else r.end=Math.min(total,r.start+Math.round(value*total/100));
       sl.frames={start:r.start,end:r.end};
     }else {delete sl.frames;if(index===0)sl.start=value;else sl.length=value;}
+    if(!bpmHeld && tweakMode===2){if(index===1)trimLengthChanged(state.slot,lastNote);rebuildUnheard(state.slot);}
     if(!bpmHeld && tweakMode!==2){var edited=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance');manualParameter(state.slot,edited,value);}
     if(!bpmHeld && writeHeld && seq.playing && tweakMode!==2) {
       modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step],{[edited]:value});
     }
     if(!bpmHeld)parameterDisplay=true;
-    var code=(!bpmHeld && tweakMode===1 && index===0)?(value<0?"LPF":value>0?"HPF":"noF"):Math.round(value);
+    var code=(!bpmHeld && tweakMode===1 && index===0)?(Math.abs(value)<=4?"noF":value<0?"LPF":"HPF"):(!bpmHeld && tweakMode===0 && index===0?value.toFixed(1):Math.round(value));
     showNumber(code,spec[3]);persistSoon();paint();
   }
   d.getElementById("bpmMode").addEventListener("pointerdown",function(e){
-    if(soundHeld && !writeHeld) {
-      e.preventDefault();systemInfoPage=(systemInfoPage+1)%2;
-      showNumber(systemInfoPage===1?Math.floor(memLeft()):APP_REVISION,systemInfoPage===1?"FREE SEC":"APP REV");
-      paint();return;
-    }
+    if(soundHeld && !writeHeld){e.preventDefault();return;}
     if(stepEdit && stepEdit.slot>8) {
       e.preventDefault();var counts=[1,2,3,4,6,8],detail=editDetail(stepEdit);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
@@ -2476,6 +2523,7 @@
     knob.addEventListener("pointermove",function(e){
       if(!active)return;
       var scale=d.getElementById("panel").getBoundingClientRect().width/240,delta=(lastY-e.clientY)/scale;
+      if(tweakMode===0 && index===0 && !bpmHeld && !stepEdit){if(Math.abs(delta)>.05){adjustKnob(index,delta*5);lastY=e.clientY;}return;}
       var steps=Math.floor(Math.abs(delta)/2),dir=delta>0?1:-1;
       if(steps){for(var k=0;k<steps;k++)adjustKnob(index,dir);lastY-=dir*steps*2*scale;}
     });
