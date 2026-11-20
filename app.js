@@ -10,10 +10,11 @@
   "use strict";
   // Hardware projects can be auditioned without reading or writing saved projects.
   var backupPreview = new URLSearchParams(window.location.search).get("backupPreview") === "1";
-  var hardwareTransfer=null;
+  var hardwareTransfer=null,startupReady=false;
   // Keep panel performance gestures out of the dedicated transfer audio path.
   ["pointerdown","keydown","wheel","sideClick","longPressStart","scrollUp","scrollDown"].forEach(function(type){
     window.addEventListener(type,function(e){
+      if(!startupReady){if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();return;}
       if(!hardwareTransfer || !hardwareTransfer.view.active)return;
       if(type==="sideClick"){hardwareTransfer.activateFocus();if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();return;}
       if(type==="scrollUp" || type==="scrollDown" || type==="wheel"){
@@ -370,7 +371,7 @@
         swing: SWING,
         trim: params.trim,
         pitch: params.pitch,
-        hardwareTone:hardwareToneEnabled, slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
+        hardwareTone:hardwareToneEnabled, slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryTempoRevision:factoryTempoRevision, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
       })
     });
   }
@@ -498,6 +499,7 @@
         } catch (e2) { /* a bad pattern is left empty */ }
       }
       if (meta) {
+        factoryTempoRevision=meta.factoryTempoRevision || 0;
         if(typeof meta.hardwareTone==="boolean")setHardwareTone(meta.hardwareTone,false);
         if(Array.isArray(meta.patternSettings) && meta.patternSettings.length===16)patternSettings=meta.patternSettings.map(function(p){
           return p && Number.isFinite(p.bpm) ? {bpm:Math.max(60,Math.min(240,p.bpm)),swing:Math.max(0,Math.min(.5,p.swing || 0))} : null;
@@ -578,13 +580,21 @@
     });
   }
 
+  function repairFactoryTempo(){
+    var f=window.PO33_FACTORY,id=d.documentElement.getAttribute("data-po33-install");
+    if(id!=="flowers-20261120" || factoryTempoRevision>=1)return false;
+    factoryTempoRevision=1;
+    var untouched=f && !factoryMuted.some(Boolean) && f.patterns.every(function(p,i){return JSON.stringify(patterns[i].lanes)===JSON.stringify(p.lanes);}) && f.slots.every(function(a){var s=samples[a.slot-1];return s && s.buffer._po33id==="factory-"+f.revision+"-"+a.slot;});
+    if(untouched && (!patternSettings[0] || patternSettings[0].bpm===80)){patternSettings[0]={bpm:f.patterns[0].bpm,swing:f.patterns[0].swing};if(seq.pattern===1)applyPatternTempo(1);}
+    return true;
+  }
   function persistDone(meta) {
-    var seeded = seedFactory(meta);
+    var seeded = seedFactory(meta),tempoRepaired=repairFactoryTempo();
     if(seeded.indexOf(seq.pattern)>=0)applyPatternTempo(seq.pattern);
     persistPaused = false;
     storageReady = true;
     seeded.forEach(function(n){writePattern(n);});
-    if(seeded.length || !meta || !meta.factoryRevision)persistSoon();
+    if(tempoRepaired || seeded.length || !meta || !meta.factoryRevision)persistSoon();
     // what came back from storage is what is stored for each slot
     for (var n = 1; n <= TOTAL_SLOTS; n++) {
       if (samples[n - 1] && savedSig[n - 1] === undefined) savedSig[n - 1] = slotSig(samples[n - 1]);
@@ -631,7 +641,8 @@
 
   // ---------- parameters driven by the wheel ----------
   var PARAM_NAMES = ["BPM", "TRIM", "PITCH"];
-  var params = { bpm: 120, trim: 0, pitch: 0 };
+  var params = { bpm: (window.PO33_FACTORY && window.PO33_FACTORY.bpm) || 120, trim: 0, pitch: 0 };
+  var factoryTempoRevision=0;
   var paramIdx = 0;
   var KNOB_SWEEP = 280; // total mechanical travel, shared by both knobs
 
@@ -1207,7 +1218,8 @@
   }
 
   function startSeq() {
-    if (seq.playing) return;
+    if (seq.playing || !startupReady) return;
+    applyPatternTempo(seq.pattern);
     var c = ctx();
     seq.playing = true;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
@@ -1269,6 +1281,7 @@
       paintChase();
       mascotPunch(lit);
     }
+    paintStepLeds();
   }, 30);
 
   // ---------- transport mascot ----------
@@ -2008,7 +2021,10 @@
     var pat = patterns[patternNumber - 1], lane = pat.lanes[state.slot - 1];
     var stepView = state.mode === "STEP" || seq.playing;
     d.getElementById("panel").style.setProperty("--led-pulse", Math.min(110,stepDur()*700)+"ms");
+    var now=ac?ac.currentTime:0,sounding=Array(16).fill(null);
+    if(seq.playing)sampleVoices.forEach(function(v){var end=Math.min(v.end,v.cutAt===undefined?Infinity:v.cutAt);if(v.start<=now && end>now && (!v.controls || v.controls.volume.gain.value>.0001)){var old=sounding[v.slot-1];if(!old || v.start>old.start)sounding[v.slot-1]={start:v.start,end:end};}});
     for(var p=0;p<pads.length;p++) {
+      pads[p].removeAttribute("data-led-onset");pads[p].removeAttribute("data-led-end");
       if(hardwareTransfer && hardwareTransfer.view.active){
         var tv=hardwareTransfer.view, cursor=tv.record ? tv.record-1 : Math.min(15,Math.floor((tv.progress || 0)*16));
         var bright=tv.state==="success" || (["sending","decoding","encoding"].indexOf(tv.state)>=0 && p===cursor);
@@ -2036,6 +2052,9 @@
           }
         }
         if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
+        var hit=sounding[p];
+        if(hit){var release=Math.min(.035,(hit.end-hit.start)*.2);level=now<hit.end-release?"bright":"off";reason="sound-trigger";pads[p].setAttribute("data-led-onset",String(hit.start));pads[p].setAttribute("data-led-end",String(hit.end));}
+        else {pads[p].removeAttribute("data-led-onset");pads[p].removeAttribute("data-led-end");}
       } else if(samples[p]) {level="dim";reason="sample";}
       if(!recHeld && Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
@@ -2046,6 +2065,7 @@
   }
 
   function paint() {
+    d.body.dataset.loading=startupReady?"false":"true";
     window.PO33Runtime.setActive("music",!!(seq.playing || rec.on || recHeld));
     d.body.setAttribute("data-mode", state.mode);
     elMode.textContent = exporting ? "EXP" : (rec.on ? "REC" : MODES[state.mode]);
@@ -2429,6 +2449,8 @@
     if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
     if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND")){label=displayValue.label;number=String(displayValue.value);}
+    if(seq.playing && state.mode!=="SOUND" && state.mode!=="PATTERN" && !bpmHeld && !(displayValue && Date.now()<displayUntil)){label="PATTERN";number="P"+String(seq.visualPattern || seq.pattern).padStart(2,"0");}
+    if(!startupReady){label="LOADING";number="LoAd";}
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
     else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
@@ -2835,7 +2857,7 @@
     hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
     window.PO33Transfer=hardwareTransfer;
   }
-  startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();});
+  startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;paint();},function(){startupReady=true;storageWarn="PROJECT LOAD FAILED";paint();});
   if (backupPreview && window.parent !== window) {
     window.addEventListener("message", async function(event) {
       if(event.source!==window.parent || event.origin!==window.location.origin || !event.data || event.data.type!=="po33-preview-project")return;

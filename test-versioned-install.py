@@ -21,14 +21,14 @@ try:
    # Main preset can be stale OR change after installation; the fixed edition must never fetch it.
    context.route('**/presets.js*',lambda route:route.fulfill(content_type='text/javascript',body='window.PO33_FACTORY={revision:99,slots:[],patterns:[]};'))
    page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));requested=[];page.on('request',lambda r:requested.append(r.url))
-   page.goto(base+'flowers-20261120.html');page.wait_for_timeout(1000)
+   page.goto(base+'flowers-20261120-play2.html');page.wait_for_timeout(1000)
    prefix='po33.install.flowers-20261120.'
    def meta():return page.evaluate('key=>JSON.parse(atob(localStorage.getItem(key)))',prefix+'po33.meta')
    assert meta()['bpm']==132 and meta()['chain']==list(range(1,9))
    assert page.locator('.pad.sampled').count()==8 and not page.evaluate('PO33Transfer.hasSession')
    assert page.evaluate('PO33_FACTORY.revision')==2
    assert not any('/presets.js' in u for u in requested)
-   assert any('/install/presets-flowers-20261120.js?v=flowers-20261120-install1' in u for u in requested)
+   assert any('/install/presets-flowers-20261120.js?v=flowers-20261120-play2' in u for u in requested)
    assert page.evaluate('JSON.parse(atob(localStorage.getItem("po33.meta"))).bpm')==84
    # Normal reopening keeps this edition's own work, instead of treating every launch as a fresh install.
    page.evaluate('()=>{for(let i=0;i<31;i++)window.dispatchEvent(new Event("scrollDown"));}');page.wait_for_timeout(500)
@@ -53,10 +53,10 @@ try:
    context.close();print('PASS fixed Flowers install, stale main URL bypass, preserved legacy data/checkpoint, own save/reopen, immutable reset baseline:', 'creationStorage' if bridge else 'localStorage')
   # The published QR really encodes the new Creation descriptor.
   import sys;sys.path.insert(0,str(root/'t/qr-tools'));from PIL import Image
-  img=Image.open(root/'install/creation-flowers-20261120-qr.png').convert('RGBA');w,h=img.size
+  img=Image.open(root/'install/creation-flowers-20261120-play2-qr.png').convert('RGBA');w,h=img.size
   context=browser.new_context();page=context.new_page();page.goto(base+'index.html');page.add_script_tag(url=base+'vendor/jsqr/jsQR.js')
   text=page.evaluate('a=>jsQR(new Uint8ClampedArray(a.pixels),a.w,a.h).data',{'pixels':list(img.tobytes()),'w':w,'h':h})
-  expected=json.loads((root/'install/creation-flowers-20261120.json').read_text(encoding='utf-8'));assert json.loads(text)==expected
+  expected=json.loads((root/'install/creation-flowers-20261120-play2.json').read_text(encoding='utf-8'));assert json.loads(text)==expected
   print('PASS real jsQR decoded the new versioned Creation installation QR')
   browser.close()
 finally:server.shutdown();server.server_close()
