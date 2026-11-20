@@ -29,7 +29,7 @@ try:
   def select(n):down('[data-act="sound"]');tap(f'[data-pad="{n}"]',2);up()
   def wheel(knob,count=1,direction=1):page.locator('#knob'+knob).evaluate('(e,a)=>{for(let i=0;i<a[0];i++)e.dispatchEvent(new WheelEvent("wheel",{deltaY:-a[1],bubbles:true,cancelable:true}));}',[count,direction])
   select(1);tap('[data-pad="5"]');page.evaluate('window.originalPCM=voices[0].src.buffer.getChannelData(0).slice()')
-  select(9);tap('[data-pad="1"]');select(1)
+  select(9);tap('[data-pad="1"]');select(1);page.evaluate("voices=[voices[4],voices[3]]")
   wheel('A',120,-1);wheel('B',20,-1);page.wait_for_timeout(120)
   assert page.evaluate('Math.abs(voices[0].src.playbackRate.value-.5)<.001 && voices[1].src.playbackRate.value===1')
   assert page.evaluate('Math.abs(voices[0].volume.gain.value-.8)<.001 && voices[1].volume.gain.value===1')
@@ -49,7 +49,7 @@ try:
   assert page.evaluate('originalPCM.every((x,i)=>x===voices[0].src.buffer.getChannelData(0)[i])')
   # RECORD overlay supersedes running step lights and reports actual remaining seconds.
   tap('[data-act="write"]');tap('[data-act="play"]');down('[data-act="rec"]');page.wait_for_timeout(100)
-  assert page.locator('.pad[data-led-reason="record-slots"][data-led-level="bright"]').count()==page.locator('.pad.sampled').count()
+  assert page.locator('.pad[data-led-reason^="record-"][data-led-level="bright"]').count()==page.locator('.pad.sampled').count()
   assert page.locator('.pad:not(.sampled)[data-led-level="bright"]').count()==0
   assert abs(float(page.locator('#lcdNumber').get_attribute('data-value'))-float(page.locator('#mem').text_content().rstrip('s')))<.11
   up();assert page.locator('[data-led-reason="record-slots"]').count()==0;tap('[data-act="play"]');tap('[data-act="write"]')

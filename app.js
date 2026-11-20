@@ -1206,7 +1206,7 @@
     seq.step = 0;
     seq.totalSteps = 0;
     visQueue = [];
-    seq.nextTime = c.currentTime + 0.06;
+    seq.nextTime = c.currentTime + 0.06;seq.visualBeatTime=Infinity;
     fxInstall(); // keep the FX history warm
     // Write mode stays active while the transport runs.
     seq.timer = setInterval(scheduler, 20);
@@ -1249,6 +1249,7 @@
     var audiblePattern = seq.visualPattern;
     while (visQueue.length && visQueue[0].t <= now) {
       var visual = visQueue.shift(); lit = visual.s; audiblePattern = visual.pattern;
+      if(visual.s%4===0)seq.visualBeatTime=visual.t;
     }
     if (lit >= 0 && (!seq.visualStarted || lit !== seq.step || audiblePattern !== seq.visualPattern)) {
       seq.step = lit;
@@ -2005,7 +2006,7 @@
       }
       pads[p].classList.toggle("step-edit",!!(stepEdit && stepEdit.used && stepEdit.slot===state.slot && stepEdit.step===p));
       var level="off", reason="empty";
-      if(recHeld && !rec.on){level=samples[p]?"bright":"off";reason="record-slots";}
+      if(recHeld && !rec.on){level=samples[p] || p+1===state.slot?"bright":"off";reason=p+1===state.slot?"record-selected":"record-slots";}
       else if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
       else if(state.mode==="SOUND") {
         if(samples[p]){level="dim";reason="sample";}
@@ -2160,7 +2161,7 @@
       paint(); return;
     }
     if (recHeld) {recUsedPad=true; startRec(n); return; }
-    if (soundHeld || state.mode==="SOUND") { selectSlot(n); lastNote=lastNotes[n-1]; lastWasSlice=false; defaultStep=null; paint(); return; }
+    if (soundHeld || state.mode==="SOUND") { previewSound(n); return; }
     if (writeHeld && seq.playing) { modifierUsed.write=true; liveRecord(n-1); return; }
     if (state.mode === "STEP") {
       if(patterns[seq.pattern-1].lanes[state.slot-1][n-1]>=0)beginStepEdit(n-1);
@@ -2194,12 +2195,32 @@
   var ctl = d.getElementById("ctl");
   var lastPointer = 0;
   var touchChord={},touchChordTimers={},touchChordIdle=null;
+  var soundChoiceMade=false,soundBrowseSlot=0,soundBrowseNote=-1;
+  function armChord(e,act,btn){
+    if(e.shiftKey || (e.pointerType!=="touch" && e.pointerType!=="mouse") || act==="play")return;
+    // A normal held combination stays momentary; an unused 500 ms hold becomes sticky.
+    if(e.pointerType==="touch" && act!=="sound" && act!=="write")return;
+    var pointer=pid(e);
+    touchChordTimers[pointer]=setTimeout(function(){
+      if(modifierPointers[act]!==pointer || modifierUsed[act] || heldPad)return;
+      touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");
+      clearTimeout(touchChordIdle);touchChordIdle=setTimeout(clearTouchChord,8000);
+    },500);
+  }
+  function resetSoundBrowse(){soundChoiceMade=false;soundBrowseSlot=0;soundBrowseNote=-1;}
+  function previewSound(n){
+    modifierUsed.sound=true;selectSlot(n);soundChoiceMade=true;defaultStep=null;
+    var note=n<=8?4:(soundBrowseSlot===n?(soundBrowseNote+1)%16:0);
+    soundBrowseSlot=n;soundBrowseNote=note;trigger(note);lastWasSlice=false;
+    parameterDisplay=false;showNumber(n<=8?String(n):String(n).padStart(2,"0")+String(note+1).padStart(2,"0"),n<=8?"SOUND":"SOUND / SLICE");
+    paint();
+  }
   function clearTouchChord(){
     clearTimeout(touchChordIdle);
     Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
     var held=touchChord;touchChord={};
     Object.keys(held).forEach(function(act){
-      var key=ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove("transfer-latched");
+      var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove("transfer-latched");
       releaseControls({pointerId:held[act],type:"pointercancel"});
     });
   }
@@ -2212,14 +2233,7 @@
     if(touchChord[act]!==undefined){clearTouchChord();return;}
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=false;
-    if(e.pointerType==="touch" && (act==="write" || act==="sound")){
-      var pointer=pid(e);
-      touchChordTimers[pointer]=setTimeout(function(){
-        if(modifierPointers[act]!==pointer)return;
-        touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");
-        clearTimeout(touchChordIdle);touchChordIdle=setTimeout(clearTouchChord,8000);
-      },500);
-    }
+    armChord(e,act,btn);
     if(writeHeld && soundHeld && (act==="play" || act==="rec")){
       modifierUsed.write=modifierUsed.sound=true;
       hardwareTransfer.open(act==="play"?"send":"receive");return;
@@ -2230,7 +2244,7 @@
     if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
     if(act==="sound") {
       if(recHeld) { recUsedPad=true; deleteSlot(state.slot); return; }
-      soundHeld=true; previousMode=state.mode; setMode("SOUND"); return;
+      soundChoiceMade=false;soundHeld=true; previousMode=state.mode; setMode("SOUND"); return;
     }
     if(act==="pattern") {
       if(recHeld) {recUsedPad=true; clearPattern(seq.pattern); patternExtras[seq.pattern-1]={effects:[],locks:{}}; persistSoon();return;}
@@ -2400,7 +2414,7 @@
     var label=params.bpm===80?"HIP-HOP":params.bpm===120?"DISCO":params.bpm===140?"TECHNO":"BPM";
     var number=String(params.bpm);
     if(parameterDisplay){label=["TONE","FILTER","TRIM"][tweakMode];number=["ton","FLt","tri"][tweakMode];}
-    if(state.mode==="SOUND"){label="SOUND / NOTE";number=String(state.slot).padStart(2,"0")+String(lastNote+1).padStart(2,"0");}
+    if(state.mode==="SOUND"){label=soundChoiceMade && state.slot>8?"SOUND / SLICE":"SOUND";number=soundChoiceMade && state.slot>8?String(state.slot).padStart(2,"0")+String(lastNote+1).padStart(2,"0"):String(state.slot);}
     if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
     if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND")){label=displayValue.label;number=String(displayValue.value);}
@@ -2417,8 +2431,14 @@
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
     d.getElementById("lcdPlay").setAttribute("fill",seq.playing?"#fff":"#222");
+    var playLamp=d.querySelector('.cbtn[data-act="play"]');
+    var beatOn=seq.playing && ac && ac.currentTime>=seq.visualBeatTime && ac.currentTime-seq.visualBeatTime<Math.min(.12,stepDur()*1.1);
+    playLamp.setAttribute("data-led-level",beatOn?"bright":"off");
     if(target.getAttribute("data-value")!==number){
-      target.textContent=number;
+      var cells=(number.match(/[^.]\.?/g) || []).slice(-4);
+      while(cells.length<4)cells.unshift("");
+      target.replaceChildren.apply(target,cells.map(function(text,i){var cell=d.createElementNS("http://www.w3.org/2000/svg","tspan");cell.setAttribute("x",String(202+i*12));cell.setAttribute("data-digit",String(i));cell.textContent=text;return cell;}));
+      target.setAttribute("data-columns","4");
       target.setAttribute("data-value",number);target.setAttribute("aria-label",number);
     }
     var level=0;
@@ -2515,7 +2535,8 @@
       stepEdit.used=true;detail.retrigs=counts[(counts.indexOf(detail.retrigs)+1)%counts.length];
       showNumber(detail.retrigs,"RETRIG");persistSoon();paint();return;
     }
-    e.preventDefault();parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=false;paint();
+    e.preventDefault();if(touchChord.bpm!==undefined){clearTouchChord();return;}
+    parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=false;armChord(e,"bpm",this);paint();
   });
   ["knobA","knobB"].forEach(function(id,index){
     var knob=d.getElementById(id), active=false,lastY=0;
@@ -2711,7 +2732,7 @@
       persistPaused=true;
       if(metaTimer){clearTimeout(metaTimer);metaTimer=null;}
       saveQueue=[];saveQueued={};
-      parameterLatches.reset();
+      parameterLatches.reset();resetSoundBrowse();
       endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
       sideRecArmed=sideRecHeld=recHeld=false;
       rec.on=false;rec.chunks=[];rec.replacing=null;
@@ -2787,7 +2808,7 @@
   function applySnapshot(snapshot){
     var c=ctx(),buffers={};snapshot.assets.forEach(function(a){var b=c.createBuffer(1,a.data.length,a.rate);b.copyToChannel(a.data,0);b._po33id=a.id;buffers[a.id]=b;});
     function view(v){if(!v)return null;return {buffer:buffers[v.asset],offset:v.offset,duration:v.duration,trim:0,pitch:0};}
-    stopForTransfer();parameterLatches.reset();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
+    stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
     patterns=JSON.parse(JSON.stringify(snapshot.patterns));patternExtras=JSON.parse(JSON.stringify(snapshot.extras));tweaks=JSON.parse(JSON.stringify(snapshot.tweaks));
     params.bpm=snapshot.bpm;SWING=snapshot.swing;patternChain=snapshot.chain.slice();seq.pattern=snapshot.pattern || patternChain[0] || 1;seq.queued=0;chainPosition=0;
     patternSettings=snapshot.patternSettings || Array(16).fill(null);state.slot=snapshot.slot || 1;lastNotes=snapshot.lastNotes || Array(16).fill(0);
@@ -2795,7 +2816,7 @@
   }
   function adoptHardware(project){
     var imported=window.PO33PreviewAdapter.adapt(project,ctx());
-    stopForTransfer();parameterLatches.reset();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
+    stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
     patternSettings=Array(16).fill(null);params.bpm=imported.bpm;SWING=0;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
     state.slot=1;state.mode="PLAY";masterVolume=8;if(mixVolume)mixVolume.gain.value=.5;paint();return imported;
   }

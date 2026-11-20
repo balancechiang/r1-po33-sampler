@@ -123,3 +123,10 @@ body[data-mode] #panel .pad[data-led-reason="queued"] .led { animation:step-sele
 }
 
 .knob.trim-wheel-focus { outline:1px solid #ff742e; outline-offset:1px; }
+
+/* Context-only indicators: no pressed-button animation. */
+body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:record-selection 600ms steps(1,end) infinite; }
+@keyframes record-selection { 0%,49% { background:#ff3020; } 50%,100% { background:#24100c; } }
+#panel .cbtn[data-act="play"][data-led-level="off"] .led { background:#24100c; }
+#panel .cbtn[data-act="play"][data-led-level="bright"] .led { background:#ff3020; }
+#panel #bpmMode.transfer-latched { outline:1px solid #fe5000; outline-offset:-3px; }

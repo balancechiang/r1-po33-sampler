@@ -1,13 +1,22 @@
 from pathlib import Path
+import atexit
+from functools import partial
+from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
+from threading import Thread
 from playwright.sync_api import sync_playwright
 root=Path(__file__).parent
+class Quiet(SimpleHTTPRequestHandler):
+    def log_message(self,*args):pass
+server=ThreadingHTTPServer(("127.0.0.1",0),partial(Quiet,directory=str(root)))
+Thread(target=server.serve_forever,daemon=True).start()
+atexit.register(server.server_close);atexit.register(server.shutdown)
 with sync_playwright() as p:
     browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
     page=browser.new_page(viewport={'width':240,'height':282},device_scale_factor=3)
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
     page.add_init_script('''window.sensorStarts=0;window.sensorStops=0;window.sensorCallback=null;
       window.creationSensors={accelerometer:{isAvailable:async()=>true,start(cb,options){window.sensorCallback=cb;window.sensorStarts++;},stop(){window.sensorStops++;window.sensorCallback=null;}}};''')
-    page.goto((root/'index.html').as_uri());page.wait_for_timeout(600);page.mouse.click(10,10)
+    page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_timeout(600);page.mouse.click(10,10)
     def event(name):page.evaluate('(name)=>window.dispatchEvent(new Event(name))',name)
     def down(sel,id):page.locator(sel).dispatch_event('pointerdown',{'pointerId':id,'button':0,'bubbles':True})
     def up(id):page.evaluate('(id)=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:id,bubbles:true}))',id)
@@ -23,7 +32,7 @@ with sync_playwright() as p:
         page.wait_for_timeout(650)
     assert not active('lcdIn') and not active('lcdOut')
     # Hardware wheel always controls tempo, even inside SOUND and after FX selection.
-    down('[data-act="sound"]',1);event('scrollUp');assert page.locator('#lcdNumber').get_attribute('data-value')=='0101';up(1)
+    down('[data-act="sound"]',1);event('scrollUp');assert page.locator('#lcdNumber').get_attribute('data-value')=='1';up(1)
     assert page.locator('#lcdNumber').get_attribute('data-value')=='121'
     down('[data-act="fx"]',1);up(1);event('scrollDown');assert page.locator('#lcdNumber').get_attribute('data-value')=='120'
     # Side long press plus screen pad records into an empty slot; duplicate click is suppressed.

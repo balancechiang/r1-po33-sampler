@@ -147,13 +147,13 @@ with sync_playwright() as p:
     assert not sampled(1) and sampled(5) and sampled(7)
     select(5);page.evaluate('starts=[]');tap(pad(1))
     assert page.evaluate('starts.length')==1
-    # SOUND displays slot and remembered note/slice as four seven-segment digits.
+    # SOUND alone displays the slot in the fixed four-position display.
     select(9);tap(pad(8));down('[data-act="sound"]');page.wait_for_timeout(100)
-    assert page.locator('#lcdNumber').get_attribute('data-value')=='0908'
+    assert page.locator('#lcdNumber').get_attribute('data-value')=='9'
     assert page.evaluate('document.querySelector("#lcdNumber").getBoundingClientRect().left>document.querySelector("#lcdMode").getBoundingClientRect().right')
     tap('#bpmMode',2);page.wait_for_timeout(100)
-    assert page.locator('#lcdMode').text_content()=='SOUND / NOTE'
-    assert page.locator('#lcdNumber').get_attribute('data-value')=='0908'
+    assert page.locator('#lcdMode').text_content()=='SOUND'
+    assert page.locator('#lcdNumber').get_attribute('data-value')=='9'
     up()
     assert not errors,errors
     # Legacy per-slot WAV values still restore, and a released target pad can
