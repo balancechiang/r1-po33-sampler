@@ -41,7 +41,7 @@
       });
       return {lanes:lanes};
     });
-    return {samples:samples,patterns:patterns,extras:extras,bpm:project.meta.bpm,chain:project.patternChain.slice(),
+    return {samples:samples,patterns:patterns,extras:extras,bpm:project.meta.bpm,swing:project.meta.swingRaw/18,chain:project.patternChain.slice(),
       tweaks:Array.from({length:16},function(){return {pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};}),
       summary:{slots:samples.filter(Boolean).length,patterns:patterns.length,notes:notes,bpm:project.meta.bpm,
         unavailableSlices:project.slots.reduce(function(n,s){return n+s.slices.filter(function(v){return v.rangeStatus==="out-of-pool";}).length;},0)}};

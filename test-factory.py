@@ -23,14 +23,14 @@ with sync_playwright() as p:
     assert page.evaluate('document.fonts.check("14.5px DSEG7")')
     assert page.locator('#lcdNumber').evaluate('e=>e.tagName')=='text'
     down('[data-act="pattern"]',1)
-    assert page.locator('.pad.pat-on').evaluate_all('es=>es.map(e=>+e.dataset.pad)')==[1,2,3,4]
+    assert page.locator('.pad.pat-on').evaluate_all('es=>es.map(e=>+e.dataset.pad)')==[1,2,3,4,5,6,7,8]
     up(1)
     # Empty slots produce no signal; populated slots and all patterns do.
     page.mouse.click(10,10)
     down('[data-act="sound"]',1);down('[data-pad="5"]',2);up(2);up(1)
     down('[data-pad="1"]',2);up(2);page.wait_for_timeout(100)
     assert page.locator('#lcdMeter rect[fill="#fff"]').count()==0
-    for number in [1,2,3,4]:
+    for number in range(1,9):
         down('[data-act="pattern"]',1);down(f'[data-pad="{number}"]',2);up(2);up(1)
         down('[data-act="play"]',1);up(1)
         peak=0
@@ -46,6 +46,6 @@ with sync_playwright() as p:
     fresh=browser.new_context(viewport={'width':240,'height':282},device_scale_factor=3).new_page()
     fresh.goto((root/'index.html').as_uri());fresh.wait_for_timeout(600)
     fresh.screenshot(path=str(root/'current-preview.png'))
-    print('PASS: factory slot layout, only patterns 1–4 seeded, four audible mixes, empty slots silent, deletion survives reload, wider digits, exact circular pivots, BPM modifier/tap never changes knob angles.')
+    print('PASS: factory slot layout, only patterns 1–8 seeded, eight audible mixes, empty slots silent, deletion survives reload, wider digits, exact circular pivots, BPM modifier/tap never changes knob angles.')
     browser.close()
 

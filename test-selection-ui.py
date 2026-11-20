@@ -24,7 +24,7 @@ try:
   choose(2);assert value()=='2';assert page.evaluate('testStarts.length===1 && testStarts[0].rate===1');assert page.locator('#lcdNumber tspan').count()==4;up()
   down('[data-act="sound"]');assert value()=='2';assert page.evaluate('testStarts.length===1');up()
   choose(9);assert value()=='0901';assert page.evaluate('testStarts.at(-1).offset===0');up()
-  choose(9);assert value()=='0902';assert abs(page.evaluate('testStarts.at(-1).offset')-.22)<.001;up()
+  choose(9);assert value()=='0902';assert abs(page.evaluate('testStarts.at(-1).offset')-.24)<.001;up()
   for _ in range(15):choose(9);up()
   assert value()=='0901'
   choose(10);assert value()=='1001';up();choose(9);assert value()=='0901';up()

@@ -32,7 +32,7 @@ try:
   # Rapid replacements must keep the newest pending write, not an intermediate take.
   page.evaluate("()=>{window.packBeforeBurst=PO33SampleAssets.pack;PO33SampleAssets.pack=async(...args)=>{await new Promise(r=>setTimeout(r,100));return packBeforeBurst(...args);};}")
   for source in [1,2,3]:select(source);copy(5)
-  page.wait_for_function('JSON.parse(atob(localStorage.getItem("po33.slot5"))).base.origin==="factory-1-3"')
+  page.wait_for_function('JSON.parse(atob(localStorage.getItem("po33.slot5"))).base.origin==="factory-2-3"')
   page.evaluate('()=>{PO33SampleAssets.pack=packBeforeBurst;}')
   # A focused trim knob owns the hardware wheel; no focus leaves default BPM intact.
   select(1);copy(9);select(9);tap('[data-act="fx"]');tap('[data-act="fx"]');tap('[data-pad="1"]')

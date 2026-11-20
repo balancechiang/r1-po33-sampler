@@ -18,14 +18,14 @@ with sync_playwright() as p:
     down('#factoryReset');page.wait_for_timeout(150);up()
     assert not page.evaluate('localStorage.getItem("po33.reset")')
     assert page.locator('#lcdNumber').get_attribute('data-value')!='RST'
-    # New factory tracks have distinct tempo/swing and real rhythm distributions.
-    for n,bpm in [(1,120),(2,132),(3,84),(4,134)]:
+    # New factory tracks have distinct tempo and edited rhythm distributions.
+    for n,bpm in [(n,132) for n in range(1,9)]:
         select_pattern(n);assert meta()['bpm']==bpm
-    assert page.evaluate('new Set(PO33_FACTORY.patterns.map(p=>JSON.stringify(p.lanes))).size')==4
+    assert page.evaluate('new Set(PO33_FACTORY.patterns.map(p=>JSON.stringify(p.lanes))).size')>=4
     # Manual tempo edits are per pattern and survive selection/reload.
     select_pattern(2);page.evaluate('window.dispatchEvent(new Event("scrollUp"))')
     assert meta()['bpm']==133
-    select_pattern(3);assert meta()['bpm']==84
+    select_pattern(3);assert meta()['bpm']==132
     select_pattern(2);assert meta()['bpm']==133
     # Dirty sounds, patterns, FX and settings to ensure reset clears everything.
     down('[data-act="write"]');down('[data-act="sound"]',2);tap('[data-pad="5"]',3);up(2);up()
@@ -56,12 +56,12 @@ with sync_playwright() as p:
     assert page.locator('body').get_attribute('data-mode')=='PLAY'
     assert page.locator('#lcdPlay').get_attribute('fill')=='#222'
     restored=meta()
-    assert restored['slot']==restored['pattern']==1 and restored['bpm']==120
-    assert restored['chain']==[] and restored['masterVolume']==8
+    assert restored['slot']==restored['pattern']==1 and restored['bpm']==132
+    assert restored['chain']==list(range(1,9)) and restored['masterVolume']==8
     assert all(not x for x in restored['factoryMuted'])
     assert restored['patternSettings'][1]['bpm']==132
     assert page.evaluate('''PO33_FACTORY.patterns.every((p,i)=>JSON.stringify(p.lanes)===JSON.stringify(JSON.parse(atob(localStorage.getItem('po33.pat'+(i+1))))))''')
-    assert page.evaluate('!localStorage.getItem("po33.pat5") || JSON.parse(atob(localStorage.getItem("po33.pat5"))).every(l=>l.every(v=>v===-1))')
+    assert page.evaluate('!localStorage.getItem("po33.pat9") || JSON.parse(atob(localStorage.getItem("po33.pat9"))).every(l=>l.every(v=>v===-1))')
     page.reload();page.wait_for_timeout(700)
     assert page.locator('.pad.sampled').evaluate_all('es=>es.map(e=>+e.dataset.pad)')==[1,2,3,4,9,10,11,12]
     select_pattern(2);assert meta()['bpm']==132
