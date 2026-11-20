@@ -111,14 +111,20 @@
     return JSON.parse(s);
   }
 
+  function installationStore(api) {
+    var id=d.documentElement.getAttribute("data-po33-install");
+    if(!id || !/^[a-z0-9-]{1,64}$/.test(id))return api;
+    var prefix="po33.install."+id+".";
+    return {getItem:function(k){return api.getItem(prefix+k);},setItem:function(k,v){return api.setItem(prefix+k,v);},removeItem:function(k){return api.removeItem(prefix+k);}};
+  }
   function storageCandidate() {
     if (backupPreview) return null;
     var cs = window.creationStorage;
     try {
-      if (cs && cs.plain && typeof cs.plain.getItem === "function") return cs.plain;
+      if (cs && cs.plain && typeof cs.plain.getItem === "function") return installationStore(cs.plain);
     } catch (e) { /* no bridge */ }
     try {
-      if (window.localStorage) return window.localStorage;
+      if (window.localStorage) return installationStore(window.localStorage);
     } catch (e2) { /* localStorage blocked */ }
     return null;
   }
