@@ -755,7 +755,7 @@
   function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
-      await c.audioWorklet.addModule('./hardware-tone-worklet.js');
+      await c.audioWorklet.addModule('./hardware-tone-worklet.js?v=20261120-cal1');
       toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
       toneNode.onprocessorerror=function(){hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
       bus.connect(toneNode);toneNode.connect(toneWet);hardwareToneReady=true;applyHardwareTone();

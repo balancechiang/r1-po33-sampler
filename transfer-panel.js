@@ -83,7 +83,7 @@
       end((saved?'End · Project restored / 工程已恢复': 'End · Restored in memory; storage unavailable / 仅本次有效')+(unresolved?` · ${unresolved} unavailable slices / 异常切片`:''));
     }
     function run(command,data){
-      terminate();worker=new Worker('./transfer-worker.js',{type:'module'});const token=generation;
+      terminate();worker=new Worker('./transfer-worker.js?v=20261120-cal1',{type:'module'});const token=generation;
       worker.onerror=()=>{if(token===generation)fail(Error('Codec worker unavailable. Use HTTP/HTTPS.'));};
       worker.onmessage=async({data:m})=>{
         if(token!==generation)return;
