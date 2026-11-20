@@ -105,7 +105,7 @@
     async function open(mode){
       if(['encoding','decoding','receiving','listening','sending','scanning','downloading','hub'].includes(view.state))return;
       clearTimeout(timer);generation++;encoded=null;view={active:true,state:'waiting',mode,progress:0,level:0,record:0,phase:''};
-      hooks.stop();
+      const opening=generation;await hooks.stop();if(opening!==generation || !view.active)return;
       set('waiting',mode==='receive'?'rcv · Choose WAV or Line in / 选择工程 WAV 或立体声输入':'Preparing current project / 正在准备当前工程');
       if(mode==='send'){set('encoding','Encoding project / 工程编码中');run('encode',{snapshot:hooks.snapshot(),native,baseline});}
     }

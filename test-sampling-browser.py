@@ -32,7 +32,7 @@ try:
   """)
   page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_timeout(600)
   page.mouse.click(10,10)
-  page.evaluate("""()=>{const original=PO33Sampling.transientSlices;PO33Sampling.transientSlices=(data,rate)=>{const r=original(data,rate);window.detected=r;window.recordRate=rate;return r;};const alloc=PO33Sampling.allocate;PO33Sampling.allocate=(voices,v,cut,n)=>{alloc(voices,v,cut,n);window.allocation=voices.map(x=>({slot:x.slot,start:x.start,end:x.end}));};}""")
+  page.evaluate("""()=>{const original=PO33Sampling.transientSlices;PO33Sampling.transientSlices=(data,rate)=>{const r=original(data,rate);window.detected=r;window.recordRate=rate;window.recordPeak=data.reduce((a,v)=>Math.max(a,Math.abs(v)),0);return r;};const alloc=PO33Sampling.allocate;PO33Sampling.allocate=(voices,v,cut,n)=>{alloc(voices,v,cut,n);window.allocation=voices.map(x=>({slot:x.slot,start:x.start,end:x.end}));};}""")
   def down(sel,i=1):page.locator(sel).dispatch_event('pointerdown',{'pointerId':i,'button':0,'bubbles':True})
   def up(i=1):page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
   def tap(sel,i=1):down(sel,i);up(i)
@@ -40,6 +40,9 @@ try:
   def pad(n):tap(f'[data-pad="{n}"]')
   down('[data-act="rec"]');down('[data-pad="9"]',2)
   page.wait_for_function('document.body.classList.contains("recording")');page.wait_for_timeout(1600);up(2);up()
+  page.wait_for_function('!document.body.classList.contains("recording") && !!window.detected')
+  assert .5<page.evaluate('recordPeak')<.65 # no post-capture normalization to .9
+  assert page.locator('[data-led-reason="slice-result"][data-led-level="bright"]').count()==3
   detected=page.evaluate('detected.filter(Boolean)');assert len(detected)==3,detected
   assert abs((detected[1]['start']-detected[0]['start'])/page.evaluate('recordRate')-.37)<.015
   select(9);page.evaluate('notes=[];voiceStops=[]');pad(1);page.wait_for_timeout(25);pad(2)

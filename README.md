@@ -64,3 +64,33 @@ rates, silence/sustain, the 16-slice cap and out-of-order voice scheduling.
 through the actual recorder, checks irregular slice positions, silent-pad
 choke, live cutting, four-voice allocation, equal-copy slicing and persistence.
 These checks do not establish bit-identical PO-33 firmware behavior.
+
+### Audio-thread recording
+
+Musical sampling now uses `recording-worklet.js` (mono AudioWorklet), separate
+from the existing stereo hardware backup worklet. Recording starts with the
+existing button combination; there is no amplitude trigger, pre-roll or silence
+stop. Audio is captured at the actual AudioContext sample rate. The worklet
+owns the frame limit, stops at the exact remaining 40-second pool capacity,
+and flushes its final partial block before the main thread commits a take.
+A recorder error/disconnection rolls back the replaced sample.
+
+Saved PCM is no longer normalized to peak 0.9: quiet input and near-full-scale
+input retain their captured levels. Echo cancellation, noise suppression and
+AGC are requested off; reported active settings produce an input-DSP warning.
+This does not guarantee bypassing all device/driver processing. The input
+bar uses RMS, remaining capacity shows tenths, and a near-full-scale peak
+(>=0.98) displays CLP for at least 150 ms. This is an overload warning, not a
+claim to detect analog clipping reliably, and adds no soft-clipping effect.
+After drum recording, effective slice-count LEDs appear for 1.2 seconds when
+not playing/editing another context. Existing stored samples are unchanged.
+
+AudioWorklet requires a supported secure browser context. If it cannot load,
+recording fails explicitly rather than silently falling back to the old
+ScriptProcessor recorder. FX processing and musical mix export still use
+ScriptProcessor; this update only migrates sample capture.
+
+Validation: `node test-recording-worklet.cjs`, `python -X utf8 test-recording-browser.py` cover exact frame
+limits at 44.1/48 kHz, raw levels, retained silence, final-block drain,
+RMS/CLP indication, transfer handoff and disconnect rollback. Physical R1
+microphone/driver behavior still requires device testing.

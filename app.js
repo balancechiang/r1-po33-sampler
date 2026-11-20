@@ -1130,11 +1130,7 @@
 
   function recElapsed() {
     if (!rec.on) return 0;
-    var c = ctx();
-    var e = c.currentTime - rec.start;
-    if (e < 0) e = 0;
-    if (e > rec.limit) e = rec.limit;
-    return e;
+    return Math.min(rec.limit,rec.frames/(rec.rate || ctx().sampleRate));
   }
 
   function memLeft() {
@@ -1638,16 +1634,19 @@
     pending: null,
     error: null
   };
-  var micGeneration=0;
+  var micGeneration=0,micModulePromise=null,clipUntil=0,sliceResultUntil=0,sliceResultSlot=0,sliceResultCount=0,sliceResultTimer=null;
   function disconnectMusicMic(){
     micGeneration++;
+    if(rec.on)abortRecording("INPUT DISCONNECTED");
+    if(mic.proc){mic.proc.port.onmessage=null;mic.proc.port.close();}
     if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
     [mic.node,mic.proc,mic.silent].forEach(function(n){if(n){try{n.disconnect();}catch(error){}}});
-    mic.stream=mic.node=mic.proc=mic.silent=mic.pending=null;mic.error=null;inputLevel=0;
+    mic.stream=mic.node=mic.proc=mic.silent=mic.pending=null;mic.error=null;mic.warning="";mic.settings=null;inputLevel=0;clipUntil=0;d.body.dataset.captureState="idle";
   }
 
   var rec = {
     on: false,
+    id:0,rate:0,stopping:false,done:null,resolve:null,stopTimer:null,
     slot: 0,
     start: 0,
     limit: 0,
@@ -1682,63 +1681,60 @@
   }
 
   function ensureMic() {
-    if (micReady()) return Promise.resolve(true);
-    if (mic.pending) return mic.pending;
-    var md = navigator.mediaDevices;
-    if (!md || !md.getUserMedia) {
-      mic.error = "NO MIC";
-      return Promise.resolve(false);
-    }
-    var c = ctx(), requestGeneration=micGeneration;
-    mic.pending = md
-      .getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        }
-      })
-      .then(function (stream) {
-        if(requestGeneration!==micGeneration || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(track){track.stop();});if(requestGeneration===micGeneration)mic.pending=null;return false;}
-        mic.stream = stream;
-        mic.node = c.createMediaStreamSource(stream);
-        mic.proc = c.createScriptProcessor(4096, 1, 1);
-        mic.proc.onaudioprocess = onAudio;
-        mic.silent = c.createGain();
-        mic.silent.gain.value = 0;
-        mic.node.connect(mic.proc);
-        mic.proc.connect(mic.silent);
-        mic.silent.connect(c.destination);
-        mic.error = null;
-        mic.pending = null;
-        return true;
-      })
-      ["catch"](function (err) {
-        if(requestGeneration!==micGeneration)return false;
-        mic.pending = null;
-        mic.error = "MIC DENIED";
+    if(micReady())return Promise.resolve(true);
+    if(mic.pending)return mic.pending;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){mic.error="NO MIC";return Promise.resolve(false);}
+    var c=ctx(),requestGeneration=micGeneration;
+    d.body.dataset.captureState="requesting";
+    mic.pending=(async function(){
+      var stream;
+      try{
+        if(!c.audioWorklet || !window.AudioWorkletNode)throw Error("AUDIO WORKLET REQUIRED");
+        stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+        if(!micModulePromise)micModulePromise=c.audioWorklet.addModule('./recording-worklet.js').catch(function(error){micModulePromise=null;throw error;});
+        await micModulePromise;
+        if(requestGeneration!==micGeneration || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
+        mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
+        mic.proc=new AudioWorkletNode(c,'po33-recorder',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit'});
+        mic.proc.port.onmessage=onCapture;
+        mic.proc.onprocessorerror=function(){abortRecording("RECORDER ERROR");disconnectMusicMic();mic.error="RECORDER ERROR";paint();};
+        mic.silent=c.createGain();mic.silent.gain.value=0;
+        mic.node.connect(mic.proc);mic.proc.connect(mic.silent);mic.silent.connect(c.destination);
+        stream.getAudioTracks().forEach(function(track){track.onended=function(){abortRecording("INPUT DISCONNECTED");disconnectMusicMic();mic.error="INPUT DISCONNECTED";paint();};});
+        mic.settings=stream.getAudioTracks()[0]?.getSettings() || {};
+        mic.warning=['echoCancellation','noiseSuppression','autoGainControl'].some(function(key){return mic.settings[key]===true;})?"INPUT DSP ACTIVE":"";
+        mic.error=null;d.body.dataset.captureState="monitoring";return true;
+      }catch(error){
+        if(stream)stream.getTracks().forEach(function(t){t.stop();});
+        if(requestGeneration===micGeneration){if(mic.stream===stream)disconnectMusicMic();mic.error=error.message==="AUDIO WORKLET REQUIRED"?error.message:"MIC / WORKLET UNAVAILABLE";d.body.dataset.captureState="idle";}
         return false;
-      });
+      }finally{if(requestGeneration===micGeneration)mic.pending=null;}
+    })();
     return mic.pending;
   }
-
-  function onAudio(e) {
-    var incoming = e.inputBuffer.getChannelData(0), peak = 0;
-    for (var mi=0;mi<incoming.length;mi++) peak = Math.max(peak,Math.abs(incoming[mi]));
-    inputLevel = peak;
-    if (!rec.on) return;
-    var data = e.inputBuffer.getChannelData(0);
-    var room = rec.maxFrames - rec.frames;
-    if (room <= 0) {
-      finishRec();
-      return;
+  function onCapture(event){
+    var m=event.data;
+    if(m.type==='meter'){inputLevel=m.rms;if(m.clipped && (recHeld||rec.on))clipUntil=Date.now()+150;return;}
+    if(!rec.on || m.id!==rec.id)return;
+    if(m.type==='started'){d.body.dataset.captureState=rec.stopping?"stopping":"recording";return;}
+    if(m.type==='chunk'){
+      var data=new Float32Array(m.data);
+      if(m.frames!==rec.frames+data.length || m.frames>rec.maxFrames){abortRecording("CAPTURE DATA ERROR");return;}
+      rec.chunks.push(data);rec.frames=m.frames;
+    }else if(m.type==='finished'){
+      if(m.frames!==rec.frames){abortRecording("CAPTURE DATA ERROR");return;}
+      commitRecording(m.reason);
     }
-    var take = Math.min(room, data.length);
-    var copy = new Float32Array(take);
-    for (var i = 0; i < take; i++) copy[i] = data[i];
-    rec.chunks.push(copy);
-    rec.frames += take;
-    if (rec.frames >= rec.maxFrames) finishRec();
+  }
+  function abortRecording(message){
+    if(!rec.on)return;
+    if(mic.proc)mic.proc.port.postMessage({type:'stop',id:rec.id});
+    clearTimeout(rec.stopTimer);clearInterval(rec.timer);rec.timer=rec.stopTimer=null;
+    samples[rec.slot-1]=rec.replacing;savedSig[rec.slot-1]=rec.replacingStored;
+    if(pads[rec.slot-1])pads[rec.slot-1].classList.remove('rec-target');
+    rec.on=false;rec.stopping=false;rec.chunks=[];rec.replacing=null;rec.slot=0;
+    d.body.classList.remove('recording');d.body.dataset.captureState=micReady()?'monitoring':'idle';
+    var resolve=rec.resolve;rec.resolve=null;resolve?.(false);paint();if(message)flashHint(message);
   }
 
   function startRec(slotNum) {
@@ -1777,13 +1773,17 @@
       return;
     }
 
-    rec.on = true;
+    sliceResultUntil=0;clearTimeout(sliceResultTimer);
+    rec.on = true;rec.id++;rec.rate=c.sampleRate;rec.stopping=false;
+    rec.done=new Promise(function(resolve){rec.resolve=resolve;});
     rec.slot = slotNum;
     rec.start = c.currentTime;
     rec.limit = avail;
     rec.chunks = [];
     rec.frames = 0;
     rec.maxFrames = Math.floor(avail * c.sampleRate);
+    d.body.dataset.captureState="starting";
+    mic.proc.port.postMessage({type:"start",id:rec.id,maxFrames:rec.maxFrames});
     document.body.classList.add("recording");
     pads[slotNum - 1].classList.add("rec-target");
     rec.timer = setInterval(tickRec, 50);
@@ -1792,14 +1792,27 @@
 
   function tickRec() {
     if (!rec.on) return;
-    if (recElapsed() >= rec.limit) { finishRec(); return; }
+    // The worklet, not the UI timer, owns the exact capacity boundary.
     elMem.textContent = memLeft().toFixed(1) + "s";
     elHint.textContent = "REC " + recElapsed().toFixed(1) + "s";
   }
 
   function finishRec() {
-    if (!rec.on) return;
-    var elapsed = recElapsed();
+    if(!rec.on)return Promise.resolve(true);
+    if(!rec.stopping){
+      rec.stopping=true;d.body.dataset.captureState="stopping";
+      mic.proc.port.postMessage({type:'stop',id:rec.id});
+      rec.stopTimer=setTimeout(function(){abortRecording("RECORDER STOP TIMEOUT");},1500);
+    }
+    return rec.done;
+  }
+  function commitRecording(reason) {
+    if(!rec.on)return;
+    clearTimeout(rec.stopTimer);rec.stopTimer=null;rec.stopping=false;
+    var resolve=rec.resolve;rec.resolve=null;
+    // Resolve after synchronous commit code below finishes; promise continuations run later.
+    if(resolve)resolve(true);
+    d.body.dataset.captureState="monitoring";
     rec.on = false;
     if (rec.timer) { clearInterval(rec.timer); rec.timer = null; }
     document.body.classList.remove("recording");
@@ -1808,7 +1821,7 @@
     if (pads[slotNum - 1]) pads[slotNum - 1].classList.remove("rec-target");
 
     var c = ctx();
-    var rate = c.sampleRate;
+    var rate = rec.rate;
     var want = Math.max(0, Math.min(rec.frames, rec.maxFrames));
 
     var data = new Float32Array(want);
@@ -1833,16 +1846,7 @@
       return;
     }
 
-    var peak = 0;
-    for (i = 0; i < data.length; i++) {
-      var a = data[i] < 0 ? -data[i] : data[i];
-      if (a > peak) peak = a;
-    }
-    if (peak > 0.0001) {
-      var gain = Math.min(8, 0.9 / peak);
-      for (i = 0; i < data.length; i++) data[i] *= gain;
-    }
-
+    // Preserve captured PCM amplitude, including quiet passages and near-full-scale peaks.
     var buf = c.createBuffer(1, data.length, rate);
     if (buf.copyToChannel) buf.copyToChannel(data, 0);
     else buf.getChannelData(0).set(data);
@@ -1859,11 +1863,15 @@
       });
       // Fresh slice positions replace previous per-pad trims; slot tone/filter stay intact.
       tweaks[slotNum-1].start=0;tweaks[slotNum-1].length=100;tweaks[slotNum-1].slices={};
+      sliceResultSlot=slotNum;sliceResultCount=samples[slotNum-1].sliceViews.filter(Boolean).length;sliceResultUntil=Date.now()+1200;
+      sliceResultTimer=setTimeout(paintStepLeds,1210);
     }
     rec.replacing = null;
     state.slot = slotNum;
     paint();
     flash(slotNum - 1);
+    if(reason==="memory-full")flashHint("MEMORY FULL");
+    else if(slotNum>MELODIC_SLOTS)flashHint(String(sliceResultCount)+" SLICES");
     saveSlot(slotNum); // into the r1's storage, so it is here after a restart
   }
 
@@ -1967,6 +1975,7 @@
     if (fx.kind) return "FX: " + FX_NAMES[fx.kind];
     if (rec.on) return "REC " + recElapsed().toFixed(1) + "s";
     if (mic.error) return mic.error;
+    if(recHeld && mic.warning)return mic.warning;
     if (patternHeld) return recHeld ? "TAP PAD = COPY" : (soundHeld ? "TAP PAD = CLEAR" : "TAP PAD = SWITCH");
     if (recHeld) {
       if (state.mode === "SOUND") return "TAP PAD = DELETE";
@@ -2032,6 +2041,7 @@
         }
         if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
       } else if(samples[p]) {level="dim";reason="sample";}
+      if(Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
       pads[p].setAttribute("data-led-level",level);
       pads[p].setAttribute("data-led-reason",reason);
@@ -2132,6 +2142,7 @@
   }
 
   function onPadDown(e) {
+    sliceResultUntil=0;
     e.preventDefault();
     var n = parseInt(this.getAttribute("data-pad"), 10);
     padPointer = pid(e);
@@ -2391,7 +2402,7 @@
     if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
     if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND" || displayValue.label==="FREE SEC" || displayValue.label==="APP REV")){label=displayValue.label;number=String(displayValue.value);}
-    if(rec.on){label="REC";number=String(Math.max(0,Math.ceil(memLeft()))).padStart(2,"0");}
+    if(rec.on){label="REC";number=memLeft().toFixed(1);}
     else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":"rEC";}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
@@ -2399,6 +2410,7 @@
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
     if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
+    if(!transferView && Date.now()<clipUntil)label="CLP";
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
     d.getElementById("lcdPlay").setAttribute("fill",seq.playing?"#fff":"#222");
@@ -2695,6 +2707,8 @@
       endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
       sideRecArmed=sideRecHeld=recHeld=false;
       rec.on=false;rec.chunks=[];rec.replacing=null;
+      clearTimeout(rec.stopTimer);rec.stopTimer=null;rec.stopping=false;if(rec.resolve)rec.resolve(false);rec.resolve=null;
+      sliceResultUntil=0;clearTimeout(sliceResultTimer);
       if(rec.timer){clearInterval(rec.timer);rec.timer=null;}
       d.body.classList.remove("recording");
       disconnectMusicMic();
@@ -2723,7 +2737,7 @@
 
   // ---------- startup: restore what was stored, then keep writing ----------
   function flushOnHide() {
-    if (rec.on) finishRec();
+    if (rec.on) finishRec().then(flushPersist);
     flushPersist();
   }
   d.addEventListener("visibilitychange", function () {
@@ -2744,9 +2758,9 @@
     // takes come back by themselves
     try { ctx(); } catch (err) { /* the first tap opens it instead */ }
   }
-  function stopForTransfer(){
+  async function stopForTransfer(){
     clearTouchChord();
-    stopSeq();if(rec.on)finishRec();setRecHeld(false);endStepEdit(true);
+    stopSeq();if(rec.on)await finishRec();setRecHeld(false);endStepEdit(true);
     var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
     disconnectMusicMic();
     clearFxTimers();fxRelease();bpmHeld=fxHeld=writeHeld=soundHeld=patternHeld=false;

@@ -1,8 +1,17 @@
 from pathlib import Path
-import json
+import json,atexit
+from functools import partial
+from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
+from threading import Thread
 from playwright.sync_api import sync_playwright
 
 root = Path(__file__).parent
+class Quiet(SimpleHTTPRequestHandler):
+    def log_message(self,*args):pass
+server=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(root)))
+Thread(target=server.serve_forever,daemon=True).start()
+atexit.register(server.server_close);atexit.register(server.shutdown)
+url=f'http://127.0.0.1:{server.server_port}/'
 with sync_playwright() as p:
     browser = p.chromium.launch(
         executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
@@ -28,7 +37,7 @@ with sync_playwright() as p:
     ''')
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto((root/'index.html').as_uri())
+    page.goto(url+'index.html')
     page.wait_for_timeout(600)
     page.mouse.click(10, 10)
     def down(sel, i=1):
@@ -160,7 +169,7 @@ with sync_playwright() as p:
       const gum=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
       navigator.mediaDevices.getUserMedia=(opts)=>gum(opts).then(s=>new Promise(r=>setTimeout(()=>r(s),300)));
     ''')
-    legacy.goto((root/'index.html').as_uri());legacy.wait_for_timeout(600);legacy.mouse.click(10,10)
+    legacy.goto(url+'index.html');legacy.wait_for_timeout(600);legacy.mouse.click(10,10)
     assert 'sampled' in legacy.locator(pad(5)).get_attribute('class')
     legacy.locator('[data-act="rec"]').dispatch_event('pointerdown',{'pointerId':1,'bubbles':True})
     legacy.locator(pad(6)).dispatch_event('pointerdown',{'pointerId':2,'bubbles':True})
@@ -168,6 +177,7 @@ with sync_playwright() as p:
     legacy.wait_for_timeout(1000)
     assert legacy.locator('body').evaluate('e=>e.classList.contains("recording")')
     legacy.evaluate('window.dispatchEvent(new PointerEvent("pointerup",{pointerId:1}))')
+    legacy.wait_for_function('!document.body.classList.contains("recording")')
     assert 'sampled' in legacy.locator(pad(6)).get_attribute('class')
     assert not errors,errors
     print('PASS: held-step note/length, long-copy, delete/cancel, retrig cycle and audio timing; cropped/shared sound copies, kits, individual/empty slices, target tone retention, reload memory; parameter reset; recording release; four-digit slot/slice display. No JS errors.')
