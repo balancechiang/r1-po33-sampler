@@ -26,9 +26,9 @@ try:
   def meta():return page.evaluate('k=>JSON.parse(atob(localStorage.getItem(k)))',key)
   assert meta()['bpm']==132 and not page.evaluate('starts.length')
   # Simulate the previously shipped, unedited factory project saved incorrectly at 80.
-  page.add_init_script("""(()=>{const k='po33.install.flowers-20261120.po33.meta';if(!localStorage.getItem('tempo-fixture')){const m=JSON.parse(atob(localStorage.getItem(k)));m.bpm=80;m.patternSettings[0].bpm=80;delete m.factoryTempoRevision;localStorage.setItem(k,btoa(JSON.stringify(m)));localStorage.setItem('tempo-fixture','1');}})();""")
+  page.add_init_script("""(()=>{const k='po33.install.flowers-20261120.po33.meta';if(!localStorage.getItem('tempo-fixture')){const m=JSON.parse(atob(localStorage.getItem(k)));m.bpm=80;m.patternSettings=Array(16).fill({bpm:80,swing:0});delete m.factoryTempoRevision;localStorage.setItem(k,btoa(JSON.stringify(m)));localStorage.setItem('tempo-fixture','1');}})();""")
   page.reload();page.wait_for_function('document.body.dataset.loading==="false"');page.wait_for_timeout(450)
-  assert meta()['bpm']==132 and meta()['patternSettings'][0]['bpm']==132 and meta()['factoryTempoRevision']==1
+  assert meta()['bpm']==132 and 'patternSettings' not in meta() and meta()['factoryTempoRevision']==1
   tap('[data-act="play"]');page.wait_for_function('document.querySelector(\'[data-pad="2"]\').dataset.ledReason==="sound-trigger"')
   assert page.locator('#lcdNumber').get_attribute('data-value')=='P01'
   page.screenshot(path=str(root/'playback-indicators-preview.png'))

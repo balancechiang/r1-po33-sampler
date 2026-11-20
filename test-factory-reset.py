@@ -22,10 +22,10 @@ with sync_playwright() as p:
     for n,bpm in [(n,132) for n in range(1,9)]:
         select_pattern(n);assert meta()['bpm']==bpm
     assert page.evaluate('new Set(PO33_FACTORY.patterns.map(p=>JSON.stringify(p.lanes))).size')>=4
-    # Manual tempo edits are per pattern and survive selection/reload.
+    # Tempo is global and survives pattern selection/reload.
     select_pattern(2);page.evaluate('window.dispatchEvent(new Event("scrollUp"))')
     assert meta()['bpm']==133
-    select_pattern(3);assert meta()['bpm']==132
+    select_pattern(3);assert meta()['bpm']==133
     select_pattern(2);assert meta()['bpm']==133
     # Dirty sounds, patterns, FX and settings to ensure reset clears everything.
     down('[data-act="write"]');down('[data-act="sound"]',2);tap('[data-pad="5"]',3);up(2);up()
@@ -59,7 +59,7 @@ with sync_playwright() as p:
     assert restored['slot']==restored['pattern']==1 and restored['bpm']==132
     assert restored['chain']==list(range(1,9)) and restored['masterVolume']==8
     assert all(not x for x in restored['factoryMuted'])
-    assert restored['patternSettings'][1]['bpm']==132
+    assert 'patternSettings' not in restored
     assert page.evaluate('''PO33_FACTORY.patterns.every((p,i)=>JSON.stringify(p.lanes)===JSON.stringify(JSON.parse(atob(localStorage.getItem('po33.pat'+(i+1))))))''')
     assert page.evaluate('!localStorage.getItem("po33.pat9") || JSON.parse(atob(localStorage.getItem("po33.pat9"))).every(l=>l.every(v=>v===-1))')
     page.reload();page.wait_for_timeout(700)
@@ -115,5 +115,5 @@ with sync_playwright() as p:
     cancelled.locator('#factoryReset').dispatch_event('keyup',{'key':'Enter','bubbles':True})
     cancelled.clock.fast_forward(1100)
     assert cancelled.evaluate('localStorage.getItem("po33.slot5")')=='sentinel'
-    print('PASS: five-second threshold and head-only hold; short/drag/cancel/blur aborts; RST and clean reload; sound/pattern/parameter clearing; unrelated storage preserved; interrupted-reset recovery; distinct rhythms/tempos and per-pattern tempo memory.')
+    print('PASS: five-second threshold and head-only hold; short/drag/cancel/blur aborts; RST and clean reload; sound/pattern/parameter clearing; unrelated storage preserved; interrupted-reset recovery; factory global tempo and saved tempo recovery.')
     browser.close()

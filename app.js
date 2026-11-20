@@ -37,7 +37,7 @@
 
   var STEPS = 16; // steps in one bar
   var PATTERNS = 16; // pattern slots
-  var SWING = 0.22; // fraction of a 16th applied to every second step
+  var SWING = factorySwing(); // fraction of a 16th applied to every second step
   var RAMP = 0.005; // 5 ms gain ramps
   var EXPORT_BARS = 4; // 64 steps
   var WAV_NAME = "po33-r1-beat.wav";
@@ -371,7 +371,7 @@
         swing: SWING,
         trim: params.trim,
         pitch: params.pitch,
-        hardwareTone:hardwareToneEnabled, slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryTempoRevision:factoryTempoRevision, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
+        hardwareTone:hardwareToneEnabled, slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryTempoRevision:factoryTempoRevision, factoryMuted: factoryMuted, lastNotes:lastNotes
       })
     });
   }
@@ -437,13 +437,14 @@
       if(!patternHasData(patterns[i])){
         patterns[i]={lanes:p.lanes.map(function(l){return l.slice();})};
         patternExtras[i]=p.extras?JSON.parse(JSON.stringify(p.extras)):{effects:[],locks:{}};
-        patternSettings[i]={bpm:p.bpm,swing:p.swing};seeded.push(i+1);
+        seeded.push(i+1);
       }
     });
     if(seeded.length && (!meta || !meta.factoryRevision) && Array.isArray(factory.chain)){
       patternChain=factory.chain.filter(function(n){return seeded.indexOf(n)>=0;}).slice(0,128);
       seq.pattern=patternChain[0] || 1;chainPosition=0;
     }
+    if(seeded.length && !meta){params.bpm=factoryTempo();SWING=factorySwing();}
     return seeded;
   }
 
@@ -501,9 +502,6 @@
       if (meta) {
         factoryTempoRevision=meta.factoryTempoRevision || 0;
         if(typeof meta.hardwareTone==="boolean")setHardwareTone(meta.hardwareTone,false);
-        if(Array.isArray(meta.patternSettings) && meta.patternSettings.length===16)patternSettings=meta.patternSettings.map(function(p){
-          return p && Number.isFinite(p.bpm) ? {bpm:Math.max(60,Math.min(240,p.bpm)),swing:Math.max(0,Math.min(.5,p.swing || 0))} : null;
-        });
         if(Array.isArray(meta.lastNotes) && meta.lastNotes.length===16)lastNotes=meta.lastNotes.map(function(n){return Math.max(0,Math.min(15,n|0));});
         if(Array.isArray(meta.factoryMuted))factoryMuted=meta.factoryMuted;
         if (Array.isArray(meta.tweaks) && meta.tweaks.length === 16) tweaks = meta.tweaks;
@@ -585,12 +583,11 @@
     if(id!=="flowers-20261120" || factoryTempoRevision>=1)return false;
     factoryTempoRevision=1;
     var untouched=f && !factoryMuted.some(Boolean) && f.patterns.every(function(p,i){return JSON.stringify(patterns[i].lanes)===JSON.stringify(p.lanes);}) && f.slots.every(function(a){var s=samples[a.slot-1];return s && s.buffer._po33id==="factory-"+f.revision+"-"+a.slot;});
-    if(untouched && (!patternSettings[0] || patternSettings[0].bpm===80)){patternSettings[0]={bpm:f.patterns[0].bpm,swing:f.patterns[0].swing};if(seq.pattern===1)applyPatternTempo(1);}
+    if(untouched && params.bpm===80){params.bpm=factoryTempo();SWING=factorySwing();}
     return true;
   }
   function persistDone(meta) {
     var seeded = seedFactory(meta),tempoRepaired=repairFactoryTempo();
-    if(seeded.indexOf(seq.pattern)>=0)applyPatternTempo(seq.pattern);
     persistPaused = false;
     storageReady = true;
     seeded.forEach(function(n){writePattern(n);});
@@ -641,7 +638,9 @@
 
   // ---------- parameters driven by the wheel ----------
   var PARAM_NAMES = ["BPM", "TRIM", "PITCH"];
-  var params = { bpm: (window.PO33_FACTORY && window.PO33_FACTORY.bpm) || 120, trim: 0, pitch: 0 };
+  function factoryTempo(){var f=window.PO33_FACTORY,p=f && f.patterns && f.patterns[0],bpm=f && (f.bpm || p && p.bpm);return Number.isFinite(bpm)?Math.max(60,Math.min(240,Math.round(bpm))):120;}
+  function factorySwing(){var f=window.PO33_FACTORY,p=f && f.patterns && f.patterns[0],swing=f && (f.swing===undefined?p && p.swing:f.swing);return Number.isFinite(swing)?Math.max(0,Math.min(.5,swing)):0;}
+  var params = { bpm: factoryTempo(), trim: 0, pitch: 0 };
   var factoryTempoRevision=0;
   var paramIdx = 0;
   var KNOB_SWEEP = 280; // total mechanical travel, shared by both knobs
@@ -658,7 +657,6 @@
   var tweakMode = 0, bpmHeld = false, fxHeld = false, writeHeld = false;
   var modifierPointers = {}, modifierUsed = {}, previousMode = "PLAY";
   var patternSelection = [], patternChain = [], chainPosition = 0;
-  var patternSettings=Array(16).fill(null);
   var lastNote = 0, displayValue = null, displayUntil = 0;
   var lastNotes = Array(16).fill(0), lastWasSlice=false;
   var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null;
@@ -1145,12 +1143,6 @@
   function stepDur() {
     return 60 / params.bpm / 4;
   }
-  function savePatternTempo(){patternSettings[seq.pattern-1]={bpm:params.bpm,swing:SWING};}
-  function applyPatternTempo(n){
-    var settings=patternSettings[n-1];if(!settings)return;
-    params.bpm=settings.bpm;SWING=settings.swing;
-  }
-
   var visQueue = [];
 
   function effectAt(step) {
@@ -1205,12 +1197,12 @@
         seq.schedStep = 0;
         if (patternChain.length > 1 && !patternHeld) {
           chainPosition = (chainPosition + 1) % patternChain.length;
-          seq.pattern = patternChain[chainPosition];applyPatternTempo(seq.pattern);paint();
+          seq.pattern = patternChain[chainPosition];paint();
         }
         if (seq.queued) {
           seq.pattern = seq.queued;
           seq.queued = 0;
-          applyPatternTempo(seq.pattern);
+
           paint();
         }
       }
@@ -1219,7 +1211,10 @@
 
   function startSeq() {
     if (seq.playing || !startupReady) return;
-    applyPatternTempo(seq.pattern);
+    // Restart the saved order, including repeats, instead of the last audible pattern.
+    chainPosition=0;
+    if(patternChain.length)seq.pattern=patternChain[0];
+    seq.queued=0;
     var c = ctx();
     seq.playing = true;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
@@ -1345,7 +1340,6 @@
     } else {
       seq.pattern = n;
       seq.queued = 0;
-      applyPatternTempo(n);
       flashHint("PATTERN " + n);
     }
     persistSoon();
@@ -1355,7 +1349,6 @@
   function copyPatternTo(n) {
     if (n < 1 || n > PATTERNS) return;
     patterns[n - 1] = clonePattern(patterns[seq.pattern - 1]);
-    patternSettings[n-1]=patternSettings[seq.pattern-1] ? Object.assign({},patternSettings[seq.pattern-1]) : null;
     writePattern(n);
     flashHint("COPY P" + seq.pattern + ">P" + n);
     paint();
@@ -2328,7 +2321,7 @@
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {
         if(!modifierUsed.bpm && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
-        bpmHeld=false;savePatternTempo();persistSoon();
+        bpmHeld=false;persistSoon();
       }
       if(act==="rec") { recPointer=undefined;setRecHeld(false); }
       if(act==="write") { writeHeld=false;if(!modifierUsed.write && e.type!=="pointercancel")setMode(state.mode==="STEP"?"PLAY":"STEP"); }
@@ -2437,7 +2430,7 @@
     if(fineTrimWheel(dir))return;
     parameterDisplay=false;
     params.bpm=Math.max(60,Math.min(240,params.bpm+dir));
-    savePatternTempo();
+
     showNumber(params.bpm,"BPM");persistSoon();paint();
   }
 
@@ -2571,7 +2564,7 @@
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
     var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir*(tweakMode===0 && index===0 && !bpmHeld ? .1 : 1)));
     knobAngles[index]=Math.max(-140,Math.min(140,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*280));
-    if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;savePatternTempo();}
+    if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
     else if(tweakMode===1) {if(index===0)t.filter=value;else t.resonance=value;}
     else if(state.slot>8){
@@ -2783,6 +2776,7 @@
     for(var k=0;k<keys.length;k++){
       if(!(await callStore(store,"remove",keys[k])).ok)throw new Error("reset storage failed");
     }
+    var cleared=await callStore(store,"get",PK.meta);if(!cleared.ok || (cleared.value!=null && cleared.value!==""))throw new Error("reset metadata still present");
   }
   async function factoryReset(recover){
     if(resetBusy)return;
@@ -2794,7 +2788,9 @@
       persistPaused=true;
       if(metaTimer){clearTimeout(metaTimer);metaTimer=null;}
       saveQueue=[];saveQueued={};
-      parameterLatches.reset();resetSoundBrowse();
+      parameterLatches.reset();resetSoundBrowse();clearTouchChord();releaseShiftHolds(true);clearWheelTrim();
+      Object.keys(holdTimers).forEach(function(id){clearTimeout(holdTimers[id]);});holdTimers={};holdPointers={};physicalHolds.clear();
+      bpmHeld=fxHeld=writeHeld=soundHeld=patternHeld=false;modifierPointers={};modifierUsed={};patternSelection=[];
       endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
       sideRecArmed=sideRecHeld=recHeld=false;
       rec.on=false;rec.chunks=[];rec.replacing=null;
@@ -2810,11 +2806,12 @@
       store=store || storageCandidate();if(!store)throw new Error("storage unavailable");
       if(!recover && !(await callStore(store,"set",PK.reset,"1")).ok)throw new Error("reset marker failed");
       await clearSamplerStorage();
+      params.bpm=factoryTempo();SWING=factorySwing();factoryTempoRevision=0;paramIdx=0;parameterDisplay=false;displayValue=null;displayUntil=0;
       if(recover){
         if(!(await callStore(store,"remove",PK.reset)).ok)throw new Error("reset marker failed");
         resetBusy=false;persistPaused=false;
         resetUntil=Date.now()+1500;d.body.removeAttribute("data-resetting");
-        await restoreAll();resetUntil=Date.now()+1500;paint();
+        await restoreAll();params.bpm=factoryTempo();SWING=factorySwing();persistSoon();resetUntil=Date.now()+1500;paint();
       } else {
         // A fresh document also discards audio buffers, microphone state and FX history.
         await new Promise(function(resolve){setTimeout(resolve,700);});
@@ -2865,7 +2862,7 @@
       if(!ids[b._po33id]){assets.push({id:b._po33id,rate:b.sampleRate,data:b.getChannelData(0).slice()});ids[b._po33id]=true;}
       return {asset:b._po33id,offset:s.offset || 0,duration:s.duration};}
     var slots=samples.map(function(s){if(!s)return null;var v=view(s);if(s.sliceViews)v.slices=s.sliceViews.map(view);return v;});
-    return {assets:assets,slots:slots,patterns:JSON.parse(JSON.stringify(patterns)),extras:JSON.parse(JSON.stringify(patternExtras)),tweaks:JSON.parse(JSON.stringify(tweaks)),bpm:params.bpm,swing:SWING,chain:patternChain.slice(),pattern:seq.pattern,slot:state.slot,masterVolume:masterVolume,patternSettings:JSON.parse(JSON.stringify(patternSettings)),lastNotes:lastNotes.slice()};
+    return {assets:assets,slots:slots,patterns:JSON.parse(JSON.stringify(patterns)),extras:JSON.parse(JSON.stringify(patternExtras)),tweaks:JSON.parse(JSON.stringify(tweaks)),bpm:params.bpm,swing:SWING,chain:patternChain.slice(),pattern:seq.pattern,slot:state.slot,masterVolume:masterVolume,lastNotes:lastNotes.slice()};
   }
   function applySnapshot(snapshot){
     var c=ctx(),buffers={};snapshot.assets.forEach(function(a){var b=c.createBuffer(1,a.data.length,a.rate);b.copyToChannel(a.data,0);b._po33id=a.id;buffers[a.id]=b;});
@@ -2873,13 +2870,13 @@
     stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
     patterns=JSON.parse(JSON.stringify(snapshot.patterns));patternExtras=JSON.parse(JSON.stringify(snapshot.extras));tweaks=JSON.parse(JSON.stringify(snapshot.tweaks));
     params.bpm=snapshot.bpm;SWING=snapshot.swing;patternChain=snapshot.chain.slice();seq.pattern=snapshot.pattern || patternChain[0] || 1;seq.queued=0;chainPosition=0;
-    patternSettings=snapshot.patternSettings || Array(16).fill(null);state.slot=snapshot.slot || 1;lastNotes=snapshot.lastNotes || Array(16).fill(0);
+    state.slot=snapshot.slot || 1;lastNotes=snapshot.lastNotes || Array(16).fill(0);
     masterVolume=snapshot.masterVolume===undefined?8:snapshot.masterVolume;if(mixVolume)mixVolume.gain.value=masterVolume/16;paint();
   }
   function adoptHardware(project){
     var imported=window.PO33PreviewAdapter.adapt(project,ctx());
     stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
-    patternSettings=Array(16).fill(null);params.bpm=imported.bpm;SWING=imported.swing;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
+    params.bpm=imported.bpm;SWING=imported.swing;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
     state.slot=1;state.mode="PLAY";masterVolume=8;if(mixVolume)mixVolume.gain.value=.5;paint();return imported;
   }
   if(window.PO33TransferFactory){
