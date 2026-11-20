@@ -18,7 +18,7 @@ export function encodePO33Backup(project: PO33Project | { raw: { state: DeviceSt
     for (let i = 0; i < 4092; i++) wire[i] = i & 255;
     wire.set([0x4d, 0xb8, 0x16, 0x5d], 4092); wire.set(body, 4096);
     const active = Math.ceil((wire.length * 2 + 129) * targetSampleRate / 7812.5);
-    const lead = targetSampleRate / 4, frames = active + 2 * lead;
+    const lead = Math.round(targetSampleRate * 1.5), frames = active + lead + targetSampleRate / 4;
     if (frames * 4 > 128 * 1024 * 1024 || frames > targetSampleRate * 600) throw Error('Encoded backup exceeds transfer limits');
     const wav = new ArrayBuffer(44 + frames * 4), dv = new DataView(wav);
     const ascii = (at: number, s: string) => { for (let i = 0; i < s.length; i++) dv.setUint8(at + i, s.charCodeAt(i)); };
@@ -47,10 +47,10 @@ export function encodePO33Backup(project: PO33Project | { raw: { state: DeviceSt
 
 /** Real byte offsets for LED stages, rather than a fabricated sound-first sequence. */
 export function transferTimeline(state: DeviceState, sampleRate = 44100): Array<{ frame: number; phase: string; record: number }> {
-    const events = [{ frame: 0, phase: 'preamble', record: 0 }]; let bytes = 4096;
+    const events = [{ frame: 0, phase: 'lead-in', record: 0 },{frame:Math.round(sampleRate*1.5),phase:'preamble',record:0}]; let bytes = 4096;
     for (const p of serializeState(state)) {
         if (p.tag === TAG.PATTERN_SELECT || p.tag === TAG.SOUND_SELECT) events.push({
-            frame: Math.floor(sampleRate / 4 + bytes * 2 / 7812.5 * sampleRate),
+            frame: Math.floor(sampleRate * 1.5 + bytes * 2 / 7812.5 * sampleRate),
             phase: p.tag === TAG.PATTERN_SELECT ? 'pattern' : 'sound',
             record: p.tag === TAG.PATTERN_SELECT ? p.payload[0] + 1 : p.payload[0] < 8 ? p.payload[0] + 1 : 9 + Math.floor((p.payload[0] - 8) / 16)
         });

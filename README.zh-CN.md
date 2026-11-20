@@ -41,3 +41,5 @@ WRITE + SOUND + RECORD 接收工程，WRITE + SOUND + PLAY 准备保存或输出
 原创程序合成预置音色与音序按 CC0-1.0 提供；此许可不自动适用于整个应用或美术素材。本地 DSEG 字体保留 SIL OFL-1.1 许可，详见[字体许可](fonts/DSEG-LICENSE.txt)。
 
 [操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)
+
+普通采样已改为 IndexedDB 二进制资产与轻量索引，兼容迁移旧采样；仅保留单张网址二维码下载。TRIM 页面触碰 A/B 旋钮后，R1 滚轮可逐帧微调与快转加速，8 秒无操作退出。详见 [稳定性说明（英文）](STABILITY.md)。

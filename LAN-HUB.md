@@ -149,13 +149,11 @@ Page CSP violations are reported when the browser exposes them; other iframe
 failures do not provide a reliable detailed error to the parent page. No security
 restrictions or certificate checks are bypassed. Load File remains available.
 
-## Camera fallback
+## Camera download
 
-When local HTTP/TLS access is unavailable, the experimental offline animated
-QR sender is at [demo/animated-qr/](demo/animated-qr/). Start with Small test
-and scan using Receive → Scan QR. This needs no LAN bridge or file download
-on the R1, but still requires camera permission. See its README for size,
-compatibility and physical-test limitations.
+Receive → Scan QR accepts a single HTTPS project download link. Offline
+animated QR transmission/reassembly has been removed; it is no longer a
+supported import mode. WAV/JSON/compressed frame file import remains available.
 
 ## Single-QR HTTPS compressed project download
 

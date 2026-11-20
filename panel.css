@@ -121,3 +121,5 @@ body[data-mode] #panel .pad[data-led-reason="queued"] .led { animation:step-sele
   body[data-mode] #panel .pad[data-led-reason="cursor"] .led,
   body[data-mode] #panel .pad[data-led-reason="downbeat"] .led { animation:none; }
 }
+
+.knob.trim-wheel-focus { outline:1px solid #ff742e; outline-offset:1px; }

@@ -33,6 +33,7 @@
       try{if(typeof navigator.vibrate==='function')navigator.vibrate(12);}catch(error){}
     }
     function render(){
+      root.PO33Runtime.setActive("transfer",view.active);
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
       const busy=probing || ['encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
@@ -52,7 +53,7 @@
       if(waitTimer)clearInterval(waitTimer);waitTimer=null;
       if(stream){stream.getTracks().forEach(t=>{t.onended=null;t.stop();});stream=null;}
       if(source){source.disconnect();source=null;}if(node){node.port.onmessage=null;node.disconnect();node.port.close();node=null;}
-      const context=audio;audio=null;if(context)await context.close();
+      const context=audio;audio=null;if(context){root.PO33Runtime.unregister(context);await context.close();}
     }
     function terminate(){if(worker)worker.terminate();worker=null;}
     function errorText(error){
@@ -83,7 +84,7 @@
       end((saved?'End · Project restored / 工程已恢复': 'End · Restored in memory; storage unavailable / 仅本次有效')+(unresolved?` · ${unresolved} unavailable slices / 异常切片`:''));
     }
     function run(command,data){
-      terminate();worker=new Worker('./transfer-worker.js?v=20261120-cal1',{type:'module'});const token=generation;
+      terminate();worker=new Worker('./transfer-worker.js?v=20261120-stability1',{type:'module'});const token=generation;
       worker.onerror=()=>{if(token===generation)fail(Error('Codec worker unavailable. Use HTTP/HTTPS.'));};
       worker.onmessage=async({data:m})=>{
         if(token!==generation)return;
@@ -169,11 +170,11 @@
     }
     scanButton.onclick=async()=>{
       const token=++generation;set('scanning','Scanning project QR / 扫描工程二维码',{progress:0,level:0});
-      try{const text=await scanner.open();if(token!==generation)return;if(text?.buffer)loadBuffer(text.filename,text.buffer);else if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
+      try{const text=await scanner.open();if(token!==generation)return;if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
       catch(error){if(token===generation)await fail(error);}
     };
     async function makeAudio(rate,token){
-      const context=new (root.AudioContext||root.webkitAudioContext)({sampleRate:rate,latencyHint:'playback'});audio=context;
+      const context=new (root.AudioContext||root.webkitAudioContext)({sampleRate:rate,latencyHint:'playback'});audio=context;root.PO33Runtime.register(context,true);
       if(![44100,48000].includes(context.sampleRate))throw Error('A 44.1/48 kHz stereo audio path is required');
       if(rate && context.sampleRate!==rate)throw Error('Output sample rate mismatch; no transfer resampling allowed');
       if(context.destination.maxChannelCount<2)throw Error('Stereo output is unavailable');
@@ -184,7 +185,7 @@
       node=new AudioWorkletNode(context,'po33-backup',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2],channelCountMode:'max',channelInterpretation:'discrete'});
       node.connect(context.destination);node.port.onmessage=e=>{if(token===generation)onAudio(e);};await context.resume();
       context.onsinkchange=()=>{if(audio===context && view.state==='sending')fail(Error('Output route changed during transfer'));};
-      context.onstatechange=()=>{if(audio===context && context.state==='suspended' && ['sending','receiving','listening'].includes(view.state))fail(Error('Audio context interrupted during transfer'));};
+      context.onstatechange=()=>{if(audio===context && ['suspended','interrupted'].includes(context.state) && ['sending','receiving','listening'].includes(view.state))fail(Error('Audio context interrupted during transfer'));};
       return token===generation;
     }
     async function record(){

@@ -140,3 +140,11 @@ filter bypass, partial lock persistence/reset, toggle persistence and native
 frame addresses/parameter-only CRC roundtrip. Existing three-fixture encoder
 roundtrips still retain every byte when projects are unedited. Native curve
 calibration and analog sound matching still require physical-device comparison.
+
+### Storage and device stability
+
+Ordinary audio assets now live in IndexedDB; existing Creation keys hold small
+indexes and metadata, with legacy sample migration. The single download-URL
+QR path is retained; offline animated QR transfer was removed. Screen wake
+locks, guarded music resume, focused frame-level Trim wheel editing and a
+1.5-second hardware-backup lead-in are described in [STABILITY.md](STABILITY.md).

@@ -18,7 +18,7 @@ export function buildHardwareProject(snapshot, native, baseline) {
     const model = emptyProject(snapshot.bpm), codes = new Map();
     model.chain = snapshot.chain.length ? snapshot.chain : [snapshot.pattern];
     model.swing = native && baseline && snapshot.swing === baseline.swing ? native.meta.swingRaw : clamp(snapshot.swing * 18, 0, 18);
-    const sampleKey = (s) => ({ slots: s.slots, assets: s.assets.map(a => [a.id, a.rate, a.data.length]), trim: s.tweaks.map(t => [t.start, t.length, t.slices]) });
+    const sampleKey = (s) => ({ slots: s.slots, assets: s.assets.map(a => [a.id, a.rate, a.data.length]), trim: s.tweaks.map(t => [t.start, t.length, t.slices, t.frames]) });
     const unchangedSamples = !!(native && baseline && equal(sampleKey(snapshot), sampleKey(baseline)));
     const resolve = (id) => {
         let c = codes.get(id);
@@ -53,7 +53,7 @@ export function buildHardwareProject(snapshot, native, baseline) {
                 return;
             const t = snapshot.tweaks[i];
             if (i < 8)
-                model.melodic[i] = clip(slot, t.start, t.length);
+                model.melodic[i] = clip(slot, t.start, t.length, t.frames);
             else
                 model.drums[i - 8] = { slices: Array.from({ length: 16 }, (_, k) => {
                         const trim = t.slices[k] || { start: 0, length: 100 };

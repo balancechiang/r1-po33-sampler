@@ -1,12 +1,12 @@
 import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js';
 import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js';
 import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js';
-import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=20261120-cal1';
-import './qr-transfer.js';
+import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=20261120-stability1';
+import './project-compression.js';
 self.onmessage=async({data:m})=>{
   try{
     if(m.command==='decode'){
-      const project=m.filename?.endsWith('.po33.gz')?decodePO33Frame(await globalThis.PO33QRTransfer.unpackFrame(new Uint8Array(m.wav))):m.filename?.endsWith('.po33frame')?decodePO33Frame(new Uint8Array(m.wav)):m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
+      const project=m.filename?.endsWith('.po33.gz')?decodePO33Frame(await globalThis.PO33ProjectCompression.unpackFrame(new Uint8Array(m.wav))):m.filename?.endsWith('.po33frame')?decodePO33Frame(new Uint8Array(m.wav)):m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
       self.postMessage({type:'decoded',project});
     }else if(m.command==='export-json'){
       const built=buildHardwareProject(m.snapshot,m.native,m.baseline);

@@ -3,8 +3,8 @@
    step 2: mic sampling into 16 slots, 40.0 s shared pool, lo-fi output chain
    step 3: 16-step sequencer with swing, 16 patterns, wheel-driven BPM/TRIM/PITCH
    step 4: punch-in FX pads 1-8 and a 4-bar WAV export
-   persistence: takes (16-bit mono WAV, base64) and patterns go into the r1's
-   own creationStorage, so they survive a reload and a device restart.
+   persistence: binary PCM in IndexedDB; small view indexes/pattern metadata
+   in creationStorage, with legacy WAV/Base64 import.
    Everything not restored is synthesized with the Web Audio API. */
 (function () {
   "use strict";
@@ -54,12 +54,12 @@
   for (var s0 = 0; s0 < TOTAL_SLOTS; s0++) samples.push(null);
 
   // ---------- persistence ----------
-  // takes and patterns live in the r1 creation's own storage (async, Base64
-  // values, kept per creation across launches). One key per slot and per
-  // pattern, so a take that does not fit is the only thing that is lost.
-  var WAV_RATE = 16000; // what a take is stored at
+  // Small per-slot view indexes and metadata use Creation storage.
+  // PCM assets are verified in IndexedDB before an index is published.
+  var WAV_RATE = 16000; // legacy decoding fallback only
   var PK = {
     meta: "po33.meta",
+    assetScope:"po33.asset-scope",
     reset: "po33.reset",
     slot: function (n) { return "po33.slot" + n; },
     pat: function (n) { return "po33.pat" + n; }
@@ -71,6 +71,7 @@
   var saveRunning = false; // guards the store chain while it is blocked
   var saveQueue = []; // writes waiting for the store
   var saveQueued = {};
+  var failedSaveKeys=new Set();
   var storeFail = null; // last storage failure, reported in the hint
   var unsaved = 0; // slots kept for this session only
   var restored = 0; // slots brought back from storage
@@ -151,15 +152,21 @@
     if (!job) return;
     delete saveQueued[job.key];
     saveRunning = true;
-    callStore(store, job.value ? "set" : "remove", job.key, job.value || undefined).then(function (res) {
+    Promise.resolve().then(async function(){
+      if(job.prepare){job.manifest=await job.prepare();job.value=b64utf8(job.manifest);}
+      var result=await callStore(store,job.value?"set":"remove",job.key,job.value || undefined);
+      if(result.ok && job.slot){try{await window.PO33SampleAssets.finish(job.slot,job.manifest || null);}catch(error){storageWarn="ASSET CLEANUP PENDING";}}
+      return result;
+    }).catch(function(){return {ok:false};}).then(function (res) {
       if (!res.ok) storeFailed(job);
       else {
-        storeFail = null;
+        storeFail = null;failedSaveKeys.delete(job.key);
         // the slot did make it into storage after all
         if (job.sig !== undefined && savedSig[job.slot - 1] === null) {
           savedSig[job.slot - 1] = job.sig;
           settled(job.slot);
         }
+        if(job.slot)settled(job.slot);
         if (job.pat !== undefined) {
           patSig[job.pat - 1] = job.value ? job.psig : null;
         }
@@ -172,7 +179,6 @@
 
   function enqueueSave(job) {
     if(hardwareTransfer && hardwareTransfer.hasSession)return;
-    if (saveRunning && saveQueued[job.key]) return; // replace the one still waiting
     if (saveQueued[job.key]) {
       saveQueue = saveQueue.filter(function (j) { return j.key !== job.key; });
     }
@@ -184,7 +190,7 @@
   // a write failed: most likely the quota. Keep the take for this session and
   // say so once; the slot stays listed as not saved.
   function storeFailed(job) {
-    storeFail = job.key;
+    storeFail = job.key;failedSaveKeys.add(job.key);
     if (job.sig !== undefined) {
       savedSig[job.slot - 1] = null;
       settled(job.slot);
@@ -215,35 +221,6 @@
       return [v.buffer._po33id,v.offset || 0,v.duration].join(":");
     }
     return len + ":" + s.duration.toFixed(4) + ":" + sum.toFixed(4)+":"+viewSig(s)+":"+(s.sliceViews ? s.sliceViews.map(viewSig).join("|") : "");
-  }
-
-  function encodeTake(ch, rate) {
-    var n = ch.length;
-    var bytes = new Uint8Array(44 + n * 2);
-    function str(off, s) { for (var i = 0; i < s.length; i++) bytes[off + i] = s.charCodeAt(i); }
-    function u32(off, v) { bytes[off] = v & 255; bytes[off + 1] = (v >> 8) & 255; bytes[off + 2] = (v >> 16) & 255; bytes[off + 3] = (v >>> 24) & 255; }
-    function u16(off, v) { bytes[off] = v & 255; bytes[off + 1] = (v >> 8) & 255; }
-    str(0, "RIFF"); u32(4, 36 + n * 2); str(8, "WAVE");
-    str(12, "fmt "); u32(16, 16); u16(20, 1); u16(22, 1);
-    u32(24, rate); u32(28, rate * 2); u16(32, 2); u16(34, 16);
-    str(36, "data"); u32(40, n * 2);
-    for (var i = 0; i < n; i++) {
-      var v = ch[i] < -1 ? -1 : (ch[i] > 1 ? 1 : ch[i]);
-      var s16 = v < 0 ? Math.round(v * 32768) : Math.round(v * 32767);
-      if (s16 < -32768) s16 = -32768;
-      if (s16 > 32767) s16 = 32767;
-      u16(44 + i * 2, s16 & 0xffff);
-    }
-    return bytes;
-  }
-
-  function bytesToB64(bytes) {
-    var out = "";
-    var chunk = 0x8000;
-    for (var i = 0; i < bytes.length; i += chunk) {
-      out += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(bytes.length, i + chunk)));
-    }
-    return window.btoa(out);
   }
 
   function b64ToBytes(b64) {
@@ -332,35 +309,15 @@
     var s = samples[slot - 1];
     if (!s) { removeSlotStored(slot); return; }
     if (persistPaused || !ac) { savedSig[slot - 1] = null; return; }
-    var v = takeValue(slot);
-    if (v === null) { savedSig[slot - 1] = null; return; }
-    savedSig[slot - 1] = slotSig(s);
-    enqueueSave({ key: PK.slot(slot), slot: slot, sig: savedSig[slot - 1], value: v });
+    savedSig[slot-1]=slotSig(s);
+    enqueueSave({key:PK.slot(slot),slot:slot,sig:savedSig[slot-1],prepare:function(){return window.PO33SampleAssets.pack(slot,s);}});
     persistSoon();
-  }
-
-  function takeValue(slot) {
-    var s = samples[slot - 1];
-    if (!s || !s.buffer || !s.buffer.getChannelData) return null;
-    try {
-      var assets = {};
-      function pack(view) {
-        if (!view) return null;
-        var b = view.buffer;
-        if (!b._po33id) b._po33id = "a" + Date.now().toString(36) + "-" + (++audioSerial);
-        if (!assets[b._po33id]) assets[b._po33id] = bytesToB64(encodeTake(b.getChannelData(0), b.sampleRate || WAV_RATE));
-        return {asset:b._po33id,offset:view.offset || 0,duration:view.duration};
-      }
-      var base=pack(s), slices=s.sliceViews ? s.sliceViews.map(pack) : null;
-      return b64utf8({format:3,base:base,slices:slices,assets:assets});
-    } catch (e) {
-      return null;
-    }
   }
 
   var audioSerial = 0;
   function decodeStoredTake(value, pool) {
     var packed=unb64utf8(value);
+    if(packed && packed.format===4)return window.PO33SampleAssets.unpack(packed,ac,pool);
     if (!packed || packed.format!==3) return decodeTake(b64ToBytes(packed), ac);
     var ids=Object.keys(packed.assets);
     return Promise.all(ids.map(function(id){
@@ -445,10 +402,7 @@
     for (var n = 1; n <= TOTAL_SLOTS; n++) {
       var s = samples[n - 1];
       if (!s || savedSig[n - 1] !== undefined) continue;
-      var v = takeValue(n);
-      if (v === null) { savedSig[n - 1] = null; continue; }
-      savedSig[n - 1] = slotSig(s);
-      enqueueSave({ key: PK.slot(n), slot: n, sig: savedSig[n - 1], value: v });
+      saveSlot(n);
     }
   }
 
@@ -483,6 +437,20 @@
   }
 
   // ---------- restore ----------
+  var assetScopePromise=null;
+  function ensureAssetScope(){
+    if(assetScopePromise)return assetScopePromise;
+    assetScopePromise=(async function(){
+      var result=await callStore(store,'get',PK.assetScope),scope=result.value;
+      if(!result.ok)return false;
+      if(!/^[a-f0-9]{32}$/.test(scope || '')){
+        scope=Array.from(crypto.getRandomValues(new Uint8Array(16))).map(function(v){return v.toString(16).padStart(2,'0');}).join('');
+        if(!(await callStore(store,'set',PK.assetScope,scope)).ok)return false;
+        var verify=await callStore(store,'get',PK.assetScope);if(!verify.ok || verify.value!==scope)return false;
+      }
+      window.PO33SampleAssets.configure(scope);return true;
+    })().catch(function(){return false;});return assetScopePromise;
+  }
   function restoreAll() {
     persistPaused = true;
     var metaParams = null;
@@ -496,7 +464,8 @@
     reads.push(callStore(store, "get", PK.meta));
     for (var n = 1; n <= TOTAL_SLOTS; n++) reads.push(callStore(store, "get", PK.slot(n)));
     for (var p = 1; p <= PATTERNS; p++) reads.push(callStore(store, "get", PK.pat(p)));
-    return Promise.all(reads).then(function (res) {
+    return Promise.all(reads).then(async function (res) {
+      if(!await ensureAssetScope())storageWarn="ASSET STORAGE UNAVAILABLE";
       var meta = null;
       if (res[0].ok && typeof res[0].value === "string") {
         try { meta = unb64utf8(res[0].value); } catch (e) { meta = null; }
@@ -540,6 +509,9 @@
       }
       paint();
 
+      var confirmedIndexes=[];
+      for(var si=1;si<=16;si++)if(res[si].ok){var index=null;try{var value=unb64utf8(res[si].value);if(value?.format===4)index=value;}catch(error){}confirmedIndexes.push([si,index]);}
+      try{await window.PO33SampleAssets.reconcile(confirmedIndexes);}catch(error){storageWarn="ASSET STORAGE UNAVAILABLE";}
       // the takes: decode every stored slot, then fill the 40 s pool in slot
       // order so a set that does not fit loses only its tail, visibly
       var stored = [];
@@ -557,7 +529,7 @@
         persistDone(meta);
         return false;
       }
-      var restoredPool={};
+      var restoredPool={},migrate=[];
       return stored.reduce(function (chain, item) {
         return chain.then(function (used) {
           return Promise.resolve().then(function(){return decodeStoredTake(item.value,restoredPool);}).then(function (s) {
@@ -578,6 +550,7 @@
             s.trim = mp && typeof mp[0] === "number" ? Math.max(0, Math.min(90, mp[0])) : 0;
             s.pitch = mp && typeof mp[1] === "number" ? Math.max(-12, Math.min(12, Math.round(mp[1]))) : 0;
             restored++;
+            try{if(unb64utf8(item.value)?.format!==4)migrate.push(item.slot);}catch(error){}
             return usedSeconds();
           }).catch(function(){storageWarn="UNREADABLE SLOT "+item.slot;return used;});
         });
@@ -586,6 +559,7 @@
           storageWarn = "MEMORY FULL · RESTORED " + used.toFixed(1) + "s";
         }
         persistDone(meta);
+        migrate.forEach(saveSlot);
         return true;
       });
     })["catch"](function () {
@@ -616,8 +590,7 @@
     }
     for (var k = 1; k <= TOTAL_SLOTS; k++) {
       if (samples[k - 1] && savedSig[k - 1] === null) {
-        var v0 = takeValue(k);
-        if (v0 !== null) { savedSig[k - 1] = slotSig(samples[k - 1]); enqueueSave({ key: PK.slot(k), slot: k, sig: savedSig[k - 1], value: v0 }); }
+        saveSlot(k);
       }
     }
     savePendingTakes();
@@ -717,11 +690,11 @@
 
   function ctx() {
     if (ac) {
-      if (ac.state === "suspended" && ac.resume) ac.resume();
+      if (ac.state!=="running")window.PO33Runtime.resume(ac);
       return ac;
     }
     var AC = window.AudioContext || window.webkitAudioContext;
-    ac = new AC();
+    ac = new AC();window.PO33Runtime.register(ac);window.PO33Runtime.resume(ac);
 
     master = ac.createGain();
     master.gain.value = 1;
@@ -755,7 +728,7 @@
   function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
-      await c.audioWorklet.addModule('./hardware-tone-worklet.js?v=20261120-cal1');
+      await c.audioWorklet.addModule('./hardware-tone-worklet.js?v=20261120-stability1');
       toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
       toneNode.onprocessorerror=function(){hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
       bus.connect(toneNode);toneNode.connect(toneWet);hardwareToneReady=true;applyHardwareTone();
@@ -843,7 +816,8 @@
     var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
       gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect};
     window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
-    src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);};
+    window.PO33Runtime.setActive("voices",true);
+    src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);window.PO33Runtime.setActive("voices",sampleVoices.some(function(v){return v.end>ac.currentTime;}));};
   }
   function cutSampleVoice(v,at) {
     // Tiny release avoids clicks. Keep scheduled future voices in the timeline.
@@ -1040,16 +1014,16 @@
     var off = (s.offset || 0) + trimOff;
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);
     if (avail<=0)return;
-    var dur = Math.min(avail / rate,s.gateSeconds || Infinity),fade=Math.min(RAMP,dur*.3);
+    var dur = Math.min(avail / rate,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
     var src = c.createBufferSource();
     src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
     if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-avail);
     src.playbackRate.value = rate;
     var g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(0.95, t + fade);
-    g.gain.setValueAtTime(0.95, t + Math.max(fade, dur - fade));
-    g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.95, t + attack);
+    g.gain.setValueAtTime(0.95, t + Math.max(attack, dur - release));
+    g.gain.linearRampToValueAtTime(0, t + dur);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
     src.start(t, off,dur*rate);
@@ -1926,7 +1900,10 @@
 
   function hintText() {
     if(resetBusy)return "RESTORING FACTORY PRESETS";
+    if(ac && (seq.playing||rec.on) && window.PO33Runtime.isBlocked(ac))return "TAP TO RESUME AUDIO";
     if(resetFailure)return "RESET FAILED - HOLD HEAD TO RETRY";
+    if(unsaved)return "SAVE FAILED · "+unsaved+" TAKE IN MEMORY ONLY";
+    if(failedSaveKeys.size)return "SAVE FAILED · METADATA IN MEMORY ONLY";
     if (exporting) {
       var bar = Math.min(EXPORT_BARS, 1 + Math.floor(expFrames / (expPerBar || 1)));
       return "REC BEAT: BAR " + bar + "/" + EXPORT_BARS;
@@ -2009,6 +1986,7 @@
   }
 
   function paint() {
+    window.PO33Runtime.setActive("music",!!(seq.playing || rec.on || recHeld));
     d.body.setAttribute("data-mode", state.mode);
     elMode.textContent = exporting ? "EXP" : (rec.on ? "REC" : MODES[state.mode]);
     elPat.textContent = "P" + seq.pattern + (seq.queued ? ">" + seq.queued : "");
@@ -2316,8 +2294,24 @@
     sideRecHeld=false;sideClickIgnoreUntil=Date.now()+300;
     setRecHeld(sideRecArmed || modifierPointers.rec!==undefined);
   });
+  var wheelTrim=null,wheelTrimTimer=null;
+  function clearWheelTrim(){wheelTrim=null;clearTimeout(wheelTrimTimer);d.querySelectorAll('.trim-wheel-focus').forEach(function(e){e.classList.remove('trim-wheel-focus');});}
+  function focusTrimWheel(index){if(tweakMode!==2)return;clearWheelTrim();wheelTrim={index:index,last:0,burst:0,dir:0};d.getElementById(index?'knobB':'knobA').classList.add('trim-wheel-focus');wheelTrimTimer=setTimeout(clearWheelTrim,8000);}
+  function fineTrimWheel(dir){
+    if(!wheelTrim || tweakMode!==2 || bpmHeld)return false;
+    var sample=samples[state.slot-1],view=state.slot>8?rawSlice(sample,lastNote):sample;if(!view)return true;
+    var now=performance.now(),fast=now-wheelTrim.last<65 && dir===wheelTrim.dir;wheelTrim.burst=fast?wheelTrim.burst+1:0;wheelTrim.last=now;wheelTrim.dir=dir;
+    var step=wheelTrim.burst>20?2048:wheelTrim.burst>12?512:wheelTrim.burst>5?64:wheelTrim.burst>2?8:1;
+    var trim=selectedTweak(state.slot,lastNote),r=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate),lo=state.slot>8?0:Math.round((view.offset||0)*view.buffer.sampleRate),hi=state.slot>8?view.buffer.length:Math.round(((view.offset||0)+view.duration)*view.buffer.sampleRate);
+    if(wheelTrim.index===0){var length=r.end-r.start;r.start=Math.max(lo,Math.min(hi,r.start+dir*step));r.end=Math.min(hi,r.start+length);}else r.end=Math.max(r.start,Math.min(hi,r.end+dir*step));
+    trim.frames=r;
+    if(state.slot<=8){trim.start=(r.start-lo)/(hi-lo)*100;trim.length=hi===r.start?0:(r.end-r.start)/(hi-r.start)*100;}
+    parameterDisplay=true;clearTimeout(wheelTrimTimer);wheelTrimTimer=setTimeout(clearWheelTrim,8000);showNumber(((wheelTrim.index?r.end-r.start:r.start)/view.buffer.sampleRate).toFixed(2),wheelTrim.index?'LENGTH SEC':'START SEC');persistSoon();paint();return true;
+  }
+  d.addEventListener('pointerdown',function(e){if(!e.target.closest('.knob,.pad'))clearWheelTrim();},true);
   function wheelAdjust(dir) {
     if(stepEdit){adjustKnob(0,dir);return;}
+    if(fineTrimWheel(dir))return;
     parameterDisplay=false;
     params.bpm=Math.max(60,Math.min(240,params.bpm+dir));
     savePatternTempo();
@@ -2453,7 +2447,7 @@
       var r=window.PO33Sampling.trimFrames(view,sl,view.buffer.length,view.buffer.sampleRate),total=view.buffer.length;
       if(index===0){var length=r.end-r.start;r.start=Math.round(value*total/100);r.end=Math.min(total,r.start+length);}else r.end=Math.min(total,r.start+Math.round(value*total/100));
       sl.frames={start:r.start,end:r.end};
-    }else {if(index===0)sl.start=value;else sl.length=value;}
+    }else {delete sl.frames;if(index===0)sl.start=value;else sl.length=value;}
     if(!bpmHeld && tweakMode!==2){var edited=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance');manualParameter(state.slot,edited,value);}
     if(!bpmHeld && writeHeld && seq.playing && tweakMode!==2) {
       modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step],{[edited]:value});
@@ -2478,7 +2472,7 @@
   });
   ["knobA","knobB"].forEach(function(id,index){
     var knob=d.getElementById(id), active=false,lastY=0;
-    knob.addEventListener("pointerdown",function(e){e.preventDefault();active=true;lastY=e.clientY;knob.setPointerCapture(e.pointerId);});
+    knob.addEventListener("pointerdown",function(e){e.preventDefault();focusTrimWheel(index);active=true;lastY=e.clientY;knob.setPointerCapture(e.pointerId);});
     knob.addEventListener("pointermove",function(e){
       if(!active)return;
       var scale=d.getElementById("panel").getBoundingClientRect().width/240,delta=(lastY-e.clientY)/scale;
@@ -2654,6 +2648,7 @@
   async function clearSamplerStorage(){
     var keys=[PK.meta];
     for(var i=1;i<=16;i++){keys.push(PK.slot(i));keys.push(PK.pat(i));}
+    await window.PO33SampleAssets.clear();
     for(var k=0;k<keys.length;k++){
       if(!(await callStore(store,"remove",keys[k])).ok)throw new Error("reset storage failed");
     }
@@ -2714,6 +2709,7 @@
   async function startRestore() {
     if (!storageCandidate()) { store = null; storageReady = true; return; }
     store=storageCandidate();
+    await ensureAssetScope();
     var marker=await callStore(store,"get",PK.reset);
     if(marker.ok && marker.value)await factoryReset(true);
     else await restoreAll();
@@ -2724,7 +2720,7 @@
     try { ctx(); } catch (err) { /* the first tap opens it instead */ }
   }
   async function stopForTransfer(){
-    clearTouchChord();
+    clearWheelTrim();clearTouchChord();
     stopSeq();if(rec.on)await finishRec();setRecHeld(false);endStepEdit(true);
     var now=ctx().currentTime;sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
     disconnectMusicMic();

@@ -41,3 +41,5 @@ WRITE + SOUND + RECORD で受信、WRITE + SOUND + PLAY で保存／送信を準
 オリジナルのプログラム合成音色とシーケンスは CC0-1.0 で提供します。このライセンスはアプリ全体やアートワークには自動的に適用されません。DSEG フォントには SIL OFL-1.1 が適用されます。[フォントライセンス](fonts/DSEG-LICENSE.txt)をご覧ください。
 
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)
+
+サンプルは IndexedDB のバイナリ資産と小さな索引で保存し、旧形式も移行できます。QR はダウンロード URL のみです。TRIM で A/B ノブに触れると R1 ホイールが微調整になり、8 秒後に解除されます。[詳細（英語）](STABILITY.md)。

@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 (async()=>{
  const {buildHardwareProject}=await import('./src/codec/po33WebProject.ts');
  const {readCell}=await import('./decoder/vendor/so-sample/pattern.ts');
- const {decodePO33Frame}=await import('./src/codec/po33Codec.ts');
+ const {decodePO33Frame,encodePO33Backup,transferTimeline}=await import('./src/codec/po33Codec.ts');
  const {encodePO33Frame}=await import('./src/codec/po33Encode.ts');
  const rate=48000,pcm=Float32Array.from({length:rate},(_,i)=>.2*Math.sin(i*.05)),before=pcm.slice();
  const tweaks=Array.from({length:16},()=>({pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}})),extras=Array.from({length:16},()=>({effects:[],locks:{}}));
@@ -16,5 +16,8 @@ const assert=require('node:assert/strict');
  const get=step=>readCell(built.raw.state.patterns[0],step+1,1);
  assert.equal(get(0).pitch,18);assert.equal(get(1).pitch,18);assert.equal(get(2).key,null);assert.equal(get(2).pitch,15);assert.equal(get(3).pitch,15);assert.equal(get(3).volume,14);assert.equal(get(4).filter,62);
  assert.ok(p.patterns[0].steps[2].parameterOnly.length===1);
+ const wav=encodePO33Backup(built,44100),samples=new Uint8Array(wav,44),lead=44100*1.5*4,tail=44100/4*4;
+ assert.ok(samples.subarray(0,lead).every(x=>x===0));assert.ok(samples.subarray(lead,lead+512).some(Boolean));assert.ok(samples.subarray(samples.length-tail).every(x=>x===0));
+ const timeline=transferTimeline(built.raw.state,44100);assert.equal(timeline[0].phase,'lead-in');assert.equal(timeline[1].frame,44100*1.5);assert.equal(timeline[1].phase,'preamble');
  console.log('PASS 48 kHz overlapping frame trims -> native pool/slice addresses; no PCM mutation; partial lock carry and parameter-only frames survive hardware encoding/CRC.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

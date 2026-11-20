@@ -41,3 +41,5 @@ WRITE + SOUND + RECORD는 수신, WRITE + SOUND + PLAY는 저장／송신 준비
 프로그램으로 합성한 오리지널 프리셋 사운드와 시퀀스는 CC0-1.0으로 제공합니다. 이 라이선스가 앱 전체나 아트워크에 자동 적용되는 것은 아닙니다. DSEG 글꼴의 SIL OFL-1.1 라이선스는 유지됩니다. [글꼴 라이선스](fonts/DSEG-LICENSE.txt)를 확인하세요.
 
 [조작 안내](R1-CONTROLS.ko.md) · [프리셋 사운드와 패턴](PRESETS.ko.md) · [배포 안내](DEPLOY.ko.md)
+
+샘플은 IndexedDB 바이너리 자산과 작은 인덱스로 저장하며 이전 형식도 이전합니다. QR은 다운로드 URL 방식만 유지합니다. TRIM에서 A/B 노브를 터치하면 R1 휠로 미세 조정하며 8초 뒤 해제됩니다. [자세한 설명(영어)](STABILITY.md).

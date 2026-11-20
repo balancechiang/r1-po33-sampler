@@ -8,7 +8,7 @@ import { writeTempo, writeSwing, writeChain } from '../../decoder/vendor/so-samp
 import { EMPTY_GLOBALS } from './po33Template.ts';
 import type { PO33Project } from './po33Codec.ts';
 type TrimFrames = {start:number;end:number};
-type Tweak = { pitch: number; volume: number; filter: number; resonance: number; start: number; length: number; slices: Record<string, {start:number;length:number;frames?:TrimFrames}> };
+type Tweak = { pitch: number; volume: number; filter: number; resonance: number; start: number; length: number; frames?:TrimFrames; slices: Record<string, {start:number;length:number;frames?:TrimFrames}> };
 type View = { asset: string; offset: number; duration: number };
 type Extra = { effects: number[]; locks: Record<string, Partial<Tweak>>; steps?: Record<string, {length:number;retrigs:number}> };
 export interface WebSnapshot {
@@ -28,7 +28,7 @@ export function buildHardwareProject(snapshot: WebSnapshot, native?: PO33Project
     const model=emptyProject(snapshot.bpm), codes=new Map<string,Uint8Array>();
     model.chain=snapshot.chain.length?snapshot.chain:[snapshot.pattern];
     model.swing=native && baseline && snapshot.swing===baseline.swing ? native.meta.swingRaw : clamp(snapshot.swing*18,0,18);
-    const sampleKey=(s:WebSnapshot)=>({slots:s.slots,assets:s.assets.map(a=>[a.id,a.rate,a.data.length]),trim:s.tweaks.map(t=>[t.start,t.length,t.slices])});
+    const sampleKey=(s:WebSnapshot)=>({slots:s.slots,assets:s.assets.map(a=>[a.id,a.rate,a.data.length]),trim:s.tweaks.map(t=>[t.start,t.length,t.slices,t.frames])});
     const unchangedSamples=!!(native && baseline && equal(sampleKey(snapshot),sampleKey(baseline)));
     const resolve=(id:string):Uint8Array=>{
         let c=codes.get(id);if(c)return c;
@@ -49,7 +49,7 @@ export function buildHardwareProject(snapshot: WebSnapshot, native?: PO33Project
     };
     if(!unchangedSamples)snapshot.slots.forEach((slot,i)=>{
         if(!slot)return;const t=snapshot.tweaks[i];
-        if(i<8)model.melodic[i]=clip(slot,t.start,t.length);
+        if(i<8)model.melodic[i]=clip(slot,t.start,t.length,t.frames);
         else model.drums[i-8]={slices:Array.from({length:16},(_,k)=>{
             const trim=t.slices[k] || {start:0,length:100};
             return clip(slot.slices?slot.slices[k]:{asset:slot.asset,offset:slot.offset+slot.duration*k/16,duration:slot.duration/16},trim.start,trim.length,trim.frames);

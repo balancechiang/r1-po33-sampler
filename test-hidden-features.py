@@ -101,7 +101,7 @@ with sync_playwright() as p:
     assert sampled(5) and page.locator('#mem').inner_text()==before
     m=meta();assert m['tweaks'][4]['pitch']==5 and m['tweaks'][4]['volume']==60
     assert m['tweaks'][4]['filter']==3 and m['tweaks'][4]['resonance']==4
-    sound=stored('po33.slot5');assert sound['format']==3 and sound['base']['offset']>0
+    sound=stored('po33.slot5');assert sound['format']==4 and sound['base']['offset']>0
     # Whole melodic region -> evenly divided kit; replace just one slice.
     copy_to(13)
     kit=stored('po33.slot13');assert len(kit['slices'])==16
