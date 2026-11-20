@@ -18,6 +18,13 @@
       if(slot.id<=8)return view(slot.slices[0]);
       var views=slot.slices.map(view),base=views.find(Boolean);return base?Object.assign({},base,{sliceViews:views}):null;
     });
+    function locks(codes){var out={};if(!codes)return out;
+      if(codes.pitchCode)out.pitch=codes.pitchCode-13;
+      if(codes.volumeCode)out.volume=Math.min(100,codes.volumeCode/36*100);
+      if(codes.filterCode)out.filter=codes.filterCode===63?0:codes.filterCode<=31?(codes.filterCode-32)/31*100:(codes.filterCode-31)/31*100;
+      if(codes.resonanceCode)out.resonance=(codes.resonanceCode-1)/62*100;
+      return out;
+    }
     var notes=0,extras=[];
     var patterns=project.patterns.map(function(pattern){
       var lanes=Array.from({length:16},function(){return Array(16).fill(-1);});
@@ -27,9 +34,10 @@
         step.triggers.forEach(function(note){
           var i=note.slotId-1,key=i+":"+step.stepIndex;
           lanes[i][step.stepIndex]=note.sliceOrNote;notes++;
-          if(note.paramLocks && note.paramLocks.pitchCode)extra.locks[key]={pitch:note.paramLocks.pitchCode-13};
+          var patch=locks(note.paramLocks);if(Object.keys(patch).length)extra.locks[key]=patch;
           extra.steps[key]={length:note.lengthSteps || 0,retrigs:note.retriggers || 1};
         });
+        (step.parameterOnly || []).forEach(function(note){var patch=locks(note.paramLocks);if(Object.keys(patch).length)extra.locks[(note.slotId-1)+":"+step.stepIndex]=patch;});
       });
       return {lanes:lanes};
     });

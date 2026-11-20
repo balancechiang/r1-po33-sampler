@@ -408,7 +408,7 @@
         swing: SWING,
         trim: params.trim,
         pitch: params.pitch,
-        slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
+        hardwareTone:hardwareToneEnabled, slots: slotParams(), tweaks: tweaks, extras: patternExtras, chain: patternChain, masterVolume: masterVolume, factoryRevision: 1, factoryMuted: factoryMuted, lastNotes:lastNotes, patternSettings:patternSettings
       })
     });
   }
@@ -519,6 +519,7 @@
         } catch (e2) { /* a bad pattern is left empty */ }
       }
       if (meta) {
+        if(typeof meta.hardwareTone==="boolean")setHardwareTone(meta.hardwareTone,false);
         if(Array.isArray(meta.patternSettings) && meta.patternSettings.length===16)patternSettings=meta.patternSettings.map(function(p){
           return p && Number.isFinite(p.bpm) ? {bpm:Math.max(60,Math.min(240,p.bpm)),swing:Math.max(0,Math.min(.5,p.swing || 0))} : null;
         });
@@ -674,6 +675,13 @@
     tweaks.push({pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}});
     patternExtras.push({effects:[],locks:{}});
   }
+  var parameterLatches=new window.PO33Sampling.Latches();
+  function effectiveTweak(slot,when){var now=ac?ac.currentTime:0;parameterLatches.flush(now);return parameterLatches.at(slot,tweaks[slot-1],when===undefined?now:when);}
+  function manualParameter(slot,key,value){
+    var now=ctx().currentTime;parameterLatches.manual(slot,key,value,now);
+    // Rebuild only unheard lookahead notes so a manual override isn't delayed by a pre-created source.
+    sampleVoices.slice().forEach(function(v){if(v.slot===slot && v.start>now && v.end>v.start){cancelVoice(v,now);voice(v.slot,v.note,v.start,v.gate,v.effect);}});
+  }
   function selectedTweak(slot, note) {
     var t = tweaks[slot - 1];
     if (slot <= 8 || tweakMode !== 2) return t;
@@ -697,26 +705,15 @@
   var FX_LABELS = FX_NAMES;
 
   // ---------- audio graph ----------
-  // every voice -> master -> [dry + fx] -> bus -> volume -> lowpass -> saturator -> out
+  // every voice -> master -> [dry + fx] -> bus -> optional hardware tone -> volume -> out
   var ac = null;
   var master = null;
   var bus = null;
   var mixVolume = null;
   var dryGain = null;
-  var lp = null;
-  var sat = null;
+  var hardwareToneEnabled=true,hardwareToneReady=false,hardwareToneError="",toneDry=null,toneWet=null,toneNode=null;
   var outTrim = null;
   var noiseBuf = null;
-
-  function satCurve(k, n) {
-    var curve = new Float32Array(n);
-    var denom = Math.tanh(k);
-    for (var i = 0; i < n; i++) {
-      var x = (i / (n - 1)) * 2 - 1;
-      curve[i] = Math.tanh(k * x) / denom;
-    }
-    return curve;
-  }
 
   function ctx() {
     if (ac) {
@@ -736,24 +733,15 @@
     bus.gain.value = 1;
     mixVolume=ac.createGain();mixVolume.gain.value=masterVolume/16;
 
-    lp = ac.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 11000;
-    lp.Q.value = 0.7;
-
-    sat = ac.createWaveShaper();
-    sat.curve = satCurve(1.7, 2048);
-    sat.oversample = "2x";
-
     outTrim = ac.createGain();
     outTrim.gain.value = 0.8;
 
     master.connect(dryGain);
     dryGain.connect(bus);
 
-    bus.connect(mixVolume);mixVolume.connect(lp);
-    lp.connect(sat);
-    sat.connect(outTrim);
+    toneDry=ac.createGain();toneWet=ac.createGain();toneDry.gain.value=1;toneWet.gain.value=0;
+    bus.connect(toneDry);toneDry.connect(mixVolume);toneWet.connect(mixVolume);mixVolume.connect(outTrim);
+    installHardwareTone(ac);
     outTrim.connect(ac.destination);
     outputMeter = ac.createAnalyser(); outputMeter.fftSize = 256;
     outputData = new Float32Array(256); outTrim.connect(outputMeter);
@@ -761,6 +749,18 @@
     return ac;
   }
 
+  function toneStatus(){return {enabled:hardwareToneEnabled,ready:hardwareToneReady,error:hardwareToneError};}
+  function announceTone(){window.dispatchEvent(new Event('po33-tone-state'));}
+  function applyHardwareTone(){if(toneDry){var now=ac.currentTime;rampGain(toneDry,hardwareToneEnabled&&hardwareToneReady?0:1,now);rampGain(toneWet,hardwareToneEnabled&&hardwareToneReady?1:0,now);}announceTone();}
+  function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
+  async function installHardwareTone(c){
+    try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
+      await c.audioWorklet.addModule('./hardware-tone-worklet.js');
+      toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
+      toneNode.onprocessorerror=function(){hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
+      bus.connect(toneNode);toneNode.connect(toneWet);hardwareToneReady=true;applyHardwareTone();
+    }catch(error){hardwareToneError='Tone unavailable';hardwareToneReady=false;applyHardwareTone();}
+  }
   function noise() {
     var c = ctx();
     if (noiseBuf) return noiseBuf;
@@ -841,7 +841,7 @@
   }
   function trackVoice(src,g,start,end) {
     var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
-      gate:voiceGate,tweak:JSON.parse(JSON.stringify(tweaks[slotNumForVoice-1])),effect:voiceEffect};
+      gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect};
     window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
     src.onended=function(){var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);};
   }
@@ -867,14 +867,13 @@
     sampleVoices.slice().forEach(function(v){
       if(v.effect===effect || v.end<=now || (!includeActive && v.start<=now))return;
       cancelVoice(v,now);
-      var original=tweaks[v.slot-1];tweaks[v.slot-1]=v.tweak;
-      voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect);tweaks[v.slot-1]=original;
+      voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,v.tweak);
     });
   }
   function restartPatternFx() {
     var now=ctx().currentTime;
     sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
-    clearFxTimers();transportGeneration++;
+    clearFxTimers();transportGeneration++;parameterLatches.stop(now);
     seq.pattern=seq.visualPattern || seq.pattern;
     if(patternChain.length && patternChain[chainPosition]!==seq.pattern){
       var prior=(chainPosition+patternChain.length-1)%patternChain.length;
@@ -892,14 +891,13 @@
     return Math.pow(2, params.pitch / 12);
   }
 
-  var slotNumForVoice = 1,voiceNote=0,voiceGate;
+  var slotNumForVoice = 1,voiceNote=0,voiceGate,voiceTweak;
   function connectVoice(g, slot, when) {
-    var c=ctx(), t=tweaks[slot-1], v=c.createGain(), f=c.createBiquadFilter();
-    v.gain.value = t.volume / 100;
-    f.type = t.filter < 0 ? "lowpass" : "highpass";
-    f.frequency.value = t.filter < 0 ? 20000 * Math.pow(.01,-t.filter/100) : 20 * Math.pow(500,t.filter/100);
-    f.Q.value = .7 + t.resonance / 100 * 15;
-    g.connect(f); f.connect(v); v.connect(master);
+    var c=ctx(), t=voiceTweak, v=c.createGain(), f=c.createBiquadFilter(),dry=c.createGain(),wet=c.createGain();
+    var shape=window.PO33Sampling.filterShape(t.filter,c.sampleRate);
+    v.gain.value=t.volume/100;f.type=shape.type;f.frequency.value=shape.frequency;f.Q.value=.7+t.resonance/100*15;
+    dry.gain.value=shape.bypass?1:0;wet.gain.value=shape.bypass?0:1;
+    g.connect(dry);dry.connect(v);g.connect(f);f.connect(wet);wet.connect(v);v.connect(master);
   }
   function playMelodic(slot, noteIndex, when) {
     var c = ctx();
@@ -1033,24 +1031,24 @@
     return t && typeof t.pitch === "number" ? t.pitch : (pendingPitch[slotNum - 1] || 0);
   }
 
-  // melodic bank: chromatic playbackRate across pads 1-16 (pad 1 = original)
-  function playPitched(s, padIndex, when) {
+  // Melodic keys follow the requested PO-33 scale; pad 5 is the original pitch.
+  function playPitched(s, semitones, when) {
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
-    var rate = Math.pow(2, padIndex / 12 + (s.pitch || 0) / 12);
+    var rate = Math.pow(2, (semitones+(s.pitch || 0))/12);
     var trimOff = (s.trim / 100) * s.duration;
     var off = (s.offset || 0) + trimOff;
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);
-    if (avail < 0.01) return;
-    var dur = Math.min(avail / rate,s.gateSeconds || Infinity);
+    if (avail<=0)return;
+    var dur = Math.min(avail / rate,s.gateSeconds || Infinity),fade=Math.min(RAMP,dur*.3);
     var src = c.createBufferSource();
     src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
     if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-avail);
     src.playbackRate.value = rate;
     var g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(0.95, t + RAMP);
-    g.gain.setValueAtTime(0.95, t + Math.max(RAMP, dur - RAMP));
+    g.gain.linearRampToValueAtTime(0.95, t + fade);
+    g.gain.setValueAtTime(0.95, t + Math.max(fade, dur - fade));
     g.gain.linearRampToValueAtTime(0.0001, t + dur);
     src.connect(g);
     connectVoice(g, slotNumForVoice, when);
@@ -1059,56 +1057,18 @@
     trackVoice(src,g,t,t+dur);
   }
 
-  // Legacy and melodic-copy takes use equal slices; new recordings/imports use explicit views.
-  function playSlice(s, padIndex, when) {
-    var c = ctx();
-    var t = when === undefined ? c.currentTime : when;
-    var rate = Math.pow(2, s.pitch / 12);
-    var sliceDur = s.duration / 16;
-    var base = padIndex * sliceDur + (s.trim / 100) * s.duration;
-    var off = (s.offset || 0) + Math.max(0, Math.min(s.duration - 0.01, base));
-    var region=Math.min(sliceDur * (s.length === undefined ? 1 : s.length / 100),s.duration-(off-(s.offset || 0)));
-    var dur = Math.max(0.001,Math.min(region,(s.gateSeconds || Infinity)*rate));
-    var src = c.createBufferSource();
-    src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
-    if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-region);
-    src.playbackRate.value = rate;
-    var g = c.createGain();
-    var fade = Math.min(RAMP, dur/rate * 0.3);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(0.95, t + fade);
-    g.gain.setValueAtTime(0.95, t + Math.max(fade, dur/rate - fade));
-    g.gain.linearRampToValueAtTime(0.0001, t + dur/rate);
-    src.connect(g);
-    connectVoice(g, slotNumForVoice, when);
-    src.start(t, off, dur);
-    trackVoice(src,g,t,t+dur/rate);
-  }
-
-  // slotNum 1..16, padIndex 0..15
-  function voice(slotNum, padIndex, when, gateSeconds,effect) {
-    slotNumForVoice = slotNum;
-    voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
+  // Resolve independent per-pad metadata into a bounded view of the original asset.
+  function voice(slotNum,padIndex,when,gateSeconds,effect,override) {
+    slotNumForVoice=slotNum;voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
     var at=when===undefined?ctx().currentTime:when;
     window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice);
-    var s = samples[slotNum - 1], tw = tweaks[slotNum-1];
-    if (s) {
-      s = Object.assign({},s);
-      var trim = slotNum > 8 && tw.slices[padIndex] ? tw.slices[padIndex] : tw;
-      if(slotNum>8 && s.sliceViews) {
-        s=s.sliceViews[padIndex];if(!s)return;
-        s=Object.assign({},s,{pitch:tw.pitch,trim:trim.start,length:trim.length,gateSeconds:gateSeconds});
-        playPitched(s,0,when);return;
-      }
-      s.pitch = tw.pitch; s.length = trim.length;
-      s.trim = slotNum > 8 ? trim.start / 16 : trim.start;
-      s.gateSeconds=gateSeconds;
-      if (slotNum <= MELODIC_SLOTS) playPitched(s, padIndex, when);
-      else playSlice(s, padIndex, when);
-      return;
-    }
-    // Empty slots are silent until recorded or copied into.
-    return;
+    var sample=samples[slotNum-1];if(!sample)return;
+    var tw=override || effectiveTweak(slotNum,at);voiceTweak=tw;
+    var view=slotNum>8?rawSlice(sample,padIndex):sample;if(!view)return;
+    var trim=slotNum>8?(tw.slices[padIndex] || {start:0,length:100}):tw;
+    var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
+    var s={buffer:view.buffer,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds};
+    playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 
   function trigger(padIndex) {
@@ -1165,14 +1125,13 @@
       extra.effects[step]=effect || 16;persistSoon();
     }
     for (var i = 0; i < TOTAL_SLOTS; i++) {
+      var lock=extra && extra.locks[i+":"+step];if(lock)parameterLatches.schedule(i+1,lock,when);
       var v = pat.lanes[i][step];
       if (v >= 0) {
-        var original = tweaks[i], lock = extra && extra.locks[i+":"+step];
-        if (lock) tweaks[i] = Object.assign({},original,lock);
+
         var detail=extra && extra.steps && extra.steps[i+":"+step];
         var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
         for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);
-        tweaks[i] = original;
       }
     }
     seq.totalSteps++;
@@ -1238,6 +1197,7 @@
   function stopSeq() {
     if (!seq.playing) return;
     seq.playing = false;
+    parameterLatches.stop(ctx().currentTime);
     stopShakeSensors(); cancelShakeFx(); stopTransportAnimation();
     if (seq.timer) { clearInterval(seq.timer); seq.timer = null; }
     visQueue = [];
@@ -1369,16 +1329,15 @@
       lane[n] = -1;
     } else {
       lane[n] = lastNote;
-      var original=tweaks[state.slot-1];
+      var previewOverride;
       if(defaultStep && defaultStep.slot===state.slot) {
         var ex=patternExtras[seq.pattern-1],key=(state.slot-1)+":"+n;
         if(!ex.steps)ex.steps={};
         ex.steps[key]=JSON.parse(JSON.stringify(defaultStep.detail));
         ex.locks[key]=JSON.parse(JSON.stringify(defaultStep.lock));
-        tweaks[state.slot-1]=Object.assign({},original,defaultStep.lock);
+        previewOverride=Object.assign({},effectiveTweak(state.slot),defaultStep.lock);
       }
-      voice(state.slot, lastNote,undefined,defaultStep && defaultStep.slot===state.slot && state.slot<=8 ? defaultStep.detail.length*stepDur() : undefined);
-      tweaks[state.slot-1]=original;
+      voice(state.slot, lastNote,undefined,defaultStep && defaultStep.slot===state.slot && state.slot<=8 ? defaultStep.detail.length*stepDur() : undefined,undefined,previewOverride);
       flash(n);
     }
     writePattern(seq.pattern);
@@ -1399,7 +1358,7 @@
       if(!stepEdit)return;
       var e=stepEdit,key=(e.slot-1)+":"+e.step,ex=patternExtras[e.pattern-1];
       lastNote=patterns[e.pattern-1].lanes[e.slot-1][e.step];lastNotes[e.slot-1]=lastNote;
-      defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(editDetail(e))),lock:JSON.parse(JSON.stringify(ex.locks[key] || tweaks[e.slot-1]))};
+      defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(editDetail(e))),lock:JSON.parse(JSON.stringify(ex.locks[key] || effectiveTweak(e.slot)))};
       lastWasSlice=e.slot>8;e.used=true;persistSoon();showNumber("CPy","STEP COPY");paint();
     },1000);
     paint();
@@ -1435,8 +1394,8 @@
   }
   function trimView(v,t) {
     if(!v)return null;
-    var off=v.duration*t.start/100;
-    return {buffer:v.buffer,offset:(v.offset || 0)+off,duration:Math.max(.00001,(v.duration-off)*t.length/100),trim:0,pitch:0};
+    var region=window.PO33Sampling.trimFrames(v,t,v.buffer.length,v.buffer.sampleRate);
+    return {buffer:v.buffer,offset:region.start/v.buffer.sampleRate,duration:(region.end-region.start)/v.buffer.sampleRate,trim:0,pitch:0};
   }
   function commitSoundCopy(cancel) {
     var c=pendingCopy;pendingCopy=null;if(!c || cancel)return;
@@ -2436,15 +2395,13 @@
     var meter={mode:"level",origin:seq.playing && !inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
     if(inputActive || fx.kind)return meter;
     if(bpmHeld)return {mode:"level",origin:"left",value:masterVolume*2};
-    if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:tweaks[stepEdit.slot-1].pitch+patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]};
+    if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:effectiveTweak(stepEdit.slot).pitch+(stepEdit.slot<=8?window.PO33Sampling.MELODIC_OFFSETS[patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]]:0)};
     if(!parameterDisplay)return meter;
-    if(tweakMode===0)return {mode:"pitch",pitch:tweaks[state.slot-1].pitch};
+    if(tweakMode===0)return {mode:"pitch",pitch:effectiveTweak(state.slot).pitch};
     if(tweakMode===2) {
       var t=selectedTweak(state.slot,lastNote),sample=samples[state.slot-1];
       if(!sample || (sample.sliceViews && !sample.sliceViews[lastNote]))return {mode:"trim",start:0,length:0};
-      // Native drum trim refers to one slice in the entire take. Melodic/copied
-      // slices use a local region and store length as a fraction of the remainder.
-      if(state.slot>8 && !sample.sliceViews)return {mode:"trim",start:(lastNote+t.start/100)*100/16,length:t.length/16};
+      if(state.slot>8){var view=rawSlice(sample,lastNote),r=window.PO33Sampling.trimFrames(view,t,view.buffer.length,view.buffer.sampleRate);return {mode:'trim',start:r.start*100/view.buffer.length,length:(r.end-r.start)*100/view.buffer.length};}
       return {mode:"trim",start:t.start,length:(100-t.start)*t.length/100};
     }
     return meter;
@@ -2457,10 +2414,11 @@
       return index===0 ? [patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,e.slot<=8?"NOTE":"SLICE"] : [e.slot<=8?detail.length:detail.retrigs,1,e.slot<=8?16:8,e.slot<=8?"STEPS":"RETRIG"];
     }
     if(bpmHeld) return index===0 ? [SWING*100,0,50,"SWING"] : [params.bpm,60,240,"BPM"];
-    var t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
+    var t=effectiveTweak(state.slot), sl=selectedTweak(state.slot,lastNote);
     if(tweakMode===0) return index===0 ? [t.pitch,-12,12,"PITCH"] : [t.volume,0,100,"VOL"];
     if(tweakMode===1) return index===0 ? [t.filter,-100,100,"FILTER"] : [t.resonance,0,100,"RES"];
-    return index===0 ? [sl.start,0,90,"START"] : [sl.length,1,100,"LENGTH"];
+    if(state.slot>8){var view=rawSlice(samples[state.slot-1],lastNote);if(!view)return [0,0,100,index===0?'START':'LENGTH'];var r=window.PO33Sampling.trimFrames(view,sl,view.buffer.length,view.buffer.sampleRate);return index===0?[r.start*100/view.buffer.length,0,100,'START']:[(r.end-r.start)*100/view.buffer.length,0,100,'LENGTH'];}
+    return index===0 ? [sl.start,0,100,"START"] : [sl.length,0,100,"LENGTH"];
   }
   function updateKnobVisuals() {
     ["knobA","knobB"].forEach(function(id,i){
@@ -2482,7 +2440,7 @@
     }
     if(recHeld && tweakMode!==2) {
       var reset=tweaks[state.slot-1],key=tweakMode===0?(index===0?"pitch":"volume"):(index===0?"filter":"resonance");
-      reset[key]=key==="volume"?100:0;recUsedPad=true;persistSoon();showNumber(reset[key],"RESET");paint();return;
+      reset[key]=key==="volume"?100:0;manualParameter(state.slot,key,reset[key]);recUsedPad=true;persistSoon();showNumber(reset[key],"RESET");paint();return;
     }
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
     var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir));
@@ -2490,9 +2448,15 @@
     if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;savePatternTempo();}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
     else if(tweakMode===1) {if(index===0)t.filter=value;else t.resonance=value;}
-    else {if(index===0)sl.start=value;else sl.length=value;}
+    else if(state.slot>8){
+      var view=rawSlice(samples[state.slot-1],lastNote);if(!view)return;
+      var r=window.PO33Sampling.trimFrames(view,sl,view.buffer.length,view.buffer.sampleRate),total=view.buffer.length;
+      if(index===0){var length=r.end-r.start;r.start=Math.round(value*total/100);r.end=Math.min(total,r.start+length);}else r.end=Math.min(total,r.start+Math.round(value*total/100));
+      sl.frames={start:r.start,end:r.end};
+    }else {if(index===0)sl.start=value;else sl.length=value;}
+    if(!bpmHeld && tweakMode!==2){var edited=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance');manualParameter(state.slot,edited,value);}
     if(!bpmHeld && writeHeld && seq.playing && tweakMode!==2) {
-      modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},t);
+      modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step],{[edited]:value});
     }
     if(!bpmHeld)parameterDisplay=true;
     var code=(!bpmHeld && tweakMode===1 && index===0)?(value<0?"LPF":value>0?"HPF":"noF"):Math.round(value);
@@ -2704,6 +2668,7 @@
       persistPaused=true;
       if(metaTimer){clearTimeout(metaTimer);metaTimer=null;}
       saveQueue=[];saveQueued={};
+      parameterLatches.reset();
       endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
       sideRecArmed=sideRecHeld=recHeld=false;
       rec.on=false;rec.chunks=[];rec.replacing=null;
@@ -2778,7 +2743,7 @@
   function applySnapshot(snapshot){
     var c=ctx(),buffers={};snapshot.assets.forEach(function(a){var b=c.createBuffer(1,a.data.length,a.rate);b.copyToChannel(a.data,0);b._po33id=a.id;buffers[a.id]=b;});
     function view(v){if(!v)return null;return {buffer:buffers[v.asset],offset:v.offset,duration:v.duration,trim:0,pitch:0};}
-    stopForTransfer();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
+    stopForTransfer();parameterLatches.reset();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
     patterns=JSON.parse(JSON.stringify(snapshot.patterns));patternExtras=JSON.parse(JSON.stringify(snapshot.extras));tweaks=JSON.parse(JSON.stringify(snapshot.tweaks));
     params.bpm=snapshot.bpm;SWING=snapshot.swing;patternChain=snapshot.chain.slice();seq.pattern=snapshot.pattern || patternChain[0] || 1;seq.queued=0;chainPosition=0;
     patternSettings=snapshot.patternSettings || Array(16).fill(null);state.slot=snapshot.slot || 1;lastNotes=snapshot.lastNotes || Array(16).fill(0);
@@ -2786,12 +2751,12 @@
   }
   function adoptHardware(project){
     var imported=window.PO33PreviewAdapter.adapt(project,ctx());
-    stopForTransfer();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
+    stopForTransfer();parameterLatches.reset();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
     patternSettings=Array(16).fill(null);params.bpm=imported.bpm;SWING=0;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
     state.slot=1;state.mode="PLAY";masterVolume=8;if(mixVolume)mixVolume.gain.value=.5;paint();return imported;
   }
   if(window.PO33TransferFactory){
-    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint});
+    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
     window.PO33Transfer=hardwareTransfer;
   }
   startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();});

@@ -89,7 +89,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(450);down('[data-act="fx"]')
     page.evaluate('starts=[];voiceStops=[]');down(pad(14),2);page.wait_for_timeout(55)
     starts=page.evaluate('starts')
-    assert starts and min(starts,key=lambda v:v['time'])['rate']==1,starts
+    assert starts and abs(min(starts,key=lambda v:v['time'])['rate']-2**(-5/12))<.00001,starts
     assert page.evaluate('voiceStops.length')>0
     assert 'cur' in page.locator('[data-pad="1"]').get_attribute('class')
     up(2);up()
@@ -128,7 +128,7 @@ with sync_playwright() as p:
     page.evaluate('localStorage.setItem("fx-saved-mode","14")');page.reload();page.wait_for_timeout(600);page.mouse.click(10,10)
     page.evaluate('starts=[]');tap('[data-act="play"]');page.wait_for_timeout(650)
     starts=page.evaluate('starts')
-    assert len(starts)>=5 and starts[4]['rate']==1,starts
+    assert len(starts)>=5 and abs(starts[4]['rate']-2**(-5/12))<.00001,starts
     tap('[data-act="play"]')
     page.evaluate('localStorage.setItem("fx-saved-mode","15")');page.reload();page.wait_for_timeout(600);page.mouse.click(10,10)
     page.evaluate('starts=[]');tap('[data-act="play"]');page.wait_for_timeout(450)

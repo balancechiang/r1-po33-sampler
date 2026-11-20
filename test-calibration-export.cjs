@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');
+(async()=>{
+ const {buildHardwareProject}=await import('./src/codec/po33WebProject.ts');
+ const {readCell}=await import('./decoder/vendor/so-sample/pattern.ts');
+ const {decodePO33Frame}=await import('./src/codec/po33Codec.ts');
+ const {encodePO33Frame}=await import('./src/codec/po33Encode.ts');
+ const rate=48000,pcm=Float32Array.from({length:rate},(_,i)=>.2*Math.sin(i*.05)),before=pcm.slice();
+ const tweaks=Array.from({length:16},()=>({pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}})),extras=Array.from({length:16},()=>({effects:[],locks:{}}));
+ tweaks[8].slices={0:{start:0,length:100,frames:{start:1000,end:14000}},1:{start:0,length:100,frames:{start:5000,end:48000}}};
+ extras[0].locks={'0:0':{pitch:5,volume:40},'0:2':{pitch:2},'0:4':{filter:100}};
+ const lanes=Array.from({length:16},()=>Array(16).fill(-1));for(const step of [0,1,3,4])lanes[0][step]=4;
+ const s={bpm:120,swing:0,chain:[1],pattern:1,assets:[{id:'pcm',rate,data:pcm}],slots:Array(16).fill(null),patterns:Array.from({length:16},(_,i)=>({lanes:i===0?lanes:Array.from({length:16},()=>Array(16).fill(-1))})),extras,tweaks};
+ s.slots[0]={asset:'pcm',offset:0,duration:1};s.slots[8]={asset:'pcm',offset:0,duration:1,slices:Array.from({length:16},(_,i)=>({asset:'pcm',offset:i/16,duration:1/16}))};
+ const built=buildHardwareProject(s),p=decodePO33Frame(encodePO33Frame(built.raw.state));assert.deepEqual(pcm,before);
+ const a=p.slots[8].slices[0],b=p.slots[8].slices[1];assert.ok(a.sourceEndSample>b.sourceStartSample);assert.ok(Math.abs(a.sourceStartSample-1000/rate*23437.5)<1);assert.ok(Math.abs(b.sourceEndSample-23437.5)<1);
+ const get=step=>readCell(built.raw.state.patterns[0],step+1,1);
+ assert.equal(get(0).pitch,18);assert.equal(get(1).pitch,18);assert.equal(get(2).key,null);assert.equal(get(2).pitch,15);assert.equal(get(3).pitch,15);assert.equal(get(3).volume,14);assert.equal(get(4).filter,62);
+ assert.ok(p.patterns[0].steps[2].parameterOnly.length===1);
+ console.log('PASS 48 kHz overlapping frame trims -> native pool/slice addresses; no PCM mutation; partial lock carry and parameter-only frames survive hardware encoding/CRC.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

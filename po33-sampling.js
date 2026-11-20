@@ -34,6 +34,30 @@
   }
   voices.push(incoming);
  }
- var api={transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
+ const MELODIC_OFFSETS=Object.freeze([-5,-4,-2,-1,0,2,3,5,7,8,10,11,12,14,15,17]);
+ function trimFrames(view,tweak,total,rate){
+  if(!view)return null;tweak=tweak || {};var bounded=v=>Math.max(0,Math.min(total,Math.round(Number.isFinite(v)?v:0)));
+  var start,end;
+  if(tweak.frames){start=bounded(tweak.frames.start);end=bounded(tweak.frames.end);}
+  else {var offset=view.offset || 0,span=view.duration || 0,fraction=Math.max(0,Math.min(100,tweak.start || 0))/100;
+   start=bounded((offset+span*fraction)*rate);end=bounded((offset+span*(fraction+(1-fraction)*(tweak.length===undefined?100:tweak.length)/100))*rate);}
+  return {start:start,end:Math.max(start,end)};
+ }
+ function filterShape(value,rate){
+  value=Math.max(-100,Math.min(100,value || 0));var top=Math.min(20000,rate*.45);
+  if(value===0)return {bypass:true,type:'lowpass',frequency:top};
+  return value<0?{bypass:false,type:'lowpass',frequency:100*Math.pow(top/100,1+value/100)}:{bypass:false,type:'highpass',frequency:20*Math.pow(400,value/100)};
+ }
+ const LOCK_KEYS=['pitch','volume','filter','resonance'];
+ class Latches {
+  constructor(){this.reset();}
+  reset(){this.held=Array.from({length:16},()=>({}));this.events=[];this.serial=0;}
+  schedule(slot,patch,time){const clean={};for(const k of LOCK_KEYS)if(Number.isFinite(patch?.[k]))clean[k]=patch[k];if(Object.keys(clean).length){this.events.push({slot,patch:clean,time,serial:this.serial++});this.events.sort((a,b)=>a.time-b.time||a.serial-b.serial);}}
+  flush(now){while(this.events.length && this.events[0].time<=now){const e=this.events.shift();Object.assign(this.held[e.slot-1],e.patch);}}
+  at(slot,base,time){const out=Object.assign({},base,this.held[slot-1]);for(const e of this.events)if(e.slot===slot && e.time<=time)Object.assign(out,e.patch);return out;}
+  manual(slot,key,value,now){this.flush(now);this.held[slot-1][key]=value;}
+  stop(now){this.flush(now);this.events=[];}
+ }
+ var api={MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
  if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

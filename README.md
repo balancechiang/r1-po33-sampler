@@ -94,3 +94,49 @@ Validation: `node test-recording-worklet.cjs`, `python -X utf8 test-recording-br
 limits at 44.1/48 kHz, raw levels, retained silence, final-block drain,
 RMS/CLP indication, transfer handoff and disconnect rollback. Physical R1
 microphone/driver behavior still requires device testing.
+
+### Playback calibration profile
+
+The requested key map is `[-5,-4,-2,-1,0,2,3,5,7,8,10,11,12,14,15,17]`;
+melodic pad 5 is the original pitch, while drum pads use no scale offset.
+Existing patterns retain their key numbers, so their audible pitches change
+from the previous chromatic implementation. No sample PCM is transposed in storage.
+
+Editing a drum slice now adds `frames: {start,end}` to its existing trim
+metadata. These are independent, absolute frames in that slice's original
+asset at the asset's sample rate, clamped to `[0, buffer.length]`. Slices may
+overlap or extend past the next slice into the rest of the physical asset.
+Old percentage trim metadata remains readable without migration. Copy,
+playback, LCD ranges, persistence and the TS hardware exporter all respect
+these frame ranges. Hardware export converts boundaries to the native rate;
+quantization/resampling occurs only during explicit encoding.
+
+The filter control retains its saved -100..100 representation: normalized
+0.5 equals saved 0 and bypasses the filter signal entirely. Negative values
+sweep low-pass down to 100 Hz; positive values sweep high-pass up to 8 kHz.
+Parameter locks are timed, per-slot, partial patches. They carry across notes,
+patterns and transport stop until overwritten by another lock or manual knob
+edit/reset. Lookahead locks do not appear early in live playing or knob values;
+stopping/retriggering discards unheard pending events. Runtime latches are
+separate from stored base parameters, so auditioning doesn't dirty native
+project bytes. Reloading a project restores base state and pattern events.
+The preview now includes volume/filter/resonance and parameter-only locks;
+these hardware numeric conversions remain approximations (raw codes survive).
+
+I/O contains **PO-33 TONE ON/OFF**; default is on and preference is saved.
+The separate output AudioWorklet applies 23,437.5 Hz sample-and-hold and
+sign-magnitude 8-bit mu=255 companding, with mild tanh input/output shaping.
+It replaces the old unconditional output low-pass/saturator. The off path
+bypasses this coloration; a short crossfade avoids switching clicks. If the
+worklet is unavailable, playback stays dry and the control reports unavailable.
+The coloration is an audition model, not bit-identical hardware/G.711 codec
+emulation. Already-native samples may be colored again. Raw recording,
+asset buffers, JSON/native frame encoding and stereo backup I/O bypass it.
+
+Validation: `node test-sound-calibration.cjs`, `node test-calibration-export.cjs`,
+`python -X utf8 test-sound-calibration-browser.py`. Includes exact key rates,
+overlap/clamps and immutable PCM, actual offline AudioWorklet output, true
+filter bypass, partial lock persistence/reset, toggle persistence and native
+frame addresses/parameter-only CRC roundtrip. Existing three-fixture encoder
+roundtrips still retain every byte when projects are unedited. Native curve
+calibration and analog sound matching still require physical-device comparison.

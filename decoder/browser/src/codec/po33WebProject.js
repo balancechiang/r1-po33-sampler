@@ -36,12 +36,13 @@ export function buildHardwareProject(snapshot, native, baseline) {
         codes.set(id, c);
         return c;
     };
-    const clip = (v, start = 0, length = 100) => {
+    const clip = (v, start = 0, length = 100, frames) => {
         if (!v)
             return null;
         const total = resolve(v.asset).length;
-        const first = Math.round((v.offset + v.duration * start / 100) * SAMPLE_RATE);
-        const end = Math.round((v.offset + v.duration * (start / 100 + (1 - start / 100) * length / 100)) * SAMPLE_RATE);
+        const sourceRate = snapshot.assets.find(a => a.id === v.asset).rate;
+        const first = frames ? clamp(frames.start / sourceRate * SAMPLE_RATE, 0, total) : clamp((v.offset + v.duration * start / 100) * SAMPLE_RATE, 0, total);
+        const end = frames ? clamp(frames.end / sourceRate * SAMPLE_RATE, first, total) : clamp((v.offset + v.duration * (start / 100 + (1 - start / 100) * length / 100)) * SAMPLE_RATE, first, total);
         if (first < 0 || first >= total || end <= first)
             return null;
         return { sampleId: v.asset, start: first, end: Math.min(total, end) };
@@ -56,23 +57,32 @@ export function buildHardwareProject(snapshot, native, baseline) {
             else
                 model.drums[i - 8] = { slices: Array.from({ length: 16 }, (_, k) => {
                         const trim = t.slices[k] || { start: 0, length: 100 };
-                        return clip(slot.slices ? slot.slices[k] : { asset: slot.asset, offset: slot.offset + slot.duration * k / 16, duration: slot.duration / 16 }, trim.start, trim.length);
+                        return clip(slot.slices ? slot.slices[k] : { asset: slot.asset, offset: slot.offset + slot.duration * k / 16, duration: slot.duration / 16 }, trim.start, trim.length, trim.frames);
                     }) };
         });
-    const params = (t) => ({ pitch: clamp((t.pitch || 0) + 13, 1, 25), volume: clamp((t.volume ?? 100) * .36, 1, 63), filter: t.filter ? clamp(32 + t.filter * .31, 1, 63) : 63, resonance: clamp((t.resonance || 0) * .62 + 1, 1, 63) });
+    const params = (t) => ({ pitch: clamp((t.pitch || 0) + 13, 1, 25), volume: clamp((t.volume ?? 100) * .36, 1, 63), filter: t.filter ? clamp(t.filter < 0 ? 32 + t.filter * .31 : 31 + t.filter * .31, 1, 62) : 63, resonance: clamp((t.resonance || 0) * .62 + 1, 1, 63) });
     model.patterns = snapshot.patterns.map((p, index) => {
         const raw = native ? native.patterns[index].raw.slice() : emptyPattern();
         const extra = snapshot.extras[index], prev = baseline?.extras[index];
         const clear = baseline && baseline.patterns[index].lanes.some(l => l.some(n => n >= 0)) && !p.lanes.some(l => l.some(n => n >= 0)) && !Object.keys(extra.locks).length;
         if (clear)
             raw.fill(0, 0, 1024);
+        const carried = snapshot.tweaks.map(t => ({ ...t }));
         for (let step = 0; step < 16; step++)
             for (let i = 0; i < 16; i++) {
-                const key = i + ':' + step, note = p.lanes[i][step], t = Object.assign({}, snapshot.tweaks[i], extra.locks[key]);
+                const key = i + ':' + step, note = p.lanes[i][step], lock = extra.locks[key];
+                for (const k of ['pitch', 'volume', 'filter', 'resonance'])
+                    if (Number.isFinite(lock?.[k]))
+                        carried[i][k] = lock[k];
+                const t = carried[i];
                 if (native && baseline && !clear && note === baseline.patterns[index].lanes[i][step] && equal(extra.locks[key], prev?.locks[key]) && equal(extra.steps?.[key], prev?.steps?.[key]) && equal(snapshot.tweaks[i], baseline.tweaks[i]))
                     continue;
                 if (note < 0) {
-                    writeCell(raw, step + 1, i + 1, null);
+                    const codes = params(lock || {}), word = { pitch: 0, volume: 0, filter: 0, resonance: 0 };
+                    for (const k of ['pitch', 'volume', 'filter', 'resonance'])
+                        if (Number.isFinite(lock?.[k]))
+                            word[k] = codes[k];
+                    writeCell(raw, step + 1, i + 1, Object.values(word).some(Boolean) ? { ...word, key: null } : null);
                     continue;
                 }
                 const previous = readCell(raw, step + 1, i + 1);
