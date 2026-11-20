@@ -23,6 +23,6 @@
 <g class="switch" data-control="fx" transform="translate(207.4000 152.4000)"><circle class="backdrop" r="15" fill="url(#stripes)"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="play" transform="translate(207.4000 202.2000)"><circle class="backdrop" r="15" fill="#fff"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="write" transform="translate(207.4000 252.0000)"><circle class="backdrop" r="15" fill="url(#stripes)"/><use href="#switch-cap"/></g>
-<g class="knob-case" data-knob="a" transform="translate(163.8339 52.852)"><rect x="-19" y="-21" width="38" height="42" rx="4.8" fill="#999"/><rect x="-20.5" y="-15" width="3" height="30" fill="#999"/><rect x="-4" y="-22" width="8" height="44" fill="#999"/><circle cx="-13.2" cy="-17" r="3.7" fill="#000"/><circle cx="13.2" cy="17" r="3.7" fill="#000"/></g>
-<g class="knob-case" data-knob="b" transform="translate(208.0034 52.852)"><rect x="-19" y="-21" width="38" height="42" rx="4.8" fill="#999"/><rect x="-20.5" y="-15" width="3" height="30" fill="#999"/><rect x="-4" y="-22" width="8" height="44" fill="#999"/><circle cx="-13.2" cy="-17" r="3.7" fill="#000"/><circle cx="13.2" cy="17" r="3.7" fill="#000"/></g>
+<g class="knob-case" data-knob="a" transform="translate(163.8339 52.852)"><rect x="-19" y="-20.4" width="38" height="41.8" rx="3.4" fill="#999"/><circle cx="-15" cy="-16.2" r="2.05" fill="#000"/><circle cx="15.05" cy="17.2" r="2.05" fill="#000"/></g>
+<g class="knob-case" data-knob="b" transform="translate(208.0034 52.852)"><rect x="-19" y="-20.4" width="38" height="41.8" rx="3.4" fill="#999"/><circle cx="-15" cy="-16.2" r="2.05" fill="#000"/><circle cx="15.05" cy="17.2" r="2.05" fill="#000"/></g>
 </svg>
