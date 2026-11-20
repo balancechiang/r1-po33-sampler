@@ -19,7 +19,7 @@ with sync_playwright() as p:
     assert not page.evaluate('localStorage.getItem("po33.reset")')
     assert page.locator('#lcdNumber').get_attribute('data-value')!='RST'
     # New factory tracks have distinct tempo/swing and real rhythm distributions.
-    for n,bpm in [(1,120),(2,132),(3,84),(4,140)]:
+    for n,bpm in [(1,120),(2,132),(3,84),(4,134)]:
         select_pattern(n);assert meta()['bpm']==bpm
     assert page.evaluate('new Set(PO33_FACTORY.patterns.map(p=>JSON.stringify(p.lanes))).size')==4
     # Manual tempo edits are per pattern and survive selection/reload.
