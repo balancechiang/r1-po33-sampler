@@ -15,7 +15,7 @@
  function register(context,critical=false){contexts.set(context,critical);}
  function unregister(context){contexts.delete(context);blocked.delete(context);}
  function activate(){sync();if(document.hidden)return;for(const [c,critical] of contexts)if(!critical)resume(c,true);}
- for(const type of ['pointerdown','keydown','sideClick','longPressStart','scrollUp','scrollDown'])root.addEventListener(type,activate,{capture:true});
+ for(const type of ['pointerdown','pointerup','touchend','click','keydown','sideClick','longPressStart','scrollUp','scrollDown'])root.addEventListener(type,activate,{capture:true});
  document.addEventListener('visibilitychange',()=>{sync();if(!document.hidden)activate();});root.addEventListener('pagehide',()=>{reasons.clear();sync();});
  root.PO33Runtime={setActive(reason,active){if(active)reasons.add(reason);else reasons.delete(reason);sync();},register,unregister,resume,isBlocked:c=>blocked.has(c)};
 })(window);

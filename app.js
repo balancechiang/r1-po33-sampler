@@ -1176,7 +1176,7 @@
   }
 
   function scheduler() {
-    if (!ac || !seq.playing) return;
+    if (!ac || !seq.playing || ac.state!=="running") return;
     var now = ac.currentTime;
     if (seq.nextTime < now) seq.nextTime = now + 0.02;
     var guard = 0;
@@ -1216,6 +1216,7 @@
     if(patternChain.length)seq.pattern=patternChain[0];
     seq.queued=0;
     var c = ctx();
+    window.PO33Runtime.resume(c,true);
     seq.playing = true;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
     seq.visualPattern = seq.pattern;
@@ -1250,7 +1251,10 @@
   }
 
   function togglePlay() {
-    if (seq.playing) { stopSeq(); return; }
+    if (seq.playing) {
+      if(ac && ac.state!=="running"){window.PO33Runtime.resume(ac,true);return;}
+      stopSeq(); return;
+    }
     if (exportArmed) {
       startExport();
       startSeq();

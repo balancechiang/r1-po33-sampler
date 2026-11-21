@@ -13,7 +13,7 @@ try:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
   page=b.new_page(viewport={'width':720,'height':846});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.add_init_script("window.hapticPulses=[];navigator.vibrate=duration=>{hapticPulses.push({duration,at:performance.now()});return true;};")
-  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui9.html');page.wait_for_function('document.body.dataset.loading==="false"')
+  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui10.html');page.wait_for_function('document.body.dataset.loading==="false"')
   def idle():assert page.locator('.pad:not([data-led-level="off"])').count()==0
   def click(act):page.locator('[data-act="'+act+'"]').click()
   def hold(selector):
