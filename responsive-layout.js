@@ -23,6 +23,7 @@
   const gs=compact?1:scale*1.4;
   place('tapeLeft',gs,compact?100.5:72,compact?13.5:cy+6,100.5,13.5);
   place('tapeRight',gs,compact?139.5:168,compact?13.5:cy+6,139.5,13.5);
+  window.dispatchEvent(new Event('po33-layout-change'));
  }
  window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
  layout();

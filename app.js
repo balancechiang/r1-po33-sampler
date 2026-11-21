@@ -2741,6 +2741,7 @@
     stopShakeSensors();cancelShakeFx();stopTransportAnimation();
   });
   function stopTransportAnimation(){
+    if(window.PO33Mascot)window.PO33Mascot.stop();
     if(transportFrame!==null)cancelAnimationFrame(transportFrame);transportFrame=null;
     ["tapeHead","tapeLeft","tapeRight"].forEach(function(id){var el=d.getElementById(id);if(el)el.removeAttribute("transform");});
   }
@@ -2751,6 +2752,7 @@
       if(!seq.playing || document.hidden){stopTransportAnimation();return;}
       transportFrame=requestAnimationFrame(frame);
       if(now-transportLastFrame<30)return;transportLastFrame=now;
+      if(window.PO33Mascot)window.PO33Mascot.frame(now);
       var position=(seq.lastStepIdx||0)+(ctx().currentTime-(seq.lastStepTime||seq.nextTime))/stepDur();
       var phase=position/4*Math.PI*2, swing=Math.sin(phase), bob=Math.abs(Math.sin(phase));
       d.getElementById("tapeHead").setAttribute("transform","translate("+(swing*.55)+" "+(-bob*.65)+") rotate("+(swing*3)+" 120.5 11)");
