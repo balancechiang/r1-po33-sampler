@@ -25,7 +25,7 @@ try:
     old=(root/'runtime-lifecycle.js').read_text(encoding='utf-8').replace("'pointerup','touchend','click',",'')
     page.route('**/runtime-lifecycle.js?*',lambda route:route.fulfill(body=old,content_type='application/javascript'))
    page.on('pageerror',lambda e:errors.append(str(e)))
-   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui10.html');page.wait_for_function('document.body.dataset.loading==="false"')
+   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui11.html');page.wait_for_function('document.body.dataset.loading==="false"')
    if release_gated:assert page.evaluate('audioContexts[0].state')=='suspended'
    page.locator('[data-act="play"]').tap()
    if not release_retry:

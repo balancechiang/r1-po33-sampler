@@ -17,12 +17,12 @@
   instrument.style.setProperty('--screen-height',rows*unit+'px');instrument.dataset.layout=compact?'compact':'expanded';
   lcd.setAttribute('viewBox','0 0 240 '+rows);
   for(const id of ['lcdIn','lcdOut','lcdMeter'])document.getElementById(id).setAttribute('transform','translate(0 '+(rows-(compact?30:42))+')');
-  const scale=compact?1:Math.min(3.65,(rows-38)/22)*.6,cy=compact?11:(23+rows-25)/2;
+  const scale=compact?1:Math.min(3.65,(rows-38)/22)*.69,cy=compact?11:(23+rows-25)/2;
   function place(id,s,x,y,ox,oy){wrappers[id].setAttribute('transform','matrix('+s+' 0 0 '+s+' '+(x-ox*s)+' '+(y-oy*s)+')');}
   place('tapeHead',scale,120.5,cy,120.5,11);place('factoryReset',scale,120.5,cy,120.5,11);
   const gs=compact?1:scale*1.4;
-  place('tapeLeft',gs,compact?100.5:43,compact?13.5:cy+6,100.5,13.5);
-  place('tapeRight',gs,compact?139.5:197,compact?13.5:cy+6,139.5,13.5);
+  place('tapeLeft',gs,compact?100.5:72,compact?13.5:cy+6,100.5,13.5);
+  place('tapeRight',gs,compact?139.5:168,compact?13.5:cy+6,139.5,13.5);
  }
  window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
  layout();
