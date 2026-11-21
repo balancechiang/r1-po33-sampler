@@ -72,3 +72,19 @@ mixer/USB path. Encoded frames are still validated independently.
   fine/accelerated wheel editing.
 - Existing recording, copying/reload, reset, single URL QR, transfer, calibration
   and three real-fixture encoder tests cover unchanged behavior.
+
+## 待 R1 真机确认：扫码安装后的 Chain（2026-11-21）
+
+用户报告 Creation 扫码安装后仅循环 Pattern 2，长按兔头恢复出厂后仍如此。
+目前原因未确认，不能据此认定是 Creation SDK 或缓存的既定限制。
+`test-mobile-chain.py` 使用真实浏览器触屏输入、手势自动播放限制，分别检查
+普通存储与延迟的模拟 creationStorage：首次播放应自动前进 P01、P02、P03 等；
+停止显示 132；再播放从 P01 开始；保存为单项 [2] 后恢复出厂应重新载入 1–8 Chain。
+模拟存储不等于 R1 的实际 WebView、存储桥或缓存行为。
+
+待真机复测：使用新版专用二维码，首次只按一次 PLAY 并持续等待至少 6 秒，
+观察 P01 是否自动经过 P02 进入 P03；长按兔头恢复出厂后重复检查。
+若仍只循环 P02，记录实际扫码入口、启动与重置画面、PTT/触屏输入方式及视频，
+再排查加载旧脚本、旧存储/工程检查点覆盖、音频时钟挂起或设备桥差异。
+首次按 PLAY 显示 P01、第二次停止显示 132、第三次开始显示 P01，本身是启停行为，
+不能单凭这三个显示值判定 Chain 丢失。

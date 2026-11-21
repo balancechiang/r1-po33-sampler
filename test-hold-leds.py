@@ -12,7 +12,8 @@ try:
  with sync_playwright() as p:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
   page=b.new_page(viewport={'width':720,'height':846});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui7.html');page.wait_for_function('document.body.dataset.loading==="false"')
+  page.add_init_script("window.hapticPulses=[];navigator.vibrate=duration=>{hapticPulses.push({duration,at:performance.now()});return true;};")
+  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui8.html');page.wait_for_function('document.body.dataset.loading==="false"')
   def idle():assert page.locator('.pad:not([data-led-level="off"])').count()==0
   def click(act):page.locator('[data-act="'+act+'"]').click()
   def hold(selector):
@@ -29,6 +30,12 @@ try:
   assert page.locator('[data-act="sound"]').evaluate('e=>e.classList.contains("hold-active") && e.classList.contains("transfer-latched")')
   def label_info(selector):return page.locator(selector+' .hold-indicator').evaluate('e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(e);const t=range.getBoundingClientRect();return {text:e.textContent,display:s.display,color:s.color,weight:s.fontWeight,inside:t.left>=r.left-.1 && t.right<=r.right+.1 && t.top>=r.top-.1 && t.bottom<=r.bottom+.1,transform:s.transform,box:[r.left,r.top,r.right,r.bottom],ink:[t.left,t.top,t.right,t.bottom]};}')
   page.screenshot(path=r'C:/Users/Chiang-Workstation/Documents/ChatGPT/rabbit r1/ui5-stage/hold-debug.png')
+  word=page.locator('[data-act="sound"] .hold-word')
+  page.wait_for_function("getComputedStyle(document.querySelector('[data-act=\"sound\"] .hold-word')).visibility==='hidden'")
+  assert page.locator('[data-act="sound"] .hold-indicator').evaluate('e=>getComputedStyle(e).backgroundColor')=='rgb(153, 153, 153)'
+  page.wait_for_function('hapticPulses.filter(p=>p.duration===25).length>=3')
+  pulses=page.evaluate('hapticPulses.filter(p=>p.duration===25)');assert all(abs(b['at']-a['at']-800)<100 for a,b in zip(pulses,pulses[1:])),pulses
+  page.wait_for_function("getComputedStyle(document.querySelector('[data-act=\"sound\"] .hold-word')).visibility==='visible'")
   info=label_info('[data-act="sound"]');assert info['text']=='HOLD' and info['display']=='flex' and info['color']=='rgb(255, 0, 0)' and info['weight']=='900' and info['inside'],info
   assert page.locator('[data-act="sound"]').evaluate('e=>getComputedStyle(e).outlineStyle')=='none'
   r=hold('#knobA');assert page.locator('#knobA .knob-rotor').evaluate('e=>getComputedStyle(e).visibility')=='hidden'
@@ -43,5 +50,5 @@ try:
   assert page.locator('#knobB .knob-rotor').evaluate('e=>getComputedStyle(e).visibility')=='visible';page.mouse.up()
   hold('#knobB');page.evaluate('window.dispatchEvent(new Event("blur"))');page.mouse.up();assert page.locator('.hold-active').count()==0
   assert not errors,errors
-  b.close();print('PASS idle all off; occupancy only in editing; play has chase/voice lamps only; sticky modifier HOLD badge; knob HOLD hides rotor; labels stay inside, drag/release/blur cleanup intact.')
+  b.close();print('PASS idle all off; occupancy only in editing; play has chase/voice lamps only; centered blinking HOLD mask and synchronized 800ms haptics; knob HOLD hides rotor; labels stay inside, drag/release/blur cleanup intact.')
 finally:server.shutdown();server.server_close()

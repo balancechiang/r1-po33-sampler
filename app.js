@@ -1963,15 +1963,21 @@
 
   // Modifier badges reflect effective latches; rotor focus remains momentary.
   var holdControls=Array.from(d.querySelectorAll('#ctl .cbtn,#bpmMode,.pad,.knob'));
-  var holdTimers={},holdPointers={},physicalHolds=new Set();
-  holdControls.forEach(function(button){var label=d.createElement('span');label.className='hold-indicator';label.textContent='HOLD';label.setAttribute('aria-hidden','true');button.appendChild(label);});
+  var holdTimers={},holdPointers={},physicalHolds=new Set(),holdFeedback=new Map();
+  holdControls.forEach(function(button){var label=d.createElement('span');label.className='hold-indicator';var word=d.createElement('span');word.className='hold-word';word.textContent='HOLD';label.appendChild(word);label.setAttribute('aria-hidden','true');button.appendChild(label);});
   function paintHolds(){
     holdControls.forEach(function(button){
       var act=button.id==='bpmMode'?'bpm':button.getAttribute('data-act'),pad=button.getAttribute('data-pad');
       var sticky=act && touchChord && touchChord[act]!==undefined && modifierPointers[act]===touchChord[act];
       var shifted=shiftHolds && shiftHolds[act || 'pad'+pad];
       var side=act==='rec' && sideRecHeld;
-      button.classList.toggle('hold-active',!!(sticky||shifted||side||(button.classList.contains('knob')&&physicalHolds.has(button))));
+      var active=!!(sticky||shifted||side||(button.classList.contains('knob')&&physicalHolds.has(button)));
+      button.classList.toggle('hold-active',active);
+      if(active && !holdFeedback.has(button)){
+        var pulse=function(){if(!d.hidden && navigator.vibrate)navigator.vibrate(25);};
+        pulse();holdFeedback.set(button,setInterval(pulse,800));
+      }else if(!active && holdFeedback.has(button)){clearInterval(holdFeedback.get(button));holdFeedback.delete(button);}
+
     });
   }
   function releaseHoldVisual(e){
@@ -2305,7 +2311,7 @@
       if(modifierPointers[act]!==pointer || modifierUsed[act] || heldPad)return;
       Array.from(latchedKeys).forEach(function(k){if(!(['write','sound'].includes(k)&&['write','sound'].includes(act)))dropLatch(k);});
       var latchId=latchSerial--;latchedKeys.add(act);touchChord[act]=latchId;modifierPointers[act]=latchId;if(act==="rec")recPointer=latchId;modifierUsed[act]=true;btn.classList.add("transfer-latched");
-      if(navigator.vibrate)navigator.vibrate(25);paintHolds();
+      paintHolds();
     },500);
   }
   function resetSoundBrowse(){soundChoiceMade=false;soundBrowseSlot=0;soundBrowseNote=-1;}

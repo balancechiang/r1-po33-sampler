@@ -143,5 +143,6 @@ body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:
 #panel .knob.hold-active .knob-rotor { visibility:hidden; }
 body #panel .cbtn.transfer-latched, body #panel #bpmMode.transfer-latched, body #panel .pad.step-edit, #panel .knob.hold-active.trim-wheel-focus { outline:none; }
 
-/* Latch feedback stays above the finger and does not replace action-key faces. */
-#panel .cbtn .hold-indicator,#panel #bpmMode .hold-indicator {left:35%;top:12%;width:60%;height:19%;font-size:calc(5.4 * var(--unit,1px));background:#999;}
+/* Keep the face mask opaque while only the HOLD lettering blinks. */
+#panel .hold-active .hold-word {animation:hold-word-blink 800ms steps(1,end) infinite;}
+@keyframes hold-word-blink {0%,49.999% {visibility:visible;}50%,100% {visibility:hidden;}}
