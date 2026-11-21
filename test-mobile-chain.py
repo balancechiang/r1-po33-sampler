@@ -15,7 +15,7 @@ try:
    if bridge:c.add_init_script("window.creationStorage={plain:{getItem:async k=>{await new Promise(r=>setTimeout(r,35));return localStorage.getItem(k);},setItem:async(k,v)=>{await new Promise(r=>setTimeout(r,60));localStorage.setItem(k,v);},removeItem:async k=>{await new Promise(r=>setTimeout(r,20));localStorage.removeItem(k);}}};")
    c.add_init_script("window.testAudioContexts=[];const AC=window.AudioContext;window.AudioContext=new Proxy(AC,{construct(C,args){const ctx=Reflect.construct(C,args);testAudioContexts.push(ctx);return ctx;}});window.voiceStarts=[];const start=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){voiceStarts.push({state:this.context.state,time:this.context.currentTime,at:args[0]});return start.apply(this,args);};")
    page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui8.html');page.wait_for_function('document.body.dataset.loading==="false"')
+   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui9.html');page.wait_for_function('document.body.dataset.loading==="false"')
    k='po33.install.flowers-20261120.po33.meta'
    def meta():return page.evaluate('k=>JSON.parse(atob(localStorage.getItem(k)))',k)
    def sample():return page.locator('#lcdNumber').get_attribute('data-value')

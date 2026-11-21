@@ -1,0 +1,29 @@
+/* One control surface and one LCD; R1 retains the 240 x 282 geometry. */
+(function(){'use strict';
+ const panel=document.getElementById('panel'),lcd=document.getElementById('lcd');
+ const instrument=document.createElement('main');instrument.id='instrument';instrument.setAttribute('aria-label','PO-33 sampler');
+ panel.before(instrument);
+ const screen=document.createElement('div');screen.id='samplerScreen';screen.append(lcd);
+ const controls=document.createElement('div');controls.id='samplerControls';controls.append(panel);instrument.append(screen,controls);
+ const wrappers={};
+ for(const id of ['tapeHead','tapeLeft','tapeRight','factoryReset']){const el=document.getElementById(id),g=document.createElementNS('http://www.w3.org/2000/svg','g');el.before(g);g.append(el);wrappers[id]=g;}
+ function layout(){
+  const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
+  const vw=document.documentElement.clientWidth-horizontal,vh=(window.visualViewport?window.visualViewport.height:window.innerHeight)-vertical;
+  const compact=vw<320 || vh<480;
+  const width=compact?Math.min(vw,vh*240/282):Math.min(vw,560,(vh-16)*240/342);
+  const unit=width/240,rows=compact?30:Math.max(90,Math.min(220,(vh-16)/unit-252));
+  instrument.style.width=width+'px';instrument.style.setProperty('--unit',unit+'px');
+  instrument.style.setProperty('--screen-height',rows*unit+'px');instrument.dataset.layout=compact?'compact':'expanded';
+  lcd.setAttribute('viewBox','0 0 240 '+rows);
+  for(const id of ['lcdIn','lcdOut','lcdMeter'])document.getElementById(id).setAttribute('transform','translate(0 '+(rows-30)+')');
+  const scale=compact?1:Math.min(3.65,(rows-38)/22),cy=compact?11:(23+rows-13)/2;
+  function place(id,s,x,y,ox,oy){wrappers[id].setAttribute('transform','matrix('+s+' 0 0 '+s+' '+(x-ox*s)+' '+(y-oy*s)+')');}
+  place('tapeHead',scale,120.5,cy,120.5,11);place('factoryReset',scale,120.5,cy,120.5,11);
+  const gs=compact?1:scale*1.4;
+  place('tapeLeft',gs,compact?100.5:43,compact?13.5:cy+6,100.5,13.5);
+  place('tapeRight',gs,compact?139.5:197,compact?13.5:cy+6,139.5,13.5);
+ }
+ window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
+ layout();
+})();
