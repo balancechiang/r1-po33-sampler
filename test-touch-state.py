@@ -46,10 +46,10 @@ try:
   latch('write');latch('sound');tap('rec');page.wait_for_timeout(200);assert page.locator('.transfer-latched').count()==0
   assert page.locator('body').get_attribute('data-transfer')=='waiting'
   import sys,json;sys.path.insert(0,str(root/'t/qr-tools'));from PIL import Image
-  img=Image.open(root/'install/creation-flowers-20261120-ui12-qr.png').convert('RGBA');w,h=img.size
+  img=Image.open(root/'install/creation-flowers-20261120-ui13-qr.png').convert('RGBA');w,h=img.size
   page.add_script_tag(url=f'http://127.0.0.1:{server.server_port}/vendor/jsqr/jsQR.js')
   decoded=page.evaluate('a=>jsQR(new Uint8ClampedArray(a.pixels),a.w,a.h).data',{'pixels':list(img.tobytes()),'w':w,'h':h})
-  assert json.loads(decoded)==json.loads((root/'install/creation-flowers-20261120-ui12.json').read_text(encoding='utf-8'))
+  assert json.loads(decoded)==json.loads((root/'install/creation-flowers-20261120-ui13.json').read_text(encoding='utf-8'))
   assert not errors,errors
   print('PASS all six touch latches, replacement, action cancellation, short tap window, repeated chain, physical-only delayed deletion and triple receive')
   b.close()

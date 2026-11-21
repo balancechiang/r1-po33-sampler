@@ -12,12 +12,19 @@ try:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio'])
   for w,h in [(240,282),(390,844)]:
    page=b.new_page(viewport={'width':w,'height':h});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui12.html');page.wait_for_function('document.body.dataset.loading==="false" && document.querySelectorAll("#tapeHead [data-part]").length===6')
+   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui13.html');page.wait_for_function('document.body.dataset.loading==="false" && document.querySelectorAll("#tapeHead [data-part]").length===6')
    # Mouth width equals the original .388 glove stroke after nested SVG scaling.
-   widths=page.evaluate("""()=>{const m=document.querySelector('#tapeHead [data-part="mouth"]'),g=document.querySelector('#tapeLeft').parentElement;return [+m.getAttribute('stroke-width')*m.getScreenCTM().a,.388*g.getScreenCTM().a];}""")
-   assert abs(widths[0]-widths[1])<.02,widths
+   widths=page.locator('#transportMascot [data-mascot-line]').evaluate_all('es=>es.map(e=>+e.getAttribute("stroke-width"))')
+   assert len(widths)==11 and max(widths)-min(widths)<.001,widths
+   assert page.locator('#transportMascot [data-mascot-line]').evaluate_all('es=>es.every(e=>e.getAttribute("vector-effect")==="non-scaling-stroke" && e.getAttribute("stroke-linecap")==="round")')
+   assert page.locator('#tapeHead svg').get_attribute('overflow')=='visible'
    assert page.locator('#tapeHead [data-part="eyes"] path').evaluate_all('es=>es.every(e=>e.getAttribute("fill")==="#000")')
    page.screenshot(path=str(root/f't/mascot-ui12-{w}.png'))
+   page.evaluate('()=>{PO33Mascot.stop();PO33Mascot.frame(1000);PO33Mascot.frame(8000);PO33Mascot.frame(8310);}')
+   assert page.locator('#tapeHead [data-part="ear-left"]').get_attribute('transform').startswith('rotate(-13 ')
+   assert page.locator('#transportMascot > g').last.locator('#tapeHead').count()==1
+   assert page.locator('#tapeLeft svg path').count()==page.locator('#tapeRight svg path').count()==5
+   page.evaluate('PO33Mascot.stop()')
    # Actual transport generates independent, nonzero facial transforms.
    page.locator('[data-act="play"]').click();seen=set()
    for i in range(90):
@@ -34,6 +41,6 @@ try:
    assert not errors,errors
    print('PASS',w,'matching mouth/glove stroke, black eyes, random blink/ears/sniff, stop and blur cleanup')
    page.close()
-  page=b.new_page(viewport={'width':390,'height':844},reduced_motion='reduce');page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui12.html');page.wait_for_function('document.body.dataset.loading==="false" && !!document.querySelector("#tapeHead [data-part]")');page.locator('[data-act="play"]').click();page.wait_for_timeout(500);assert page.locator('#tapeHead [data-part][transform]').count()==0
+  page=b.new_page(viewport={'width':390,'height':844},reduced_motion='reduce');page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui13.html');page.wait_for_function('document.body.dataset.loading==="false" && !!document.querySelector("#tapeHead [data-part]")');page.locator('[data-act="play"]').click();page.wait_for_timeout(500);assert page.locator('#tapeHead [data-part][transform]').count()==0
   print('PASS reduced-motion preference');b.close()
 finally:server.shutdown();server.server_close()

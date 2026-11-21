@@ -25,19 +25,37 @@ try:
     old=(root/'runtime-lifecycle.js').read_text(encoding='utf-8').replace("'pointerup','touchend','click',",'')
     page.route('**/runtime-lifecycle.js?*',lambda route:route.fulfill(body=old,content_type='application/javascript'))
    page.on('pageerror',lambda e:errors.append(str(e)))
-   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui12.html');page.wait_for_function('document.body.dataset.loading==="false"')
-   if release_gated:assert page.evaluate('audioContexts[0].state')=='suspended'
+   page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui13.html');page.wait_for_function('document.body.dataset.loading==="false"')
+   if release_gated:assert page.evaluate('audioContexts.at(-1).state')=='suspended'
    page.locator('[data-act="play"]').tap()
    if not release_retry:
-    page.wait_for_timeout(650);assert page.evaluate('audioContexts[0].state')=='suspended'
+    page.wait_for_timeout(650);assert page.evaluate('audioContexts.at(-1).state')=='suspended'
     assert page.evaluate('outputAnalysers.every(m=>{const x=new Float32Array(m.fftSize);m.getFloatTimeDomainData(x);return x.every(v=>Math.abs(v)<.00001);})')
     print('PASS regression reproduced: pointerdown-only wake leaves first touch silent')
     c.close();continue
-   page.wait_for_function('audioContexts[0].state==="running"',timeout=3000)
+   page.wait_for_function('audioContexts.at(-1).state==="running"',timeout=3000)
    page.wait_for_function('outputAnalysers.some(m=>{const x=new Float32Array(m.fftSize);m.getFloatTimeDomainData(x);return x.some(v=>Math.abs(v)>.002);})',timeout=3000)
    assert page.locator('#lcdNumber').get_attribute('data-value')=='P01'
    page.wait_for_timeout(2100);assert page.locator('#lcdNumber').get_attribute('data-value')=='P02'
    page.locator('[data-act="play"]').tap();assert page.locator('#lcdNumber').get_attribute('data-value')=='132'
+   # Expired context after lock: returning must rebuild, preserving project state.
+   if release_retry:
+    page.evaluate('window.dispatchEvent(new Event("scrollUp"))');page.wait_for_timeout(1300)
+    for was_playing in [False,True]:
+     if was_playing:page.locator('[data-act="play"]').tap()
+     page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));")
+     page.wait_for_timeout(100)
+     page.evaluate("async()=>{const stale=audioContexts.at(-1);await stale.suspend();Object.defineProperty(stale,'state',{configurable:true,get:()=> 'running'});stale.resume=()=>Promise.resolve();}")
+     count=page.evaluate('audioContexts.length')
+     page.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));")
+     page.locator('[data-act="play"]').tap()
+     assert page.evaluate('audioContexts.length')==count+1
+     page.wait_for_function('audioContexts.at(-1).state==="running"')
+     page.wait_for_function('outputAnalysers.filter(m=>m.context===audioContexts.at(-1)).some(m=>{const x=new Float32Array(m.fftSize);m.getFloatTimeDomainData(x);return x.some(v=>Math.abs(v)>.002);})')
+     assert page.locator('#lcdNumber').get_attribute('data-value')=='P01'
+     page.locator('[data-act="play"]').tap()
+     assert page.locator('#lcdNumber').get_attribute('data-value')=='133'
+     print('PASS first post-lock tap rebuilds graph with real audio, previously playing:',was_playing)
    assert not errors,errors
    print('PASS first touch has measured output > .002 and advances chain; second touch stops; release-gated:',release_gated,'attempts:',page.evaluate('resumeAttempts'))
    c.close()

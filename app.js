@@ -705,6 +705,7 @@
   var hardwareToneEnabled=true,hardwareToneReady=false,hardwareToneError="",toneDry=null,toneWet=null,toneNode=null;
   var outTrim = null;
   var noiseBuf = null;
+  var musicGraphStale=false;
 
   function ctx() {
     if (ac) {
@@ -713,6 +714,8 @@
     }
     var AC = window.AudioContext || window.webkitAudioContext;
     ac = new AC();window.PO33Runtime.register(ac);window.PO33Runtime.resume(ac);
+    var graphContext=ac,hasRun=ac.state==='running';
+    ac.addEventListener('statechange',function(){if(ac!==graphContext)return;if(ac.state==='running')hasRun=true;else if(hasRun)musicGraphStale=true;});
 
     master = ac.createGain();
     master.gain.value = 1;
@@ -747,10 +750,11 @@
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
       await c.audioWorklet.addModule('./hardware-tone-worklet.js?v=20261120-stability1');
+      if(c!==ac)return;
       toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
-      toneNode.onprocessorerror=function(){hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
+      toneNode.onprocessorerror=function(){if(c!==ac)return;hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
       bus.connect(toneNode);toneNode.connect(toneWet);hardwareToneReady=true;applyHardwareTone();
-    }catch(error){hardwareToneError='Tone unavailable';hardwareToneReady=false;applyHardwareTone();}
+    }catch(error){if(c!==ac)return;hardwareToneError='Tone unavailable';hardwareToneReady=false;applyHardwareTone();}
   }
   function noise() {
     var c = ctx();
@@ -2761,6 +2765,21 @@
     }
     transportFrame=requestAnimationFrame(frame);
   }
+
+  function prepareMusicAfterInterruption(){
+    if(!musicGraphStale || document.hidden || (hardwareTransfer && hardwareTransfer.view.active) || rec.on)return;
+    stopSeq();disconnectMusicMic();micModulePromise=null;
+    var old=ac;if(old){sampleVoices.slice().forEach(function(v){try{v.src.stop();}catch(e){}});window.PO33Runtime.unregister(old);if(fx.proc)fx.proc.onaudioprocess=null;old.close().catch(function(){});}
+    sampleVoices=[];livePadVoices.clear();parameterLatches.reset();clearFxTimers();transportGeneration++;
+    ac=null;master=bus=mixVolume=dryGain=outTrim=outputMeter=outputData=null;
+    toneDry=toneWet=toneNode=null;hardwareToneReady=false;hardwareToneError='';noiseBuf=null;
+    fx={kind:0,proc:null,wet:null,engine:null,installed:false};musicGraphStale=false;
+    ctx();
+  }
+  ['pointerdown','keydown','sideClick','longPressStart','scrollUp','scrollDown'].forEach(function(type){window.addEventListener(type,prepareMusicAfterInterruption,true);});
+  function retireBackgroundMusic(){if(ac){musicGraphStale=true;stopSeq();}}
+  document.addEventListener('visibilitychange',function(){if(document.hidden)retireBackgroundMusic();});
+  window.addEventListener('pagehide',retireBackgroundMusic);
 
   // desktop test helpers: arrows = wheel, space = side button, R = hold REC,
   // P = hold PATTERN, F = FX, E = export, Enter = PLAY

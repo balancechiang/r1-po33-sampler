@@ -10,16 +10,21 @@
   const t=key=>active[key]===undefined?0:(now-active[key])/duration[key];
   const blink=active.blink===undefined?1:Math.max(.055,1-Math.sin(Math.PI*t('blink')));
   parts.eyes.setAttribute('transform','translate(0 '+(710*(1-blink))+') scale(1 '+blink+')');
-  const ear=active.ears===undefined?0:Math.sin(t('ears')*Math.PI*3)*Math.sin(t('ears')*Math.PI)*5;
+  const ear=active.ears===undefined?0:Math.sin(t('ears')*Math.PI*3)*Math.sin(t('ears')*Math.PI)*13;
   parts['ear-left'].setAttribute('transform','rotate('+ear+' 428 504)');parts['ear-right'].setAttribute('transform','rotate('+(-ear*.72)+' 598 552)');
   const sniff=active.sniff===undefined?0:Math.sin(t('sniff')*Math.PI*4)*Math.sin(t('sniff')*Math.PI);
   parts.nose.setAttribute('transform','translate('+(-sniff*4)+' '+(-Math.abs(sniff)*8)+')');
  }
- function stroke(){document.querySelectorAll('#tapeHead [data-part="mouth"]').forEach(p=>p.setAttribute('stroke-width',String(.388*(document.getElementById('instrument').dataset.layout==='compact'?1:1.4)*970/22)));}
- // Retain the static image on a failed fetch, with no impact on audio or input.
- fetch('./mascot-head.svg?v=20261121-ui12').then(r=>{if(!r.ok)throw Error('mascot');return r.text();}).then(text=>{
-  const source=new DOMParser().parseFromString(text,'image/svg+xml').documentElement;
-  for(const selector of ['#tapeHead image','#rabbit-head image']){const image=document.querySelector(selector);if(!image)continue;const svg=document.importNode(source,true);for(const attr of ['x','y','width','height'])svg.setAttribute(attr,image.getAttribute(attr));image.replaceWith(svg);}
+ function stroke(){
+  const glove=document.getElementById('tapeLeft').parentElement,matrix=glove.getScreenCTM();if(!matrix)return;
+  const width=.641*Math.hypot(matrix.a,matrix.b);
+  document.querySelectorAll('#transportMascot [data-mascot-line]').forEach(p=>{p.setAttribute('stroke-width',width);p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');p.setAttribute('stroke','#000');});
+ }
+ // Transparent, cropped assets only; the old glove exports contained a whole black panel.
+ Promise.all(['head','left','right'].map(async kind=>{const r=await fetch('./mascot-'+kind+'.svg?v=20261121-ui13');if(!r.ok)throw Error('mascot');return [kind,new DOMParser().parseFromString(await r.text(),'image/svg+xml').documentElement];})).then(assets=>{
+  for(const [kind,source] of assets){const selectors=kind==='head'?['#tapeHead image','#rabbit-head image']:[kind==='left'?'#tapeLeft image':'#tapeRight image'];
+   for(const selector of selectors){const image=document.querySelector(selector);if(!image)continue;const svg=document.importNode(source,true);svg.setAttribute('overflow','visible');for(const attr of ['x','y','width','height'])svg.setAttribute(attr,image.getAttribute(attr));image.replaceWith(svg);}}
+  const head=document.getElementById('tapeHead').parentElement;head.parentElement.append(head);
   parts={};for(const part of ['eyes','ear-left','ear-right','nose','mouth'])parts[part]=document.querySelector('#tapeHead [data-part="'+part+'"]');
   stroke();window.addEventListener('resize',stroke);window.addEventListener('po33-layout-change',stroke);root.dispatchEvent(new Event('po33-mascot-ready'));
  }).catch(()=>{});
