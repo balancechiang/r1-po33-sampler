@@ -657,6 +657,7 @@
   var tweakMode = 0, bpmHeld = false, fxHeld = false, writeHeld = false;
   var modifierPointers = {}, modifierUsed = {}, previousMode = "PLAY";
   var patternSelection = [], patternChain = [], chainPosition = 0;
+  var patternInputTimer=null,PATTERN_INPUT_GAP=1200;
   var lastNote = 0, displayValue = null, displayUntil = 0;
   var lastNotes = Array(16).fill(0), lastWasSlice=false;
   var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null;
@@ -1352,6 +1353,24 @@
     }
     persistSoon();
     paint();
+  }
+
+  function commitPatternSelection(){
+    clearTimeout(patternInputTimer);patternInputTimer=null;
+    if(!patternSelection.length)return;
+    patternChain=patternSelection.slice();patternSelection=[];
+    var first=patternChain[0];
+    if(seq.playing){seq.queued=first;chainPosition=patternChain.length>1?-1:0;}
+    else {seq.pattern=first;seq.queued=0;chainPosition=0;}
+    persistSoon();
+  }
+  function finishPatternInput(){
+    commitPatternSelection();if(latchedKeys.has('pattern'))dropLatch('pattern');paint();
+  }
+  function waitForPatternInput(){
+    clearTimeout(patternInputTimer);patternInputTimer=null;
+    if(latchedKeys.has('pattern') && patternSelection.length && !heldPad && !physicalKeys.has('pattern'))
+      patternInputTimer=setTimeout(finishPatternInput,PATTERN_INPUT_GAP);
   }
 
   function copyPatternTo(n) {
@@ -2074,7 +2093,7 @@
         if(p+1===state.slot){level="bright";reason="selected";}
       } else if(state.mode==="PATTERN") {
         if(patternHasData(patterns[p])){level="dim";reason="pattern";}
-        if(p+1===patternNumber){level="bright";reason="selected";}
+        if(p+1===(patternSelection.length?patternSelection[patternSelection.length-1]:patternNumber)){level="bright";reason="selected";}
         else if(p+1===seq.queued){level="dim";reason="queued";}
       } else if(fxHeld || shakeFx) {
         if(p+1===fx.kind){level="bright";reason="effect";}
@@ -2214,9 +2233,9 @@
       patternUsedPad=true;
       if (writeHeld) { modifierUsed.write=true; copyPatternTo(n); patternExtras[n-1]=JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])); persistSoon(); }
       else {
+        clearTimeout(patternInputTimer);patternInputTimer=null;
         if (patternSelection.length<128) patternSelection.push(n);
-        if(patternSelection.length===1) selectPattern(n);
-        if(latchedKeys.has("pattern")){patternChain=patternSelection.slice();chainPosition=0;persistSoon();}
+        if(!latchedKeys.has('pattern') && patternSelection.length===1)selectPattern(n);
       }
       paint(); return;
     }
@@ -2346,6 +2365,7 @@
     var act=btn.getAttribute("data-act");
     if(touchChord[act]!==undefined){dropLatch(act);return;}
     if(latchedKeys.has('rec') && (act==='sound'||act==='pattern'))dropLatch('rec');
+    if(act!=='pattern' && latchedKeys.has('pattern') && patternSelection.length)finishPatternInput();
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=!!e.po33ChordConsumed;
     armChord(e,act,btn);
@@ -2363,7 +2383,7 @@
     }
     if(act==="pattern") {
       if(physicalKeys.has("rec")) {recUsedPad=true;return;}
-      patternHeld=true; patternUsedPad=false; patternSelection=[];
+      clearTimeout(patternInputTimer);patternInputTimer=null;patternHeld=true; patternUsedPad=false; patternSelection=[];
       previousMode=state.mode; setMode("PATTERN"); return;
     }
     paint();
@@ -2400,11 +2420,11 @@
       if(act==="sound") {soundHeld=false;if(state.mode==="SOUND")setMode(previousMode==="STEP"?"STEP":"PLAY");}
       if(act==="pattern") {
         patternHeld=false;
-        if(patternSelection.length) {patternChain=patternSelection.slice();chainPosition=0;persistSoon();}
+        commitPatternSelection();
         if(state.mode==="PATTERN")setMode(previousMode==="STEP"?"STEP":"PLAY");
       }
     });
-    paint();
+    waitForPatternInput();paint();
   }
   window.addEventListener("pointerup",releaseControls);
   window.addEventListener("pointercancel",releaseControls);
@@ -2534,7 +2554,7 @@
     var number=String(params.bpm);
     if(parameterDisplay){label=["TONE","FILTER","TRIM"][tweakMode];number=["ton","FLt","tri"][tweakMode];}
     if(state.mode==="SOUND"){label=soundChoiceMade && state.slot>8?"SOUND / SLICE":"SOUND";number=soundChoiceMade && state.slot>8?String(state.slot).padStart(2,"0")+String(lastNote+1).padStart(2,"0"):String(state.slot);}
-    if(state.mode==="PATTERN"){label="PATTERN";number=String(seq.pattern);}
+    if(state.mode==="PATTERN"){label=patternSelection.length>1?"CHAIN "+patternSelection.length:"PATTERN";number=String(patternSelection.length?patternSelection[patternSelection.length-1]:seq.pattern);}
     if(state.mode==="STEP")label="WRITE";
     if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND")){label=displayValue.label;number=String(displayValue.value);}
     if(seq.playing && state.mode!=="SOUND" && state.mode!=="PATTERN" && !bpmHeld && !(displayValue && Date.now()<displayUntil)){label="PATTERN";number="P"+String(seq.visualPattern || seq.pattern).padStart(2,"0");}
@@ -2789,7 +2809,7 @@
     else if (e.key === "r" || e.key === "R") { e.preventDefault(); setRecHeld(true); ensureMic(); }
     else if (e.key === "p" || e.key === "P") {
       e.preventDefault();
-      if (!patternHeld) { patternHeld = true; patternUsedPad = false; patternPressedAt = Date.now() - 1000; paint(); }
+      if (!patternHeld) {clearTimeout(patternInputTimer);patternInputTimer=null;patternSelection=[]; patternHeld = true; patternUsedPad = false; patternPressedAt = Date.now() - 1000; paint(); }
     } else if (e.key === "f" || e.key === "F") { e.preventDefault(); toggleMode("fx"); }
     else if (e.key === "e" || e.key === "E") { e.preventDefault(); if (!exporting) { exportArmed = !exportArmed; paint(); } }
     else if (e.key === "ArrowUp" || e.key === "ArrowRight") { e.preventDefault(); wheelAdjust(1); }
@@ -2798,7 +2818,7 @@
   window.addEventListener("keyup", function (e) {
     if(e.code==="Space" || e.key===" "){e.preventDefault();sideRecHeld=false;setRecHeld(modifierPointers.rec!==undefined);}
     if (e.key === "r" || e.key === "R") { e.preventDefault(); setRecHeld(false); }
-    if (e.key === "p" || e.key === "P") { e.preventDefault(); patternHeld = false; paint(); }
+    if (e.key === "p" || e.key === "P") { e.preventDefault(); patternHeld = false;commitPatternSelection(); paint(); }
   });
 
   d.addEventListener("pointerdown", function () { if(hardwareTransfer && hardwareTransfer.view.active)return;try { ctx(); } catch (err) {} }, true);
