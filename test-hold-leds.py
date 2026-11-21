@@ -12,7 +12,7 @@ try:
  with sync_playwright() as p:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
   page=b.new_page(viewport={'width':720,'height':846});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui5.html');page.wait_for_function('document.body.dataset.loading==="false"')
+  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui7.html');page.wait_for_function('document.body.dataset.loading==="false"')
   def idle():assert page.locator('.pad:not([data-led-level="off"])').count()==0
   def click(act):page.locator('[data-act="'+act+'"]').click()
   def hold(selector):
@@ -37,11 +37,11 @@ try:
   page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2-36);page.mouse.up()
   assert page.locator('#knobA .knob-rotor').evaluate('e=>getComputedStyle(e).visibility')=='visible'
   assert not page.locator('#knobA').evaluate('e=>e.classList.contains("hold-active")')
-  page.mouse.click(2,2);assert page.locator('.hold-active').count()==0;idle()
+  click('sound');assert page.locator('.hold-active').count()==0;idle()
   # Dragging immediately still shows the moving rotor; it does not become a stationary hold.
   r=page.locator('#knobB').bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2-30);page.wait_for_timeout(600)
   assert page.locator('#knobB .knob-rotor').evaluate('e=>getComputedStyle(e).visibility')=='visible';page.mouse.up()
   hold('#knobB');page.evaluate('window.dispatchEvent(new Event("blur"))');page.mouse.up();assert page.locator('.hold-active').count()==0
   assert not errors,errors
-  b.close();print('PASS idle all off; occupancy only in editing; play has chase/voice lamps only; sticky button HOLD replaces center; knob HOLD hides rotor; labels stay inside, drag/release/blur cleanup intact.')
+  b.close();print('PASS idle all off; occupancy only in editing; play has chase/voice lamps only; sticky modifier HOLD badge; knob HOLD hides rotor; labels stay inside, drag/release/blur cleanup intact.')
 finally:server.shutdown();server.server_close()

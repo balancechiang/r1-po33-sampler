@@ -142,3 +142,6 @@ body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:
 #panel #knobB .hold-indicator { left:15.24708798057153%; top:18.73296217484908%; width:72.68158762078536%; height:62.77046203613281%; }
 #panel .knob.hold-active .knob-rotor { visibility:hidden; }
 body #panel .cbtn.transfer-latched, body #panel #bpmMode.transfer-latched, body #panel .pad.step-edit, #panel .knob.hold-active.trim-wheel-focus { outline:none; }
+
+/* Latch feedback stays above the finger and does not replace action-key faces. */
+#panel .cbtn .hold-indicator,#panel #bpmMode .hold-indicator {left:35%;top:12%;width:60%;height:19%;font-size:calc(5.4 * var(--unit,1px));background:#999;}

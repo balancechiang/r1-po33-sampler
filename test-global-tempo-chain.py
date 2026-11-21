@@ -40,10 +40,13 @@ try:
   page.wait_for_function('document.body.dataset.loading==="false"');m=meta();assert m['bpm']==132 and m['chain']==list(range(1,9)) and 'patternSettings' not in m,m
   # Delayed creationStorage bridge follows the same reset and preserves the installation namespace.
   r1=b.new_page(viewport={'width':240,'height':282});r1.add_init_script("window.creationStorage={plain:{getItem:async k=>{await new Promise(r=>setTimeout(r,20));return localStorage.getItem(k);},setItem:async(k,v)=>{await new Promise(r=>setTimeout(r,40));localStorage.setItem(k,v);},removeItem:async k=>{await new Promise(r=>setTimeout(r,10));localStorage.removeItem(k);}}};")
-  r1.goto(base+'flowers-20261120-ui6.html');r1.wait_for_function('document.body.dataset.loading==="false"');r1.evaluate('()=>{for(let i=0;i<52;i++)window.dispatchEvent(new Event("scrollDown"));}');r1.wait_for_timeout(500)
+  r1.goto(base+'flowers-20261120-ui7.html');r1.wait_for_function('document.body.dataset.loading==="false"');r1.evaluate('()=>{for(let i=0;i<52;i++)window.dispatchEvent(new Event("scrollDown"));}');r1.wait_for_timeout(500)
   k='po33.install.flowers-20261120.po33.meta';assert r1.evaluate('k=>JSON.parse(atob(localStorage.getItem(k))).bpm',k)==80
   with r1.expect_navigation(timeout=15000):r1.locator('#factoryReset').dispatch_event('pointerdown',{'pointerId':9,'button':0,'bubbles':True})
-  r1.wait_for_function('document.body.dataset.loading==="false"');r1.wait_for_timeout(500);assert r1.evaluate('k=>JSON.parse(atob(localStorage.getItem(k))).bpm',k)==132
+  r1.wait_for_function('document.body.dataset.loading==="false"');r1.wait_for_function('k=>{try{return JSON.parse(atob(localStorage.getItem(k))).bpm===132}catch(e){return false}}',arg=k);assert r1.evaluate('k=>JSON.parse(atob(localStorage.getItem(k))).chain',k)==list(range(1,9))
+  r1.reload();r1.wait_for_function('document.body.dataset.loading==="false"');r1.wait_for_timeout(600)
+  assert r1.evaluate('k=>JSON.parse(atob(localStorage.getItem(k))).chain',k)==list(range(1,9))
+  assert r1.evaluate('()=>PO33_FACTORY.patterns.every((p,i)=>JSON.stringify(JSON.parse(atob(localStorage.getItem("po33.install.flowers-20261120.po33.pat"+(i+1)))))===JSON.stringify(p.lanes))')
   assert not errors,errors
   b.close();print('PASS chain [3,1,3,2] restarts at head after stop, including repeats; one global BPM ignores legacy maps across selection/chain/reload; factory reset restores 132 through localStorage and delayed creationStorage.')
 finally:server.shutdown();server.server_close()

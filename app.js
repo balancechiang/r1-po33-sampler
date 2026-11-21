@@ -152,7 +152,7 @@
   }
 
   function storePump() {
-    if (saveRunning || resetBusy || resetFailure) return;
+    if (saveRunning || (resetBusy && !resetCommitting) || resetFailure) return;
     if (!store) { saveQueue = []; saveQueued = {}; return; }
     var job = saveQueue.shift();
     if (!job) return;
@@ -440,8 +440,8 @@
         seeded.push(i+1);
       }
     });
-    if(seeded.length && (!meta || !meta.factoryRevision) && Array.isArray(factory.chain)){
-      patternChain=factory.chain.filter(function(n){return seeded.indexOf(n)>=0;}).slice(0,128);
+    if((!meta || (seeded.length && !meta.factoryRevision)) && Array.isArray(factory.chain)){
+      patternChain=factory.chain.filter(function(n){return n>=1 && n<=16;}).slice(0,128);
       seq.pattern=patternChain[0] || 1;chainPosition=0;
     }
     if(seeded.length && !meta){params.bpm=factoryTempo();SWING=factorySwing();}
@@ -1961,7 +1961,7 @@
     }
   })();
 
-  // HOLD is a visual state only; existing chord/step/knob behavior owns its lifetime.
+  // Modifier badges reflect effective latches; rotor focus remains momentary.
   var holdControls=Array.from(d.querySelectorAll('#ctl .cbtn,#bpmMode,.pad,.knob'));
   var holdTimers={},holdPointers={},physicalHolds=new Set();
   holdControls.forEach(function(button){var label=d.createElement('span');label.className='hold-indicator';label.textContent='HOLD';label.setAttribute('aria-hidden','true');button.appendChild(label);});
@@ -1970,9 +1970,8 @@
       var act=button.id==='bpmMode'?'bpm':button.getAttribute('data-act'),pad=button.getAttribute('data-pad');
       var sticky=act && touchChord && touchChord[act]!==undefined && modifierPointers[act]===touchChord[act];
       var shifted=shiftHolds && shiftHolds[act || 'pad'+pad];
-      var step=pad && stepEdit && stepEdit.used && stepEdit.step===+pad-1;
       var side=act==='rec' && sideRecHeld;
-      button.classList.toggle('hold-active',!!(physicalHolds.has(button)||sticky||shifted||step||side));
+      button.classList.toggle('hold-active',!!(sticky||shifted||side||(button.classList.contains('knob')&&physicalHolds.has(button))));
     });
   }
   function releaseHoldVisual(e){
@@ -1982,9 +1981,9 @@
   d.addEventListener('pointerdown',function(e){
     if(e.button!==0 || e.shiftKey)return;
     var button=e.target.closest && e.target.closest('#ctl .cbtn,#bpmMode,.pad,.knob');if(!button)return;
+    if(!button.classList.contains('knob'))return;
     var id=e.pointerId;clearTimeout(holdTimers[id]);holdPointers[id]={button:button,x:e.clientX,y:e.clientY};
-    var occupied=button.classList.contains('pad') && state.mode==='STEP' && patterns[seq.pattern-1].lanes[state.slot-1][+button.dataset.pad-1]>=0;
-    holdTimers[id]=setTimeout(function(){if(holdPointers[id]){physicalHolds.add(button);paintHolds();}},occupied?1000:500);
+    holdTimers[id]=setTimeout(function(){if(holdPointers[id]){physicalHolds.add(button);paintHolds();}},500);
   },true);
   d.addEventListener('pointermove',function(e){var entry=holdPointers[e.pointerId];if(!entry || physicalHolds.has(entry.button))return;var unit=d.getElementById('panel').getBoundingClientRect().width/240;if(Math.hypot(e.clientX-entry.x,e.clientY-entry.y)>4*unit){clearTimeout(holdTimers[e.pointerId]);delete holdTimers[e.pointerId];}},true);
   window.addEventListener('pointerup',releaseHoldVisual);window.addEventListener('pointercancel',releaseHoldVisual);d.addEventListener('lostpointercapture',releaseHoldVisual,true);
@@ -2179,6 +2178,7 @@
     return e && e.pointerId !== undefined ? e.pointerId : null;
   }
 
+  var livePadVoices=new Map();
   function onPadDown(e) {
     sliceResultUntil=0;
     e.preventDefault();
@@ -2202,6 +2202,7 @@
       else {
         if (patternSelection.length<128) patternSelection.push(n);
         if(patternSelection.length===1) selectPattern(n);
+        if(latchedKeys.has("pattern")){patternChain=patternSelection.slice();chainPosition=0;persistSoon();}
       }
       paint(); return;
     }
@@ -2220,7 +2221,9 @@
       else toggleStep(n - 1);
       return;
     }
+    var beforeVoices=new Set(sampleVoices);
     trigger(n - 1);
+    if(state.slot<=8)livePadVoices.set(e.pointerId,sampleVoices.filter(function(v){return !beforeVoices.has(v);}));
     flash(n - 1);
   }
 
@@ -2246,17 +2249,63 @@
 
   var ctl = d.getElementById("ctl");
   var lastPointer = 0;
-  var touchChord={},touchChordTimers={},touchChordIdle=null;
+  var touchChord={},touchChordTimers={};
   var soundChoiceMade=false,soundBrowseSlot=0,soundBrowseNote=-1;
+  var physicalKeys=new Set(),latchedKeys=new Set(),keyPointers=new Map(),pressedAt={},deleteHoldTimer=null,latchSerial=-10000;
+  function activeKeys(){return new Set([...physicalKeys,...latchedKeys]);}
+  function consumeChord(){
+    Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
+    physicalKeys.forEach(function(k){if(k.indexOf('pad')!==0)modifierUsed[k]=true;});
+  }
+  function dropLatch(act){
+    var pointer=touchChord[act];latchedKeys.delete(act);delete touchChord[act];
+    var button=act==='bpm'?d.getElementById('bpmMode'):ctl.querySelector('[data-act="'+act+'"]');if(button)button.classList.remove('transfer-latched');
+    if(pointer!==undefined){
+      var physical=Array.from(keyPointers.entries()).find(function(entry){return entry[1]===act;});
+      if(physical){modifierPointers[act]=physical[0];modifierUsed[act]=true;}
+      else releaseControls({pointerId:pointer,type:'pointercancel'});
+    }
+    paintHolds();
+  }
+  function checkPhysicalDelete(){
+    clearTimeout(deleteHoldTimer);deleteHoldTimer=null;
+    var target=physicalKeys.has('rec') && (physicalKeys.has('sound')?'sound':physicalKeys.has('pattern')?'pattern':null);
+    if(!target || (activeKeys().has('write') && activeKeys().has('sound')))return;
+    consumeChord();recUsedPad=true;
+    deleteHoldTimer=setTimeout(function(){
+      if(!physicalKeys.has('rec') || !physicalKeys.has(target))return;
+      if(target==='sound')deleteSlot(state.slot);
+      else {clearPattern(seq.pattern);patternExtras[seq.pattern-1]={effects:[],locks:{}};persistSoon();}
+      showNumber('dEL','DELETE');paint();
+    },1800);
+  }
+  d.addEventListener('pointerdown',function(e){
+    var el=e.target.closest && e.target.closest('.cbtn,#bpmMode,.pad,.knob');if(!el)return;
+    var act=el.id==='bpmMode'?'bpm':el.dataset.act || (el.dataset.pad?'pad'+el.dataset.pad:null);
+    if(!act){consumeChord();return;}
+    var prior=Array.from(physicalKeys);
+    // WRITE/SOUND can be armed together only when neither has performed an action.
+    var pair=(act==='write'||act==='sound') && prior.every(function(k){return k==='write'||k==='sound';});
+    if(prior.length && !pair){consumeChord();e.po33ChordConsumed=true;}
+    keyPointers.set(e.pointerId,act);physicalKeys.add(act);pressedAt[act]=Date.now();
+    setTimeout(checkPhysicalDelete,0);
+  },true);
+  function releasePhysical(e){
+    var act=keyPointers.get(e.pointerId);keyPointers.delete(e.pointerId);
+    if(act && !Array.from(keyPointers.values()).includes(act))physicalKeys.delete(act);
+    clearTimeout(deleteHoldTimer);deleteHoldTimer=null;
+  }
+  window.addEventListener('pointerup',releasePhysical);window.addEventListener('pointercancel',releasePhysical);
+  d.addEventListener('lostpointercapture',function(e){if(keyPointers.has(e.pointerId)){releasePhysical(e);releaseControls({pointerId:e.pointerId,type:'pointercancel'});}},true);
   function armChord(e,act,btn){
-    if(e.shiftKey || (e.pointerType!=="touch" && e.pointerType!=="mouse") || act==="play")return;
+    if(e.po33ChordConsumed || e.shiftKey || (e.pointerType!=="touch" && e.pointerType!=="mouse") || act==="play")return;
     // A normal held combination stays momentary; an unused 500 ms hold becomes sticky.
-    if(e.pointerType==="touch" && act!=="sound" && act!=="write")return;
     var pointer=pid(e);
     touchChordTimers[pointer]=setTimeout(function(){
       if(modifierPointers[act]!==pointer || modifierUsed[act] || heldPad)return;
-      touchChord[act]=pointer;modifierUsed[act]=true;btn.classList.add("transfer-latched");paintHolds();
-      clearTimeout(touchChordIdle);touchChordIdle=setTimeout(clearTouchChord,8000);
+      Array.from(latchedKeys).forEach(function(k){if(!(['write','sound'].includes(k)&&['write','sound'].includes(act)))dropLatch(k);});
+      var latchId=latchSerial--;latchedKeys.add(act);touchChord[act]=latchId;modifierPointers[act]=latchId;if(act==="rec")recPointer=latchId;modifierUsed[act]=true;btn.classList.add("transfer-latched");
+      if(navigator.vibrate)navigator.vibrate(25);paintHolds();
     },500);
   }
   function resetSoundBrowse(){soundChoiceMade=false;soundBrowseSlot=0;soundBrowseNote=-1;}
@@ -2268,9 +2317,8 @@
     paint();
   }
   function clearTouchChord(){
-    clearTimeout(touchChordIdle);
     Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
-    var held=touchChord;touchChord={};
+    var held=touchChord;touchChord={};latchedKeys.clear();
     Object.keys(held).forEach(function(act){
       var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove("transfer-latched");
       releaseControls({pointerId:held[act],type:"pointercancel"});
@@ -2282,24 +2330,25 @@
     if(!btn) return; e.preventDefault(); lastPointer=Date.now();
     if(hardwareTransfer && hardwareTransfer.view.active)return;
     var act=btn.getAttribute("data-act");
-    if(touchChord[act]!==undefined){clearTouchChord();return;}
+    if(touchChord[act]!==undefined){dropLatch(act);return;}
+    if(latchedKeys.has('rec') && (act==='sound'||act==='pattern'))dropLatch('rec');
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
-    modifierPointers[act]=pid(e); modifierUsed[act]=false;
+    modifierPointers[act]=pid(e); modifierUsed[act]=!!e.po33ChordConsumed;
     armChord(e,act,btn);
     if(writeHeld && soundHeld && (act==="play" || act==="rec")){
       modifierUsed.write=modifierUsed.sound=true;
-      hardwareTransfer.open(act==="play"?"send":"receive");return;
+      consumeChord();hardwareTransfer.open(act==="play"?"send":"receive");clearTouchChord();return;
     }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true); ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
     if(act==="write") { writeHeld=true; return; }
     if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
     if(act==="sound") {
-      if(recHeld) { recUsedPad=true; deleteSlot(state.slot); return; }
+      if(physicalKeys.has("rec")) {recUsedPad=true;return;}
       soundChoiceMade=false;soundHeld=true; previousMode=state.mode; setMode("SOUND"); return;
     }
     if(act==="pattern") {
-      if(recHeld) {recUsedPad=true; clearPattern(seq.pattern); patternExtras[seq.pattern-1]={effects:[],locks:{}}; persistSoon();return;}
+      if(physicalKeys.has("rec")) {recUsedPad=true;return;}
       patternHeld=true; patternUsedPad=false; patternSelection=[];
       previousMode=state.mode; setMode("PATTERN"); return;
     }
@@ -2307,27 +2356,29 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    var live=livePadVoices.get(e.pointerId);if(live){livePadVoices.delete(e.pointerId);var at=ctx().currentTime;live.forEach(function(v){cutSampleVoice(v,at);});}
     clearTimeout(touchChordTimers[pid(e)]);delete touchChordTimers[pid(e)];
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
     if(padPointer!==undefined && pid(e)===padPointer) {
+      if(recHeld && recUsedPad && !shiftHolds.rec){if(rec.on)finishRec();pendingRecSlot=0;if(latchedKeys.has('rec'))dropLatch('rec');}
       padPointer=undefined; heldPad=0;
     }
     Object.keys(modifierPointers).forEach(function(act){
       if(modifierPointers[act]!==pid(e))return;
       if(touchChord[act]===pid(e) && e.type!=="pointercancel")return;
-      if(e.type==="pointercancel" && touchChord[act]===pid(e)){delete touchChord[act];var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove('transfer-latched');}
+      if(e.type==="pointercancel" && touchChord[act]===pid(e)){latchedKeys.delete(act);delete touchChord[act];var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove('transfer-latched');}
       delete modifierPointers[act];
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {
-        if(!modifierUsed.bpm && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
+        if(!modifierUsed.bpm && (Date.now()-pressedAt.bpm<300 || (pid(e)<0 && pid(e)>-10000)) && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
         bpmHeld=false;persistSoon();
       }
       if(act==="rec") { recPointer=undefined;setRecHeld(false); }
-      if(act==="write") { writeHeld=false;if(!modifierUsed.write && e.type!=="pointercancel")setMode(state.mode==="STEP"?"PLAY":"STEP"); }
+      if(act==="write") { writeHeld=false;if(!modifierUsed.write && (Date.now()-pressedAt.write<300 || (pid(e)<0 && pid(e)>-10000)) && e.type!=="pointercancel")setMode(state.mode==="STEP"?"PLAY":"STEP"); }
       if(act==="fx") {
         fxHeld=false;fxPadPointer=undefined;fxRelease();scheduledEffect=-1;
-        if(!modifierUsed.fx && e.type!=="pointercancel") {
+        if(!modifierUsed.fx && (Date.now()-pressedAt.fx<300 || (pid(e)<0 && pid(e)>-10000)) && e.type!=="pointercancel") {
           tweakMode=(tweakMode+1)%3; parameterDisplay=true;
           showNumber(["ton","FLt","tri"][tweakMode],["TONE","FILTER","TRIM"][tweakMode]);
         }
@@ -2344,7 +2395,7 @@
   window.addEventListener("pointerup",releaseControls);
   window.addEventListener("pointercancel",releaseControls);
   window.addEventListener("blur",function(){
-    clearTouchChord();
+    clearTouchChord();physicalKeys.clear();keyPointers.clear();clearTimeout(deleteHoldTimer);
     shiftHolds={};
     r1Focused=false;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
@@ -2386,10 +2437,10 @@
     }
     var id=shiftPointerSerial--;shiftHolds[key]={id:id};e.po33PointerId=id;
   },true);
-  d.addEventListener("pointerdown",function(e){if(Object.keys(touchChord).length && !e.target.closest(".cbtn,.pad,.knob"))clearTouchChord();},true);
+
   window.addEventListener("keyup",function(e){if(e.key==="Shift" && !e.shiftKey)releaseShiftHolds(false);});
   window.addEventListener("pointercancel",function(e){if(e.pointerType==="mouse")releaseShiftHolds(true);});
-  d.addEventListener("visibilitychange",function(){if(d.hidden)releaseShiftHolds(true);});
+  d.addEventListener("visibilitychange",function(){if(d.hidden){releaseShiftHolds(true);clearTouchChord();physicalKeys.clear();keyPointers.clear();clearTimeout(deleteHoldTimer);}});
 
   // stop long-press selection / context menus anywhere in the app
   d.addEventListener("contextmenu", function (e) { e.preventDefault(); });
@@ -2426,6 +2477,7 @@
   }
   d.addEventListener('pointerdown',function(e){if(!e.target.closest('.knob,.pad'))clearWheelTrim();},true);
   function wheelAdjust(dir) {
+    consumeChord();
     if(stepEdit){adjustKnob(0,dir);return;}
     if(fineTrimWheel(dir))return;
     parameterDisplay=false;
@@ -2475,8 +2527,9 @@
     if(!startupReady){label="LOADING";number="LoAd";}
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
     else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":memLeft().toFixed(1);}
+    if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
-    if(recHeld && (modifierPointers.sound!==undefined||modifierPointers.pattern!==undefined)){label="DELETE";number="dEL";}
+    if(physicalKeys.has("rec") && (physicalKeys.has("sound")||physicalKeys.has("pattern"))){label="DELETE";number="dEL";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
     if(recHeld && !rec.on && !writeHeld && !soundHeld && !patternHeld && !bpmHeld){label=mic.error || 'REC READY';number=mic.error?'err':memLeft().toFixed(1);}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
@@ -2545,6 +2598,7 @@
     });
   }
   function adjustKnob(index,dir) {
+    consumeChord();
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
@@ -2583,15 +2637,15 @@
     showNumber(code,spec[3]);persistSoon();paint();
   }
   d.getElementById("bpmMode").addEventListener("pointerdown",function(e){
-    if(soundHeld && !writeHeld){e.preventDefault();return;}
+    if(soundHeld && !writeHeld){e.preventDefault();consumeChord();bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=true;showNumber(memLeft().toFixed(1),"FREE");paint();return;}
     if(stepEdit && stepEdit.slot>8) {
       e.preventDefault();var counts=[1,2,3,4,6,8],detail=editDetail(stepEdit);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       stepEdit.used=true;detail.retrigs=counts[(counts.indexOf(detail.retrigs)+1)%counts.length];
       showNumber(detail.retrigs,"RETRIG");persistSoon();paint();return;
     }
-    e.preventDefault();if(touchChord.bpm!==undefined){clearTouchChord();return;}
-    parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=false;armChord(e,"bpm",this);paint();
+    e.preventDefault();if(touchChord.bpm!==undefined){dropLatch("bpm");return;}
+    parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=!!e.po33ChordConsumed;armChord(e,"bpm",this);paint();
   });
   ["knobA","knobB"].forEach(function(id,index){
     var knob=d.getElementById(id), active=false,lastY=0;
@@ -2778,6 +2832,7 @@
     }
     var cleared=await callStore(store,"get",PK.meta);if(!cleared.ok || (cleared.value!=null && cleared.value!==""))throw new Error("reset metadata still present");
   }
+  var resetCommitting=false;
   async function factoryReset(recover){
     if(resetBusy)return;
     resetBusy=true;resetFailure=false;persistPaused=true;cancelResetHold();
@@ -2805,20 +2860,33 @@
       while(saveRunning)await new Promise(function(resolve){setTimeout(resolve,20);});
       store=store || storageCandidate();if(!store)throw new Error("storage unavailable");
       if(!recover && !(await callStore(store,"set",PK.reset,"1")).ok)throw new Error("reset marker failed");
-      await clearSamplerStorage();
+      await clearSamplerStorage();failedSaveKeys.clear();storeFail=null;
+      // A reset recovery may run in the same document after a hardware checkpoint.
+      // Rebuild the baseline unconditionally, never seed around old in-memory lanes.
+      samples=Array(16).fill(null);patterns=Array.from({length:16},emptyPattern);
+      patternExtras=Array.from({length:16},function(){return {effects:[],locks:{}};});
+      tweaks=Array.from({length:16},function(){return {pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};});
+      lastNotes=Array(16).fill(0);lastNote=0;state.slot=1;seq.pattern=1;seq.queued=0;masterVolume=8;state.mode="PLAY";
+      physicalKeys.clear();keyPointers.clear();livePadVoices.clear();clearTimeout(deleteHoldTimer);
+      factoryMuted=Array(16).fill(false);patternChain=[];patternSelection=[];chainPosition=0;
+      savedSig=Array(16).fill(null);patSig=Array(16).fill(null);
+      seedFactory(null);
       params.bpm=factoryTempo();SWING=factorySwing();factoryTempoRevision=0;paramIdx=0;parameterDisplay=false;displayValue=null;displayUntil=0;
       if(recover){
+        await restoreAll();params.bpm=factoryTempo();SWING=factorySwing();
+        resetCommitting=true;persistPaused=false;flushPersist();storePump();
+        var resetSaveDeadline=Date.now()+15000;
+        while(saveRunning || saveQueue.length){if(Date.now()>resetSaveDeadline)throw new Error("reset save timeout");await new Promise(function(resolve){setTimeout(resolve,20);});}
+        if(failedSaveKeys.size)throw new Error("reset save failed");
         if(!(await callStore(store,"remove",PK.reset)).ok)throw new Error("reset marker failed");
-        resetBusy=false;persistPaused=false;
-        resetUntil=Date.now()+1500;d.body.removeAttribute("data-resetting");
-        await restoreAll();params.bpm=factoryTempo();SWING=factorySwing();persistSoon();resetUntil=Date.now()+1500;paint();
+        resetCommitting=false;resetBusy=false;resetUntil=Date.now()+1500;d.body.removeAttribute("data-resetting");paint();
       } else {
         // A fresh document also discards audio buffers, microphone state and FX history.
         await new Promise(function(resolve){setTimeout(resolve,700);});
         window.location.reload();
       }
     }catch(err){
-      resetBusy=false;resetFailure=true;persistPaused=true;
+      resetCommitting=false;resetBusy=false;resetFailure=true;persistPaused=true;
       d.body.removeAttribute("data-resetting");paint();
     }
   }

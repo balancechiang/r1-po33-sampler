@@ -1,12 +1,18 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
+from functools import partial
+from threading import Thread
 
 root=Path(__file__).parent
+class Quiet(SimpleHTTPRequestHandler):
+ def log_message(self,*args):pass
+server=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(root)));Thread(target=server.serve_forever,daemon=True).start()
 with sync_playwright() as p:
     browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
     page=browser.new_page(viewport={'width':240,'height':282})
     errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-    page.goto((root/'index.html').as_uri());page.wait_for_timeout(600)
+    page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_function('document.body.dataset.loading==="false"')
     def click(sel):page.locator(sel).click(force=True)
     def pad(n):return f'[data-pad="{n}"]'
     def shift():page.keyboard.down('Shift')
@@ -46,7 +52,7 @@ with sync_playwright() as p:
     # Shift-held BPM plus a knob adjusts swing without a tap-tempo side effect.
     shift();click('#bpmMode')
     page.locator('#knobA').evaluate('e=>e.dispatchEvent(new WheelEvent("wheel",{deltaY:-1,bubbles:true,cancelable:true}))')
-    release();assert meta()['bpm']==120 and meta()['swing']>0
+    release();assert meta()['bpm']==132 and meta()['swing']>0
     # Hold FX and a number simultaneously with one mouse; playback level is centered.
     click('[data-act="play"]');page.wait_for_timeout(400)
     assert page.locator('#lcdMeter').get_attribute('data-indicator-origin')=='center'
@@ -67,3 +73,5 @@ with sync_playwright() as p:
     assert not errors,errors
     print('PASS: real Shift+mouse slot selection, two-modifier slice copy, delayed toggle-off, held step+knob, held recording, BPM+knob, FX+pad, Shift-up/blur cleanup; symmetric 32-cell playback meter and stopped-mode origin. No JS errors.')
     browser.close()
+
+server.shutdown();server.server_close()
