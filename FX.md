@@ -6,10 +6,10 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 
 | Key | Official effect | App implementation |
 | --- | --- | --- |
-| 01 | Loop 16 | Retrigger the current step 16 times within its original step duration; proceed to the next step on the original clock. |
-| 02 | Loop 12 | Same per-step subdivision, 12 repeats per step. |
-| 03 | Loop short | Same per-step subdivision, 32 repeats per step (L32). |
-| 04 | Loop shorter | Same per-step subdivision, 48 repeats per step (L48). |
+| 01 | Loop 16 | Hold the audible pattern and cycle its 16 sequencer steps; the original chain clock continues independently. |
+| 02 | Loop 12 | Cycle a 12-step window starting at the audible step captured on press, within the captured pattern. |
+| 03 | Loop short | Hold the captured step and retrigger its notes every half-step (32nd notes, two hits per original step). |
+| 04 | Loop shorter | Hold the captured step and retrigger its notes every third-step (48th notes, three hits per original step). |
 | 05 | Unison | Live dry signal plus a slightly detuned granular delay voice (ratio 1.008). |
 | 06 | Unison low | Live dry signal plus a sub-octave granular delay voice (ratio 0.5). |
 | 07 | Octave up | Glide each active source from its current playback rate toward twice its neutral rate (35ms exponential time constant); new notes start at their base rate and glide too. |
@@ -38,7 +38,7 @@ from the supplied third-party implementation guide has been added.
 - If a loop is requested before enough history exists, use the available material.
   A request made before any signal waits for the first sound instead of freezing
   silence. Short edge fades keep captured loop periods intact.
-- 05, 06, 09 and 10 run on the master stream. 01–04 use short per-sound loop cells; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
+- 05, 06, 09 and 10 run on the master stream. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
   individual source regions, including independently copied drum slices.
 - The Unison stream pitch shifter uses two overlapping 40ms delay grains; it preserves ongoing
   input timing rather than repeatedly replaying a frozen bar. Granular coloration
@@ -76,10 +76,18 @@ used to replace the official mapping. Display aliases do not establish exact fir
 ## Step-based performance model (2026-11-22)
 
 The Loop and Scratch behavior above follows the user's specified performance model,
-not a verified reverse engineering of the firmware DSP. Loop uses a tiny derived PCM
-cell and one native looping source per sounding slot per step. It does not allocate
-16–48 complete voice chains per hit. Fractional loopEnd gives the exact subdivision
-period, and the step gate still ends on the original BPM grid. Original PCM is unchanged.
+not a verified reverse engineering of the firmware DSP. Current Loop playback does
+not capture mixed output or construct repeated-audio cells. Every retrigger references
+the original slot/slice PCM and passes through the same slot choke and four-voice allocator.
+A tiny edge fade avoids a discontinuity without adding reverberation or sustained overlap.
+
+A shadow cursor retains the original chain index (including repeated pattern entries),
+pattern, step and fractional step phase. It progresses using audio-clock time independently
+of the foreground Loop cursor. Releasing a Loop joins that position, then schedules
+subsequent notes on the original grid. Changing Loop type preserves the same shadow
+clock; tempo changes advance it with the old tempo before accepting the new value.
+Recorded Loop automation uses the shadow position to detect the end of its effect span,
+so a foreground hold does not trap the song permanently in an automated effect.
 
 Live Scratch cancels unheard lookahead, freezes the audible pattern/step, preserves
 its silence if empty, and alternates real forward/reversed sample buffers. Each hit

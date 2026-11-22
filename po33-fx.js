@@ -93,7 +93,7 @@
   };
   function quantizeStep(step){return Math.round(step*12/16)*16/12;}
   var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st4","st3","scr","scf","6-8","rtr","rev","non"];
-  function stepRepeats(kind){return ({1:16,2:12,3:32,4:48})[kind] || 0;}
+  function stepRepeats(kind){return ({3:2,4:3})[kind] || 0;}
   function loopCell(pcm,offset,available,rate,period,playbackRate){
     var frames=Math.max(2,Math.ceil(period*rate*playbackRate)+1),out=new Float32Array(frames),start=Math.max(0,Math.round(offset*rate)),count=Math.min(frames,Math.round(available*rate),pcm.length-start);
     if(count>0)out.set(pcm.subarray(start,start+count));

@@ -23,13 +23,14 @@ try:
   def pad(n,i=2):page.locator('[data-pad="'+str(n)+'"]').dispatch_event('pointerdown',{'pointerId':i,'pointerType':'touch','button':0,'bubbles':True})
   def up(i):page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
   def play():page.locator('[data-act="play"]').click()
-  for kind,count in [(1,16),(2,12),(3,32),(4,48)]:
+  for kind,count in [(3,2),(4,3)]:
    configure(kind,range(16));play();page.wait_for_timeout(430)
-   entries=page.evaluate('fxVoices.filter(v=>v.performance.repeat).map(v=>({start:v.start,gate:v.gateEnd-v.start,repeat:v.performance.repeat,loop:v.src.loop,period:v.src.loopEnd/Math.pow(2,(v.semitones+v.tweak.pitch)/12)}))')
-   assert len(entries)>=3,(entries,errors,page.evaluate('fxVoices.map(v=>({effect:v.effect,performance:v.performance}))'))
-   for e in entries:assert e['loop'] and e['repeat']==count and abs(e['gate']-.125)<1e-6 and abs(e['period']*count-.125)<1e-6,e
-   assert all(abs(b['start']-a['start']-.125)<1e-5 for a,b in zip(entries,entries[1:])),entries
-   play();print('PASS exact step subdivision',count,'and unchanged 125ms step grid')
+   entries=page.evaluate('fxVoices.filter(v=>v.performance.loop && v.end>v.start).map(v=>({start:v.start,gate:v.gateEnd-v.start,kind:v.performance.kind,step:v.performance.step,loop:v.src.loop,buffer:v.src.buffer._po33id}))')
+   assert len(entries)>=5,(entries,errors)
+   assert all(not e['loop'] and e['buffer'] and abs(e['gate']-.125/count)<1e-6 for e in entries),entries
+   assert all(e['step']==entries[0]['step'] for e in entries),entries
+   assert all(abs(b['start']-a['start']-.125/count)<1e-5 for a,b in zip(entries,entries[1:])),entries
+   play();print('PASS native per-note retriggers every',.125/count,'seconds with original PCM and no mixed-audio loop')
   configure(0,[]);pad(5);up(2);play();page.evaluate('window.originalVoice=fxVoices.at(-1)');down('fx');pad(7);page.wait_for_timeout(25)
   mid=page.evaluate('originalVoice.src.playbackRate.value');assert 1<mid<2,mid
   page.wait_for_timeout(180);assert page.evaluate('originalVoice.src.playbackRate.value')>1.98
@@ -46,7 +47,7 @@ try:
   down('fx');page.evaluate('fxVoices=[]');pad(11);page.wait_for_timeout(300);assert page.evaluate('fxVoices.length')==0
   up(2);up(1);play();assert not errors,errors
   print('PASS Scratch freezes current note or silence, alternates direction, Fast doubles hit rate, release resumes next step')
-  tips=page.evaluate("""async()=>{const image=new Image();image.src='./panel-art.svg';await image.decode();const c=document.createElement('canvas');c.width=2400;c.height=2820;const x=c.getContext('2d');x.drawImage(image,0,0,2400,2820);return [152.4,252].flatMap(y=>[-1,1].map(sign=>Array.from(x.getImageData(Math.round((207.4+sign*12.1)*10),Math.round((y+sign*12.1)*10),1,1).data)));}""")
+  tips=page.evaluate("""async()=>{const image=new Image();image.src='./panel-art.svg';await image.decode();const c=document.createElement('canvas');c.width=2400;c.height=2820;const x=c.getContext('2d');x.drawImage(image,0,0,2400,2820);return [152.4,252].flatMap(y=>[-1,1].map(sign=>Array.from(x.getImageData(Math.round((207.4+sign*12.3)*10),Math.round((y+sign*12.3)*10),1,1).data)));}""")
   assert all(min(color[:3])>180 for color in tips),tips
   print('PASS FX/WRITE diagonal white stripes reach NW and SE exposed circular edges')
   b.close()

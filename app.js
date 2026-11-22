@@ -785,7 +785,7 @@
   var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
   var fxTimers=[], transportGeneration=0, scheduledEffect=0;
   var sampleVoices=[], reversedBuffers=new WeakMap();
-  var voiceEffect=0,scratchHold=null;
+  var voiceEffect=0,scratchHold=null,loopHold=null;
 
   function fxInstall() {
     if(fx.installed)return;
@@ -820,10 +820,11 @@
     rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
     if(previous===15 && kind!==15)refreshVoices(kind,true);
     if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern);
+    if(loopHold && !(kind>=1 && kind<=4))releaseLoop();
     if(scratchHold && kind!==11 && kind!==12)releaseScratch();
     if(!fromPattern && (kind===11 || kind===12) && seq.playing)holdScratch(kind);
     if(kind===7 || kind===8)glideOctave(kind,fromPattern);
-    if(!fromPattern && window.PO33FX.stepRepeats(kind) && seq.playing)rescheduleStepTail(kind);
+    if(kind>=1 && kind<=4 && seq.playing)holdLoop(kind,!!fromPattern);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
     if(!fromPattern && kind===15)refreshVoices(15,true);
 
@@ -834,7 +835,7 @@
     var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
     if(scratchHold)releaseScratch();
     if(previous===7 || previous===8)glideOctave(0,fromPattern);
-    if(window.PO33FX.stepRepeats(previous) && !fromPattern && seq.playing)rescheduleStepTail(0);
+    if(loopHold)releaseLoop();
     if(previous===15 && !fromPattern)refreshVoices(0,false);
   }
   function reverseBuffer(buffer) {
@@ -862,6 +863,7 @@
     } catch(err) {}
   }
   function cancelVoice(v,now) {
+    v.cutAt=now;v.end=Math.min(v.end,now);
     try{
       v.gain.gain.cancelScheduledValues(now);
       v.gain.gain.setValueAtTime(v.start>now?0:.95,now);
@@ -909,14 +911,44 @@
     if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
     scheduledEffect=-1;
   }
-  function rescheduleStepTail(effect){
-    var now=ctx().currentTime,audible=audibleStepAt(now),step=audible.step,pattern=audible.pattern,start=audible.start;
-    sampleVoices.slice().forEach(function(v){if(v.start>now)cancelVoice(v,now);});
-    visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);chainPosition=audible.chain;resetStepCursor(step,pattern,Math.max(now+.008,start+stepDur()));
-    // Current step is retriggered now; the following step keeps its existing grid time.
-    var next=seq.nextTime;seq.pattern=pattern;fireStep(step,now+.004,effect);seq.schedStep=step+1;
-    if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
-    seq.nextTime=next;
+  function advanceLoopShadow(now){
+    if(!loopHold)return;var h=loopHold.shadow;
+    h.phase+=Math.max(0,now-h.last)/stepDur();h.last=now;
+    while(h.phase>=1){h.phase-=1;h.step++;if(h.step>=16){h.step=0;if(h.order.length>1)h.chain=(h.chain+1)%h.order.length;if(h.order.length)h.pattern=h.order[h.chain];if(h.queued){h.pattern=h.queued;h.queued=0;}}if(exporting)exportSteps++;}
+  }
+  function holdLoop(kind,automatic){
+    var now=ctx().currentTime,audible=audibleStepAt(now),old=loopHold;
+    if(old)advanceLoopShadow(now);
+    var shadow=old?old.shadow:{step:audible.step,pattern:audible.pattern,chain:audible.chain,phase:Math.max(0,(now-audible.start)/stepDur()+(audible.step%2?SWING:0)),last:now,order:patternChain.slice(),queued:seq.queued};
+    if(exporting)exportSteps-=visQueue.filter(function(e){return e.t>now;}).length;
+    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);
+    loopHold={kind:kind,automatic:automatic,pattern:audible.pattern,chain:audible.chain,origin:audible.step,index:0,next:now+.004,shadow:shadow};
+    advanceLoopShadow(now);scheduledEffect=kind;seq.queued=0;scheduler();
+  }
+  function scheduleLoop(now){
+    var h=loopHold;advanceLoopShadow(now);
+    if(h.automatic){var effect=patternExtras[h.shadow.pattern-1].effects[h.shadow.step] || 0;if(effect!==h.kind){fxRelease(true);return;}}
+    if(h.next<now)h.next=now+.004;
+    var period=stepDur()/(h.kind===3?2:h.kind===4?3:1),guard=0;
+    while(h.next<now+.12 && guard++<128){
+      if(exporting && exportSteps>=EXPORT_BARS*STEPS)break;
+      var step=h.kind<=2?(h.origin+h.index%(h.kind===1?16:12))%16:h.origin;
+      seq.pattern=h.pattern;fireStep(step,h.next,h.kind,{loop:true,kind:h.kind,step:step,period:period});
+      visQueue.push({t:h.next,s:step,pattern:h.pattern,chain:h.chain});h.index++;h.next+=period;
+    }
+  }
+  function releaseLoop(){
+    if(!loopHold)return;var now=ctx().currentTime;advanceLoopShadow(now);var h=loopHold.shadow;loopHold=null;
+    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);
+    chainPosition=h.chain;seq.pattern=h.pattern;seq.queued=h.queued;seq.schedStep=h.step;scheduledEffect=-1;
+    seq.step=h.step;seq.visualPattern=h.pattern;seq.visualChainPosition=h.chain;seq.visualStepTime=now-h.phase*stepDur();paintChase();
+    if(!seq.playing){seq.nextTime=now+.012;return;}
+    // Resume the actual background step now, then keep its original next grid boundary.
+    var effect=effectAt(h.step);if(effect===16)effect=0;
+    var boundary=now+(1-h.phase)*stepDur(),at=now+Math.max(.004,(h.step%2?SWING-h.phase:0)*stepDur());
+    if(at<boundary-.004){fireStep(h.step,at,effect);visQueue.push({t:at,s:h.step,pattern:h.pattern,chain:h.chain});}
+    seq.schedStep=h.step+1;seq.nextTime=boundary;
+    if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}if(seq.queued){seq.pattern=seq.queued;seq.queued=0;}}
   }
   function restartPatternFx() {
     var now=ctx().currentTime;
@@ -963,7 +995,7 @@
     setVoiceControls(controls,voiceTweak,when===undefined?c.currentTime:when,true);return controls;
   }
   function replanVoice(v){
-    var now=ctx().currentTime,desired=Math.min(v.looped?v.gateEnd:v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
+    var now=ctx().currentTime,desired=Math.min(v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
     if(desired<=now){v.end=now;cutSampleVoice(v,now);return;}
     window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
     var end=v.end,gain=v.gain.gain,time=Math.max(now,v.start),release=Math.min(.003,Math.max(0,end-time)*.3);
@@ -1144,10 +1176,6 @@
     var playbackBuffer = voiceEffect===15 || performance.reverse?reverseBuffer(s.buffer):s.buffer;
     if(voiceEffect===15 || performance.reverse)off=Math.max(0,s.buffer.duration-off-avail);
     src.playbackRate.value = speed.rate;
-    if(performance.repeat){
-      var cell=window.PO33FX.loopCell(playbackBuffer.getChannelData(0),off,avail,playbackBuffer.sampleRate,performance.period,rate),loop=c.createBuffer(1,cell.length,playbackBuffer.sampleRate);loop.copyToChannel(cell,0);
-      playbackBuffer=loop;off=0;src.loop=true;src.loopStart=0;src.loopEnd=performance.period*rate;dur=s.gateSeconds;avail=dur*rate;
-    }
     src.buffer=playbackBuffer;speed.apply(src.playbackRate,t);
     var g = c.createGain();
     g.gain.setValueAtTime(0, t);
@@ -1156,9 +1184,9 @@
     g.gain.linearRampToValueAtTime(0, t + dur);
     var controls=connectVoice(g,slotNumForVoice,when);
     src.connect(controls.input);
-    if(performance.repeat)src.start(t,off);else src.start(t,off,avail);
+    src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,looped:!!performance.repeat,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1214,7 +1242,7 @@
     if(shakeFx)return shakeFx;
     return patternExtras[seq.pattern-1].effects[step] || 0;
   }
-  function fireStep(step, when,effect) {
+  function fireStep(step, when,effect,loopEvent) {
     var pat = patterns[seq.pattern - 1];
     var extra = patternExtras[seq.pattern - 1];
     if(!fxHeld && !shakeFx && effect!==scheduledEffect)queueFx(effect,when);
@@ -1225,28 +1253,31 @@
     for (var i = 0; i < TOTAL_SLOTS; i++) {
       var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
-      if (v >= 0) {
+      // A queued Loop takes ownership at its audible onset; do not double-trigger it.
+      if (v >= 0 && !(!loopEvent && effect>=1 && effect<=4)) {
 
         var detail=extra && extra.steps && extra.steps[i+":"+step];
         var repeats=window.PO33FX.stepRepeats(effect);
-        if(repeats)voice(i+1,v,when,stepDur(),effect,undefined,{repeat:repeats,period:stepDur()/repeats});
+        if(loopEvent)voice(i+1,v,when,loopEvent.kind>=3?loopEvent.period:(i<8 && detail && detail.length?detail.length*stepDur():undefined),effect,undefined,loopEvent);
+        else if(repeats){for(var roll=0;roll<repeats;roll++)voice(i+1,v,when+roll*stepDur()/repeats,stepDur()/repeats,effect,undefined,{loop:true,kind:effect,step:step,period:stepDur()/repeats});}
         else if(effect===11 || effect===12){var count=effect===11?2:4;for(var sh=0;sh<count;sh++)voice(i+1,v,when+sh*stepDur()/count,stepDur()/count,effect,undefined,{scratch:true,reverse:!!(sh%2)});}
         else {var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
           for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);}
 
       }
     }
-    seq.totalSteps++;
+    if(!loopEvent)seq.totalSteps++;
     seq.lastStepIdx = step;
     seq.lastStepTime = when;
-    if (exporting) exportSteps++;
+    if (exporting && !loopEvent) exportSteps++;
   }
 
   function scheduler() {
     if (!ac || !seq.playing || ac.state!=="running") return;
     var now = ac.currentTime;
+    if(loopHold){scheduleLoop(now);return;}
     if(scratchHold){scheduleScratch(now);return;}
-    if (seq.nextTime < now) seq.nextTime = now + 0.02;
+    if (seq.nextTime < now-stepDur()) seq.nextTime = now + 0.02;
     var guard = 0;
     while (seq.nextTime < now + 0.12 && guard++ < 64) {
       // an export stops scheduling once its 64 steps are in; the recorder
@@ -2474,6 +2505,7 @@
       delete modifierPointers[act];
       if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
       if(act==="bpm") {
+        if(loopHold)advanceLoopShadow(ctx().currentTime);
         if(!modifierUsed.bpm && (Date.now()-pressedAt.bpm<300 || (pid(e)<0 && pid(e)>-10000)) && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
         bpmHeld=false;persistSoon();
       }
@@ -2585,6 +2617,7 @@
   }
   d.addEventListener('pointerdown',function(e){if(!e.target.closest('.knob,.pad'))clearWheelTrim();},true);
   function wheelAdjust(dir) {
+    if(loopHold)advanceLoopShadow(ctx().currentTime);
     consumeChord();
     if(stepEdit){adjustKnob(0,dir);return;}
     if(fineTrimWheel(dir))return;
@@ -2710,6 +2743,7 @@
     });
   }
   function adjustKnob(index,dir) {
+    if(loopHold)advanceLoopShadow(ctx().currentTime);
     consumeChord();
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
