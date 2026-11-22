@@ -785,7 +785,7 @@
   var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
   var fxTimers=[], transportGeneration=0, scheduledEffect=0;
   var sampleVoices=[], reversedBuffers=new WeakMap();
-  var voiceEffect=0;
+  var voiceEffect=0,scratchHold=null;
 
   function fxInstall() {
     if(fx.installed)return;
@@ -815,17 +815,26 @@
     if(kind===16){fxRelease();return;}
     if(kind<1||kind>15)return;
     var c=ctx(),now=c.currentTime;fxInstall();
-    var previous=fx.kind;fx.kind=kind;fx.engine.engage(kind,stepDur());
-    var stream=kind<=12;
+    var previous=fx.kind;fx.kind=kind;
+    var stream=[5,6,9,10].indexOf(kind)>=0;fx.engine.engage(stream?kind:0,stepDur());
     rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
+    if(previous===15 && kind!==15)refreshVoices(kind,true);
+    if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern);
+    if(scratchHold && kind!==11 && kind!==12)releaseScratch();
+    if(!fromPattern && (kind===11 || kind===12) && seq.playing)holdScratch(kind);
+    if(kind===7 || kind===8)glideOctave(kind,fromPattern);
+    if(!fromPattern && window.PO33FX.stepRepeats(kind) && seq.playing)rescheduleStepTail(kind);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
     if(!fromPattern && kind===15)refreshVoices(15,true);
-    else if(!fromPattern && previous===15)refreshVoices(0,false);
+
   }
   function fxRelease(fromPattern) {
     if(!fx.kind)return;
     var previous=fx.kind;fx.kind=0;if(fx.engine)fx.engine.release();
     var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
+    if(scratchHold)releaseScratch();
+    if(previous===7 || previous===8)glideOctave(0,fromPattern);
+    if(window.PO33FX.stepRepeats(previous) && !fromPattern && seq.playing)rescheduleStepTail(0);
     if(previous===15 && !fromPattern)refreshVoices(0,false);
   }
   function reverseBuffer(buffer) {
@@ -867,6 +876,47 @@
       cancelVoice(v,now);
       voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,Object.assign({},v.tweak,effectiveTweak(v.slot,Math.max(now,v.start))));
     });
+  }
+  function glideOctave(kind,fromPattern){
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at),base=Math.pow(2,(v.semitones+values.pitch)/12);v.effect=kind;v.speed.target(at,base*(kind===7?2:kind===8?.5:1),.035,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);});
+  }
+  function resetStepCursor(step,pattern,time){
+    seq.pattern=pattern;seq.schedStep=step;seq.nextTime=time;seq.queued=0;
+    if(patternChain.length && patternChain[chainPosition]!==pattern){var prior=(chainPosition+patternChain.length-1)%patternChain.length;chainPosition=patternChain[prior]===pattern?prior:Math.max(0,patternChain.indexOf(pattern));}
+  }
+  function audibleStepAt(now){
+    var current={step:seq.step,pattern:seq.visualPattern || seq.pattern,start:seq.visualStepTime || now,chain:seq.visualChainPosition || 0};
+    visQueue.forEach(function(e){if(e.t<=now)current={step:e.s,pattern:e.pattern,start:e.t,chain:e.chain};});return current;
+  }
+  function holdScratch(kind){
+    var now=ctx().currentTime,old=scratchHold,audible=audibleStepAt(now),pattern=old?old.pattern:audible.pattern,step=old?old.step:audible.step;
+    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
+    parameterLatches.stop(now);scratchHold={pattern:pattern,step:step,chain:old?old.chain:audible.chain,next:now+.004,hit:0,kind:kind};
+    seq.step=step;seq.visualPattern=pattern;seq.visualChainPosition=scratchHold.chain;seq.visualStepTime=now;seq.visualStarted=true;paintChase();scheduledEffect=kind;clearFxTimers();transportGeneration++;
+    scheduler();
+  }
+  function scheduleScratch(now){
+    var hold=scratchHold,period=stepDur()/(hold.kind===11?2:4);
+    if(hold.next<now)hold.next=now+.004;
+    while(hold.next<now+.12){var pat=patterns[hold.pattern-1];for(var i=0;i<16;i++){var note=pat.lanes[i][hold.step];if(note>=0)voice(i+1,note,hold.next,period,hold.kind,undefined,{scratch:true,reverse:!!(hold.hit%2)});}hold.hit++;hold.next+=period;}
+  }
+  function releaseScratch(){
+    if(!scratchHold)return;var hold=scratchHold,now=ctx().currentTime;scratchHold=null;
+    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
+    // Finish the held step and resume its successor, including the pattern boundary.
+    chainPosition=hold.chain;resetStepCursor(hold.step,hold.pattern,now+.008);seq.schedStep=hold.step+1;
+    if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
+    scheduledEffect=-1;
+  }
+  function rescheduleStepTail(effect){
+    var now=ctx().currentTime,audible=audibleStepAt(now),step=audible.step,pattern=audible.pattern,start=audible.start;
+    sampleVoices.slice().forEach(function(v){if(v.start>now)cancelVoice(v,now);});
+    visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);chainPosition=audible.chain;resetStepCursor(step,pattern,Math.max(now+.008,start+stepDur()));
+    // Current step is retriggered now; the following step keeps its existing grid time.
+    var next=seq.nextTime;seq.pattern=pattern;fireStep(step,now+.004,effect);seq.schedStep=step+1;
+    if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
+    seq.nextTime=next;
   }
   function restartPatternFx() {
     var now=ctx().currentTime;
@@ -913,7 +963,7 @@
     setVoiceControls(controls,voiceTweak,when===undefined?c.currentTime:when,true);return controls;
   }
   function replanVoice(v){
-    var now=ctx().currentTime,desired=Math.min(v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
+    var now=ctx().currentTime,desired=Math.min(v.looped?v.gateEnd:v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
     if(desired<=now){v.end=now;cutSampleVoice(v,now);return;}
     window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
     var end=v.end,gain=v.gain.gain,time=Math.max(now,v.start),release=Math.min(.003,Math.max(0,end-time)*.3);
@@ -926,7 +976,7 @@
     var values=effectiveTweak(v.slot,time);v.tweak=JSON.parse(JSON.stringify(effectiveTweak(v.slot,now)));
     setVoiceControls(v.controls,values,time,false);
     if(Number.isFinite(patch.pitch)){
-      v.speed.target(time,Math.pow(2,(v.semitones+values.pitch)/12),.015,now);
+      v.speed.target(time,Math.pow(2,(v.semitones+values.pitch)/12)*(v.effect===7?2:v.effect===8?.5:1),.015,now);
       v.speed.apply(v.src.playbackRate,now);replanVoice(v);
     }
   }
@@ -1086,11 +1136,19 @@
     var off = (s.offset || 0) + trimOff;
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);
     if (avail<=0)return;
-    var dur = Math.min(avail / rate,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
+    var speed=new window.PO33LiveVoice.Speed(t,rate),performance=s.performance || {};
+    if(voiceEffect===7 || voiceEffect===8)speed.target(t,rate*(voiceEffect===7?2:.5),.035,t);
+    if(performance.scratch){speed=new window.PO33LiveVoice.Speed(t,rate*.8);speed.target(t,rate*1.4,.008,t);speed.target(t+(s.gateSeconds || .06)*.45,rate*.5,.012,t);}
+    var dur = Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
     var src = c.createBufferSource();
-    src.buffer = voiceEffect===15?reverseBuffer(s.buffer):s.buffer;
-    if(voiceEffect===15)off=Math.max(0,s.buffer.duration-off-avail);
-    src.playbackRate.value = rate;
+    var playbackBuffer = voiceEffect===15 || performance.reverse?reverseBuffer(s.buffer):s.buffer;
+    if(voiceEffect===15 || performance.reverse)off=Math.max(0,s.buffer.duration-off-avail);
+    src.playbackRate.value = speed.rate;
+    if(performance.repeat){
+      var cell=window.PO33FX.loopCell(playbackBuffer.getChannelData(0),off,avail,playbackBuffer.sampleRate,performance.period,rate),loop=c.createBuffer(1,cell.length,playbackBuffer.sampleRate);loop.copyToChannel(cell,0);
+      playbackBuffer=loop;off=0;src.loop=true;src.loopStart=0;src.loopEnd=performance.period*rate;dur=s.gateSeconds;avail=dur*rate;
+    }
+    src.buffer=playbackBuffer;speed.apply(src.playbackRate,t);
     var g = c.createGain();
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(0.95, t + attack);
@@ -1098,13 +1156,13 @@
     g.gain.linearRampToValueAtTime(0, t + dur);
     var controls=connectVoice(g,slotNumForVoice,when);
     src.connect(controls.input);
-    src.start(t,off,avail);
+    if(performance.repeat)src.start(t,off);else src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:new window.PO33LiveVoice.Speed(t,rate),span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,looped:!!performance.repeat,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
-  function voice(slotNum,padIndex,when,gateSeconds,effect,override) {
+  function voice(slotNum,padIndex,when,gateSeconds,effect,override,performance) {
     slotNumForVoice=slotNum;voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
     var at=when===undefined?ctx().currentTime:when;
     window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice);
@@ -1113,7 +1171,7 @@
     var view=slotNum>8?rawSlice(sample,padIndex):sample;if(!view)return;
     var trim=slotNum>8?(tw.slices[padIndex] || {start:0,length:100}):tw;
     var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
-    var s={buffer:view.buffer,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds};
+    var s={buffer:view.buffer,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
     playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 
@@ -1170,8 +1228,12 @@
       if (v >= 0) {
 
         var detail=extra && extra.steps && extra.steps[i+":"+step];
-        var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
-        for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);
+        var repeats=window.PO33FX.stepRepeats(effect);
+        if(repeats)voice(i+1,v,when,stepDur(),effect,undefined,{repeat:repeats,period:stepDur()/repeats});
+        else if(effect===11 || effect===12){var count=effect===11?2:4;for(var sh=0;sh<count;sh++)voice(i+1,v,when+sh*stepDur()/count,stepDur()/count,effect,undefined,{scratch:true,reverse:!!(sh%2)});}
+        else {var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
+          for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);}
+
       }
     }
     seq.totalSteps++;
@@ -1183,6 +1245,7 @@
   function scheduler() {
     if (!ac || !seq.playing || ac.state!=="running") return;
     var now = ac.currentTime;
+    if(scratchHold){scheduleScratch(now);return;}
     if (seq.nextTime < now) seq.nextTime = now + 0.02;
     var guard = 0;
     while (seq.nextTime < now + 0.12 && guard++ < 64) {
@@ -1195,7 +1258,7 @@
       if(effect===14 && scheduledEffect!==14){s=0;seq.schedStep=0;}
       var at = effect===13 ? t+(window.PO33FX.quantizeStep(s)-s)*stepDur() : ((s % 2 === 1) ? t + stepDur() * SWING : t);
       fireStep(s, at,effect);
-      visQueue.push({ t: at, s: s, pattern: seq.pattern });
+      visQueue.push({ t: at, s: s, pattern: seq.pattern,chain:chainPosition });
       seq.schedStep++;
       seq.nextTime += stepDur();
       if (seq.schedStep >= STEPS) {
@@ -1226,7 +1289,7 @@
     window.PO33Runtime.resume(c,true);
     seq.playing = true;
     clearFxTimers();transportGeneration++;scheduledEffect=0;
-    seq.visualPattern = seq.pattern;
+    seq.visualPattern = seq.pattern;seq.visualChainPosition=chainPosition;
     seq.visualStarted = false;
     seq.schedStep = 0;
     seq.step = 0;
@@ -1282,7 +1345,7 @@
     }
     if (lit >= 0 && (!seq.visualStarted || lit !== seq.step || audiblePattern !== seq.visualPattern)) {
       seq.step = lit;
-      seq.visualPattern = audiblePattern;
+      seq.visualPattern = audiblePattern;seq.visualChainPosition=visual.chain;seq.visualStepTime=visual.t;
       seq.visualStarted = true;
       paintChase();
       mascotPunch(lit);

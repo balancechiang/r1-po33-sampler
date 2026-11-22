@@ -11,7 +11,7 @@ try:
  with sync_playwright() as p:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio'])
   c=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True);page=c.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));cdp=c.new_cdp_session(page)
-  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui15.html');page.wait_for_function('document.body.dataset.loading==="false"')
+  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui16.html');page.wait_for_function('document.body.dataset.loading==="false"')
   key='po33.install.flowers-20261120.po33.meta'
   def meta():page.wait_for_timeout(350);return page.evaluate('k=>JSON.parse(atob(localStorage.getItem(k)))',key)
   def latch():

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="282" viewBox="0 0 240 282">
-<defs><pattern id="stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><path d="M0 0V4M4 0V4" stroke="#000" stroke-width="2"/></pattern><g id="switch-cap"><rect x="-12.5" y="-12.5" width="25" height="25" rx="2.2" fill="#999"/><circle r="6.5" fill="#000"/></g></defs>
+<defs><pattern id="stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><rect width="4" height="4" fill="#000"/><path d="M0 0V4M4 0V4" stroke="#fff" stroke-width="2"/></pattern><g id="switch-cap"><rect x="-12.5" y="-12.5" width="25" height="25" rx="2.2" fill="#999"/><circle r="6.5" fill="#000"/></g></defs>
 <g class="switch" data-control="sound" transform="translate(32.2000 52.8000)"><circle class="backdrop" r="16.77" fill="#ff5705"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="pattern" transform="translate(76.0000 52.8000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="bpm" transform="translate(119.8000 52.8000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
@@ -20,9 +20,9 @@
 <g class="switch" data-control="15" transform="translate(119.8000 252.0000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="16" transform="translate(163.6000 252.0000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="record" transform="translate(207.4000 102.6000)"><circle class="backdrop" r="16.77" fill="#ff5705"/><use href="#switch-cap"/></g>
-<g class="switch" data-control="fx" transform="translate(207.4000 152.4000)"><circle class="backdrop" r="16.77" fill="url(#stripes)"/><use href="#switch-cap"/></g>
+<g class="switch" data-control="fx" transform="translate(207.4000 152.4000)"><circle class="backdrop" r="17.4" fill="url(#stripes)"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="play" transform="translate(207.4000 202.2000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
-<g class="switch" data-control="write" transform="translate(207.4000 252.0000)"><circle class="backdrop" r="16.77" fill="url(#stripes)"/><use href="#switch-cap"/></g>
+<g class="switch" data-control="write" transform="translate(207.4000 252.0000)"><circle class="backdrop" r="17.4" fill="url(#stripes)"/><use href="#switch-cap"/></g>
 <g class="knob-case" data-knob="a" transform="translate(163.8339 52.852)"><rect x="-19" y="-20.4" width="38" height="41.8" rx="3.4" fill="#999"/><circle cx="-15" cy="-16.2" r="2.05" fill="#000"/><circle cx="15.05" cy="17.2" r="2.05" fill="#000"/></g>
 <g class="knob-case" data-knob="b" transform="translate(208.0034 52.852)"><rect x="-19" y="-20.4" width="38" height="41.8" rx="3.4" fill="#999"/><circle cx="-15" cy="-16.2" r="2.05" fill="#000"/><circle cx="15.05" cy="17.2" r="2.05" fill="#000"/></g>
 </svg>
