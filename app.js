@@ -951,17 +951,17 @@
     if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}if(seq.queued){seq.pattern=seq.queued;seq.queued=0;}}
   }
   function restartPatternFx() {
-    var now=ctx().currentTime;
-    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});
-    clearFxTimers();transportGeneration++;parameterLatches.stop(now);
-    seq.pattern=seq.visualPattern || seq.pattern;
-    if(patternChain.length && patternChain[chainPosition]!==seq.pattern){
-      var prior=(chainPosition+patternChain.length-1)%patternChain.length;
-      chainPosition=patternChain[prior]===seq.pattern?prior:Math.max(0,patternChain.indexOf(seq.pattern));
-    }
-    seq.schedStep=0;seq.step=0;seq.visualStarted=false;
-    seq.nextTime=now+.02;visQueue=[];scheduledEffect=14;
-    scheduler();paint();
+    var now=ctx().currentTime,audible=audibleStepAt(now);
+    // Quantize the rising edge to the next nominal sixteenth, not a new clock.
+    var grid=audible.start-(audible.step%2?SWING*stepDur():0);
+    var boundary=grid+Math.max(1,Math.ceil((now-grid)/stepDur()))*stepDur();
+    // Discard unheard lookahead only. Existing tails use normal slot/four-voice choke.
+    sampleVoices.slice().forEach(function(v){if(v.start>=boundary-.000001)cancelVoice(v,now);});
+    visQueue=visQueue.filter(function(e){return e.t<boundary-.000001;});
+    clearFxTimers();transportGeneration++;
+    seq.pattern=audible.pattern;chainPosition=audible.chain;
+    seq.schedStep=0;seq.nextTime=boundary;scheduledEffect=14;
+    scheduler();
   }
 
   // ---------- voices ----------
@@ -1247,7 +1247,7 @@
     var extra = patternExtras[seq.pattern - 1];
     if(!fxHeld && !shakeFx && effect!==scheduledEffect)queueFx(effect,when);
     scheduledEffect=effect;
-    if((fxHeld || shakeFx) && (state.mode==="STEP" || writeHeld)) {
+    if(effect!==14 && (fxHeld || shakeFx) && (state.mode==="STEP" || writeHeld)) {
       extra.effects[step]=effect || 16;persistSoon();
     }
     for (var i = 0; i < TOTAL_SLOTS; i++) {
@@ -1286,7 +1286,7 @@
       var t = seq.nextTime;
       var s = seq.schedStep;
       var effect=effectAt(s);if(effect===16)effect=0;
-      if(effect===14 && scheduledEffect!==14){s=0;seq.schedStep=0;}
+      if(effect===14 && !fxHeld && !shakeFx){s=0;seq.schedStep=0;}
       var at = effect===13 ? t+(window.PO33FX.quantizeStep(s)-s)*stepDur() : ((s % 2 === 1) ? t + stepDur() * SWING : t);
       fireStep(s, at,effect);
       visQueue.push({ t: at, s: s, pattern: seq.pattern,chain:chainPosition });
@@ -2342,7 +2342,7 @@
       fxPadPointer=pid(e);
       modifierUsed.fx=true;
       if(n===16){fxRelease();showNumber("non","FX");}else fxEngage(n);
-      if(state.mode==="STEP" || writeHeld) { if(n===16)patternExtras[seq.pattern-1].effects=[];else patternExtras[seq.pattern-1].effects[seq.step]=n; persistSoon(); }
+      if(state.mode==="STEP" || writeHeld) { if(n===16)patternExtras[seq.pattern-1].effects=[];else {var target=n===14?audibleStepAt(ctx().currentTime):{pattern:seq.pattern,step:seq.step};patternExtras[target.pattern-1].effects[target.step]=n;} persistSoon(); }
       paint(); return;
     }
     if (recHeld) {recUsedPad=true; startRec(n); return; }

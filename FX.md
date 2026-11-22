@@ -19,7 +19,7 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | 11 | Scratch | Live: freeze the audible step and retrigger its notes at half-step intervals, alternating forward/reverse with a pitch envelope. An empty step stays silent. |
 | 12 | Scratch fast | Same held-step playback at quarter-step intervals, twice the retrigger rate. |
 | 13 | 6/8 quantize | Move sequenced triggers onto 12 equally spaced positions per normal 16-step bar; collisions sound together. Keep the bar duration. |
-| 14 | Retrigger pattern | Restart the audible pattern at step zero. Cancel obsolete scheduled voices and display events. Each new manual press restarts again. A saved 14 restarts when that step is reached. |
+| 14 | Retrigger pattern | A manual rising edge queues step zero at the next nominal sixteenth boundary. Holding does not repeat the command. Cancel only unheard lookahead; existing tails use normal slot choke and four-voice stealing. Preserve the chain index. WRITE stores one jump flag at the pressed step, not a span; saved flags jump on every visit. |
 | 15 | Reverse | Play each sound backwards from the end of its own trimmed region, preserving pitch, slice selection and step duration. Cached reversed audio is derived only; original samples remain unchanged. |
 | 16 / 00 | No effect | Bypass/release. In write mode the existing FX+16 action clears saved pattern effects. |
 
