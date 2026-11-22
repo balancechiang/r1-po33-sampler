@@ -64,3 +64,11 @@ source-level reversal, transport retrigger and saved-event timing in Edge.
 
 These checks establish working DSP and control behavior, not perceptual equivalence
 to a physical PO-33. Hardware A/B recordings remain the reference for further tuning.
+
+## Display aliases (2026-11-22)
+
+The app now shows L16, L12, L32, L48, uni, uno, ocu, ocd, st4, st3, scr,
+scf, 6-8, rtr, rev and non. These are compact app display aliases, not a claim
+that every glyph or the precise loop length matches measured firmware.
+Official FX 9/10 remain Stutter 4/3; the supplied Stutter 8/6 description is not
+used to replace the official mapping. DSP tuning above remains unchanged.

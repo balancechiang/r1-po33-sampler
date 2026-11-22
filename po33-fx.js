@@ -92,5 +92,6 @@
     if(this.pending && blockPeak>1e-7)this.capture();
   };
   function quantizeStep(step){return Math.round(step*12/16)*16/12;}
-  return {Engine:Engine,names:names,quantizeStep:quantizeStep};
+  var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st4","st3","scr","scf","6-8","rtr","rev","non"];
+  return {Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep};
 });

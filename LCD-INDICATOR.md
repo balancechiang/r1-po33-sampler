@@ -58,12 +58,12 @@ The optional third `create()` argument controls static geometry:
 - TRIM displays the actual selected region. The existing melodic/copied-slice
   length is stored as a percentage of the remaining sound, so the adapter converts
   it to absolute interval width. A native drum slice is positioned within its take.
-- Normal playback uses a centered level meter that expands equally left and right. Idle/manual audition, input monitoring and BPM volume selection use the left origin. Existing IN/OUT logic is unchanged.
+- Normal playback uses a centered level meter that expands equally left and right. Idle/manual audition keep the center origin too; input monitoring and BPM volume selection use the left origin. SOUND-slot preview suppresses the output meter. Existing IN/OUT logic is unchanged.
 
 简体中文：接口支持 `pitch`、`trim`、`level` 三种模式；`setProps()` 可随时切换。
 零音高用中间两格标记，正值向右、负值向左，每半音两格，超过 ±8 半音时指示条封顶，数字显示不变。
 `start` 和 `length` 都是整个区间的百分比；空区间不点亮。
-播放电平使用 `origin:'center'`，左右成对扩开；输入监听与音量设置保持 `origin:'left'`。奇数格数向上取整为一对，零值全灭。
+播放及停止后的电平使用 `origin:'center'`，左右成对扩开并居中归零；SOUND 选槽试听不显示输出电平；输入监听与音量设置保持 `origin:'left'`。奇数格数向上取整为一对，零值全灭。
 
 ## 待真机校验：LCD 与七段码显示（2026-11-21）
 

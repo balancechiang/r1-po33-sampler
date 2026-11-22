@@ -643,9 +643,9 @@
   var params = { bpm: factoryTempo(), trim: 0, pitch: 0 };
   var factoryTempoRevision=0;
   var paramIdx = 0;
-  var KNOB_SWEEP = 280; // total mechanical travel, shared by both knobs
+  var KNOB_SWEEP = 270; // total mechanical travel, shared by both knobs
 
-  var factoryMuted = [], knobAngles = [0,0];
+  var factoryMuted = [], knobAngles = [0,0],HOLD_DELAY=800,soundPreviewMeter=false;
   var parameterDisplay=false;
   var lcdIndicator=null;
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
@@ -714,7 +714,7 @@
       return ac;
     }
     var AC = window.AudioContext || window.webkitAudioContext;
-    ac = new AC();window.PO33Runtime.register(ac);window.PO33Runtime.resume(ac);
+    ac = new AC({latencyHint:"interactive"});window.PO33Runtime.register(ac);window.PO33Runtime.resume(ac);
     var graphContext=ac,hasRun=ac.state==='running';
     ac.addEventListener('statechange',function(){if(ac!==graphContext)return;if(ac.state==='running')hasRun=true;else if(hasRun)musicGraphStale=true;});
 
@@ -1216,6 +1216,8 @@
 
   function startSeq() {
     if (seq.playing || !startupReady) return;
+    if(rec.on){flashHint("FINISH SAMPLING FIRST");return;}
+    pendingRecSlot=0;soundPreviewMeter=false;
     // Restart the saved order, including repeats, instead of the last audible pattern.
     chainPosition=0;
     if(patternChain.length)seq.pattern=patternChain[0];
@@ -1230,10 +1232,10 @@
     seq.step = 0;
     seq.totalSteps = 0;
     visQueue = [];
-    seq.nextTime = c.currentTime + 0.06;seq.visualBeatTime=Infinity;
+    seq.nextTime = c.currentTime + 0.012;seq.visualBeatTime=Infinity;
     fxInstall(); // keep the FX history warm
     // Write mode stays active while the transport runs.
-    seq.timer = setInterval(scheduler, 20);
+    scheduler();seq.timer = setInterval(scheduler, 20);
     startShakeSensors(); startTransportAnimation();
     persistSoon();
     paint();
@@ -1763,6 +1765,7 @@
   }
 
   function startRec(slotNum) {
+    if(seq.playing){pendingRecSlot=0;flashHint("STOP TO SAMPLE");return;}
     if (rec.on) return;
     pendingRecSlot=slotNum;
     if (!micReady()) {
@@ -1777,6 +1780,7 @@
   }
 
   function beginRec(slotNum) {
+    if(seq.playing){pendingRecSlot=0;return;}
     if (rec.on) return;
     if (!recHeld || pendingRecSlot !== slotNum) { paint(); return; }
     pendingRecSlot=0;
@@ -1871,6 +1875,8 @@
       return;
     }
 
+    tweaks[slotNum-1]={pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};
+    ['pitch','volume','filter','resonance'].forEach(function(key){parameterLatches.manual(slotNum,key,tweaks[slotNum-1][key],c.currentTime);});
     // Preserve captured PCM amplitude, including quiet passages and near-full-scale peaks.
     var buf = c.createBuffer(1, data.length, rate);
     if (buf.copyToChannel) buf.copyToChannel(data, 0);
@@ -2016,7 +2022,7 @@
     var button=e.target.closest && e.target.closest('#ctl .cbtn,#bpmMode,.pad,.knob');if(!button)return;
     if(!button.classList.contains('knob'))return;
     var id=e.pointerId;clearTimeout(holdTimers[id]);holdPointers[id]={button:button,x:e.clientX,y:e.clientY};
-    holdTimers[id]=setTimeout(function(){if(holdPointers[id]){physicalHolds.add(button);paintHolds();}},500);
+    holdTimers[id]=setTimeout(function(){if(holdPointers[id]){physicalHolds.add(button);paintHolds();}},HOLD_DELAY);
   },true);
   d.addEventListener('pointermove',function(e){var entry=holdPointers[e.pointerId];if(!entry || physicalHolds.has(entry.button))return;var unit=d.getElementById('panel').getBoundingClientRect().width/240;if(Math.hypot(e.clientX-entry.x,e.clientY-entry.y)>4*unit){clearTimeout(holdTimers[e.pointerId]);delete holdTimers[e.pointerId];}},true);
   window.addEventListener('pointerup',releaseHoldVisual);window.addEventListener('pointercancel',releaseHoldVisual);d.addEventListener('lostpointercapture',releaseHoldVisual,true);
@@ -2211,7 +2217,6 @@
     return e && e.pointerId !== undefined ? e.pointerId : null;
   }
 
-  var livePadVoices=new Map();
   function onPadDown(e) {
     sliceResultUntil=0;
     e.preventDefault();
@@ -2242,7 +2247,7 @@
     if (fxHeld && seq.playing) {
       fxPadPointer=pid(e);
       modifierUsed.fx=true;
-      if(n===16){fxRelease();showNumber("00","FX");}else fxEngage(n);
+      if(n===16){fxRelease();showNumber("non","FX");}else fxEngage(n);
       if(state.mode==="STEP" || writeHeld) { if(n===16)patternExtras[seq.pattern-1].effects=[];else patternExtras[seq.pattern-1].effects[seq.step]=n; persistSoon(); }
       paint(); return;
     }
@@ -2254,9 +2259,7 @@
       else toggleStep(n - 1);
       return;
     }
-    var beforeVoices=new Set(sampleVoices);
-    trigger(n - 1);
-    if(state.slot<=8)livePadVoices.set(e.pointerId,sampleVoices.filter(function(v){return !beforeVoices.has(v);}));
+    soundPreviewMeter=false;trigger(n - 1);
     flash(n - 1);
   }
 
@@ -2302,13 +2305,12 @@
   }
   function checkPhysicalDelete(){
     clearTimeout(deleteHoldTimer);deleteHoldTimer=null;
-    var target=physicalKeys.has('rec') && (physicalKeys.has('sound')?'sound':physicalKeys.has('pattern')?'pattern':null);
+    var target=physicalKeys.has('rec') && (physicalKeys.has('pattern')?'pattern':null);
     if(!target || (activeKeys().has('write') && activeKeys().has('sound')))return;
     consumeChord();recUsedPad=true;
     deleteHoldTimer=setTimeout(function(){
       if(!physicalKeys.has('rec') || !physicalKeys.has(target))return;
-      if(target==='sound')deleteSlot(state.slot);
-      else {clearPattern(seq.pattern);patternExtras[seq.pattern-1]={effects:[],locks:{}};persistSoon();}
+      clearPattern(seq.pattern);patternExtras[seq.pattern-1]={effects:[],locks:{}};persistSoon();
       showNumber('dEL','DELETE');paint();
     },1800);
   }
@@ -2332,17 +2334,18 @@
   d.addEventListener('lostpointercapture',function(e){if(keyPointers.has(e.pointerId)){releasePhysical(e);releaseControls({pointerId:e.pointerId,type:'pointercancel'});}},true);
   function armChord(e,act,btn){
     if(e.po33ChordConsumed || e.shiftKey || (e.pointerType!=="touch" && e.pointerType!=="mouse") || act==="play")return;
-    // A normal held combination stays momentary; an unused 500 ms hold becomes sticky.
+    // A normal held combination stays momentary; an unused 800 ms hold becomes sticky.
     var pointer=pid(e);
     touchChordTimers[pointer]=setTimeout(function(){
       if(modifierPointers[act]!==pointer || modifierUsed[act] || heldPad)return;
       Array.from(latchedKeys).forEach(function(k){if(!(['write','sound'].includes(k)&&['write','sound'].includes(act)))dropLatch(k);});
       var latchId=latchSerial--;latchedKeys.add(act);touchChord[act]=latchId;modifierPointers[act]=latchId;if(act==="rec")recPointer=latchId;modifierUsed[act]=true;btn.classList.add("transfer-latched");
       paintHolds();
-    },500);
+    },HOLD_DELAY);
   }
   function resetSoundBrowse(){soundChoiceMade=false;soundBrowseSlot=0;soundBrowseNote=-1;}
   function previewSound(n){
+    soundPreviewMeter=true;
     modifierUsed.sound=true;selectSlot(n);soundChoiceMade=true;defaultStep=null;
     var note=n<=8?4:(soundBrowseSlot===n?(soundBrowseNote+1)%16:0);
     soundBrowseSlot=n;soundBrowseNote=note;trigger(note);lastWasSlice=false;
@@ -2364,7 +2367,7 @@
     if(hardwareTransfer && hardwareTransfer.view.active)return;
     var act=btn.getAttribute("data-act");
     if(touchChord[act]!==undefined){dropLatch(act);return;}
-    if(latchedKeys.has('rec') && (act==='sound'||act==='pattern'))dropLatch('rec');
+    if(latchedKeys.has('rec') && act==='pattern')dropLatch('rec');
     if(act!=='pattern' && latchedKeys.has('pattern') && patternSelection.length)finishPatternInput();
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=!!e.po33ChordConsumed;
@@ -2373,7 +2376,11 @@
       modifierUsed.write=modifierUsed.sound=true;
       consumeChord();hardwareTransfer.open(act==="play"?"send":"receive");clearTouchChord();return;
     }
-    if(act==="rec") { recPointer=pid(e); setRecHeld(true); ensureMic(); return; }
+    if(!writeHeld && ((act==='sound' && recHeld) || (act==='rec' && soundHeld))){
+      consumeChord();modifierUsed.rec=modifierUsed.sound=true;recUsedPad=true;
+      deleteSlot(state.slot);showNumber('dEL','DELETE');if(latchedKeys.has('rec'))dropLatch('rec');paint();return;
+    }
+    if(act==="rec") { recPointer=pid(e); setRecHeld(true);if(!seq.playing)ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
     if(act==="write") { writeHeld=true; return; }
     if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
@@ -2390,7 +2397,6 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
-    var live=livePadVoices.get(e.pointerId);if(live){livePadVoices.delete(e.pointerId);var at=ctx().currentTime;live.forEach(function(v){cutSampleVoice(v,at);});}
     clearTimeout(touchChordTimers[pid(e)]);delete touchChordTimers[pid(e)];
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
@@ -2440,7 +2446,7 @@
     if(rec.on)finishRec();setRecHeld(false);fxRelease();paint();
   });
   ctl.addEventListener("click",function(e){
-    if(Date.now()-lastPointer<600 || !e.target.closest(".cbtn"))return;
+    if(e.detail>0 || Date.now()-lastPointer<600 || !e.target.closest(".cbtn"))return;
     onCtlDown(e); releaseControls(e);
   });
 
@@ -2479,6 +2485,11 @@
   // stop long-press selection / context menus anywhere in the app
   d.addEventListener("contextmenu", function (e) { e.preventDefault(); });
   d.addEventListener("selectstart", function (e) { e.preventDefault(); });
+
+  var lastPanelTouch=0;
+  d.addEventListener('touchend',function(e){if(e.target.closest && e.target.closest('#instrument')){var now=performance.now();if(now-lastPanelTouch<350 && e.cancelable)e.preventDefault();lastPanelTouch=now;}},{passive:false});
+  d.addEventListener('dblclick',function(e){e.preventDefault();});
+  d.addEventListener('gesturestart',function(e){if(e.cancelable)e.preventDefault();},{passive:false});
 
   // ---------- hardware ----------
   function onSide() {
@@ -2564,7 +2575,7 @@
     if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if(physicalKeys.has("rec") && (physicalKeys.has("sound")||physicalKeys.has("pattern"))){label="DELETE";number="dEL";}
-    if((fxHeld || shakeFx) && fx.kind){label="FX";number=String(fx.kind).padStart(2,"0");}
+    if((fxHeld || shakeFx) && fx.kind){label="FX";number=window.PO33FX.codes[fx.kind];}
     if(recHeld && !rec.on && !writeHeld && !soundHeld && !patternHeld && !bpmHeld){label=mic.error || 'REC READY';number=mic.error?'err':memLeft().toFixed(1);}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
@@ -2588,6 +2599,7 @@
     if(inputActive)level=inputLevel;
     else if(outputMeter && outputData && ac && ac.state==="running"){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++)level=Math.max(level,Math.abs(outputData[ai]));}
     if(!inputActive && level>.003)outputActiveUntil=Date.now()+110;
+    if(!inputActive && (soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))){level=0;outputActiveUntil=0;}
     if(transferView){level=transferView.level || 0;inputActive=["listening","receiving"].indexOf(transferView.state)>=0;}
     [["lcdIn",inputActive],["lcdOut",transferView?transferView.state==="sending":!inputActive && Date.now()<outputActiveUntil]].forEach(function(pair){
       var g=d.getElementById(pair[0]);g.setAttribute("data-active",pair[1]?"true":"false");
@@ -2598,8 +2610,10 @@
     lcdIndicator.setProps(transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*32):Math.floor(Math.min(1,transferView.progress)*32)}:indicatorProps(level,inputActive));
   }
   function indicatorProps(level,inputActive) {
-    var meter={mode:"level",origin:seq.playing && !inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
-    if(inputActive || fx.kind)return meter;
+    var meter={mode:"level",origin:!inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
+    if(inputActive)return meter;
+    if(soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))return {mode:"level",origin:"center",value:0};
+    if(fx.kind)return meter;
     if(bpmHeld)return {mode:"level",origin:"left",value:masterVolume*2};
     if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:effectiveTweak(stepEdit.slot).pitch+(stepEdit.slot<=8?window.PO33Sampling.MELODIC_OFFSETS[patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]]:0)};
     if(!parameterDisplay)return meter;
@@ -2628,6 +2642,7 @@
   }
   function updateKnobVisuals() {
     ["knobA","knobB"].forEach(function(id,i){
+      var spec=knobSpec(i);knobAngles[i]=Math.max(0,Math.min(KNOB_SWEEP,(spec[0]-spec[1])/(spec[2]-spec[1])*KNOB_SWEEP));
       d.getElementById(id).style.setProperty("--knob-angle",knobAngles[i]+"deg");
     });
   }
@@ -2640,7 +2655,7 @@
       if(index===0)lane[e.step]=Math.max(0,Math.min(15,lane[e.step]+dir));
       else if(e.slot<=8)detail.length=Math.max(1,Math.min(16,detail.length+dir));
       else {var counts=[1,2,3,4,6,8],at=counts.indexOf(detail.retrigs);detail.retrigs=counts[Math.max(0,Math.min(5,at+dir))];}
-      var after=knobSpec(index);knobAngles[index]=Math.max(-140,Math.min(140,knobAngles[index]+(after[0]-before[0])/(after[2]-after[1])*KNOB_SWEEP));
+      var after=knobSpec(index);knobAngles[index]=Math.max(0,Math.min(KNOB_SWEEP,knobAngles[index]+(after[0]-before[0])/(after[2]-after[1])*KNOB_SWEEP));
       writePattern(e.pattern);showNumber(index===0?lane[e.step]+1:(e.slot<=8?detail.length:detail.retrigs),knobSpec(index)[3]);
       if(!seq.playing)voice(e.slot,lane[e.step],undefined,e.slot<=8?detail.length*stepDur():undefined);
       paint();return;
@@ -2651,7 +2666,7 @@
     }
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
     var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir*(tweakMode===0 && index===0 && !bpmHeld ? .1 : 1)));
-    knobAngles[index]=Math.max(-140,Math.min(140,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*280));
+    knobAngles[index]=Math.max(0,Math.min(KNOB_SWEEP,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*KNOB_SWEEP));
     if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
     else if(tweakMode===1) {if(index===0)t.filter=value;else t.resonance=value;}
@@ -2790,7 +2805,7 @@
     if(!musicGraphStale || document.hidden || (hardwareTransfer && hardwareTransfer.view.active) || rec.on)return;
     stopSeq();disconnectMusicMic();micModulePromise=null;
     var old=ac;if(old){sampleVoices.slice().forEach(function(v){try{v.src.stop();}catch(e){}});window.PO33Runtime.unregister(old);if(fx.proc)fx.proc.onaudioprocess=null;old.close().catch(function(){});}
-    sampleVoices=[];livePadVoices.clear();parameterLatches.reset();clearFxTimers();transportGeneration++;
+    sampleVoices=[];parameterLatches.reset();clearFxTimers();transportGeneration++;
     ac=null;master=bus=mixVolume=dryGain=outTrim=outputMeter=outputData=null;
     toneDry=toneWet=toneNode=null;hardwareToneReady=false;hardwareToneError='';noiseBuf=null;
     fx={kind:0,proc:null,wet:null,engine:null,installed:false};musicGraphStale=false;
@@ -2918,7 +2933,7 @@
       patternExtras=Array.from({length:16},function(){return {effects:[],locks:{}};});
       tweaks=Array.from({length:16},function(){return {pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};});
       lastNotes=Array(16).fill(0);lastNote=0;state.slot=1;seq.pattern=1;seq.queued=0;masterVolume=8;state.mode="PLAY";
-      physicalKeys.clear();keyPointers.clear();livePadVoices.clear();clearTimeout(deleteHoldTimer);
+      physicalKeys.clear();keyPointers.clear();clearTimeout(deleteHoldTimer);
       factoryMuted=Array(16).fill(false);patternChain=[];patternSelection=[];chainPosition=0;
       savedSig=Array(16).fill(null);patSig=Array(16).fill(null);
       seedFactory(null);

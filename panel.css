@@ -154,3 +154,8 @@ body #panel .cbtn.transfer-latched, body #panel #bpmMode.transfer-latched, body 
 #samplerControls {position:relative;width:100%;height:calc(252 * var(--unit));overflow:hidden;}
 #samplerControls #panel {width:100%;top:calc(-30 * var(--unit));aspect-ratio:240 / 282;}
 body {height:100dvh;min-height:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+
+/* No double-tap zoom or pinch zoom on the instrument; file panels keep scrolling. */
+#instrument {touch-action:none;}
+
+html {touch-action:manipulation;}

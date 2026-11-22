@@ -30,7 +30,7 @@ with sync_playwright() as p:
       AudioBufferSourceNode.prototype.start=function(...args){
         const ch=this.buffer.getChannelData(0);
         if(this.buffer._po33id)forwardBuffers[this.buffer._po33id]=this.buffer;
-        const normal=forwardBuffers['factory-1-1'];
+        const normal=Object.values(forwardBuffers).find(b=>/-1$/.test(b._po33id));
         starts.push({time:args[0],offset:args[1],duration:args[2],rate:this.playbackRate.value,
           total:this.buffer.duration,first:ch[0],last:ch.at(-1),id:this.buffer._po33id,
           mirrored:normal && !this.buffer._po33id ? [123,456,789].every(i=>ch[i]===normal.getChannelData(0)[ch.length-1-i]) : null});
@@ -78,7 +78,7 @@ with sync_playwright() as p:
     down('[data-act="fx"]')
     for n in range(1,16):
         down(pad(n),2)
-        assert page.locator('#lcdNumber').get_attribute('data-value')==f'{n:02}'
+        assert page.locator('#lcdNumber').get_attribute('data-value')==page.evaluate(f'PO33FX.codes[{n}]')
         assert page.locator('#hint').text_content()=='FX: '+page.evaluate(f'PO33FX.names[{n}]')
         page.wait_for_timeout(180)
         assert max(page.evaluate('fxBlocks.slice(-8)'))>0,n

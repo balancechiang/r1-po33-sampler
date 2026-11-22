@@ -61,7 +61,7 @@ with sync_playwright() as p:
         states=page.locator('#lcdMeter rect').evaluate_all('es=>es.map(e=>e.dataset.active==="true")')
         assert states==states[::-1]
     shift();click('[data-act="fx"]');click(pad(5));page.wait_for_timeout(120)
-    assert page.locator('#lcdNumber').get_attribute('data-value')=='05'
+    assert page.locator('#lcdNumber').get_attribute('data-value')=='uni'
     assert page.locator('[data-led-reason="effect"]').count()==1
     release();assert not page.locator('[data-led-reason="effect"]').count()
     # Focus loss cancels unused sticky WRITE rather than toggling mode on return.
@@ -69,7 +69,7 @@ with sync_playwright() as p:
     assert mode()=='PLAY'
     release();page.evaluate('window.dispatchEvent(new Event("focus"))')
     click('[data-act="play"]')
-    assert page.locator('#lcdMeter').get_attribute('data-indicator-origin')=='left'
+    assert page.locator('#lcdMeter').get_attribute('data-indicator-origin')=='center'
     assert not errors,errors
     print('PASS: real Shift+mouse slot selection, two-modifier slice copy, delayed toggle-off, held step+knob, held recording, BPM+knob, FX+pad, Shift-up/blur cleanup; symmetric 32-cell playback meter and stopped-mode origin. No JS errors.')
     browser.close()

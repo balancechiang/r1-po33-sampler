@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="282" viewBox="0 0 240 282">
-<defs><pattern id="stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#000"/><rect width="2" height="4" fill="#fff"/></pattern><g id="switch-cap"><rect x="-12.5" y="-12.5" width="25" height="25" rx="2.2" fill="#999"/><circle r="6.5" fill="#000"/></g></defs>
+<defs><pattern id="stripes" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#fff"/><path d="M0 0V4M4 0V4" stroke="#000" stroke-width="2"/></pattern><g id="switch-cap"><rect x="-12.5" y="-12.5" width="25" height="25" rx="2.2" fill="#999"/><circle r="6.5" fill="#000"/></g></defs>
 <g class="switch" data-control="sound" transform="translate(32.2000 52.8000)"><circle class="backdrop" r="16.77" fill="#ff5705"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="pattern" transform="translate(76.0000 52.8000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>
 <g class="switch" data-control="bpm" transform="translate(119.8000 52.8000)"><circle class="backdrop" r="16.77" fill="#fff"/><use href="#switch-cap"/></g>

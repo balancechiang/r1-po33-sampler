@@ -13,11 +13,11 @@ try:
   b=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
   page=b.new_page(viewport={'width':720,'height':846});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   page.add_init_script("window.hapticPulses=[];navigator.vibrate=duration=>{hapticPulses.push({duration,at:performance.now()});return true;};")
-  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui10.html');page.wait_for_function('document.body.dataset.loading==="false"')
+  page.goto(f'http://127.0.0.1:{server.server_port}/flowers-20261120-ui15.html');page.wait_for_function('document.body.dataset.loading==="false"')
   def idle():assert page.locator('.pad:not([data-led-level="off"])').count()==0
   def click(act):page.locator('[data-act="'+act+'"]').click()
   def hold(selector):
-   r=page.locator(selector).bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.wait_for_timeout(570);return r
+   r=page.locator(selector).bounding_box();page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2);page.mouse.down();page.wait_for_timeout(850);return r
   idle();click('write');assert page.locator('.pad[data-led-level="dim"],.pad[data-led-level="low"]').count()>0
   click('play');page.wait_for_timeout(150);assert page.locator('.pad[data-led-level="dim"],.pad[data-led-level="low"]').count()>0
   click('play');click('write');idle();click('play')
