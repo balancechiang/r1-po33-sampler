@@ -27,6 +27,12 @@ with sync_playwright() as p:
       window.demoSquares=Array.from(demoGroup.children);demo.setProps({mode:'level',value:7,onColor:'#ff5705'});''')
     assert page.evaluate('demoGroup.querySelectorAll("[fill=\\"#ff5705\\"]").length')==7
     assert page.evaluate('demoSquares.every((e,i)=>e===demoGroup.children[i])')
+    page.evaluate("demo.setProps({mode:'meter',origin:'center',value:4,peak:20,onColor:'#fff'})")
+    assert page.evaluate('demoGroup.children.length')==38
+    assert page.evaluate('demoGroup.querySelectorAll("circle").length')==0
+    assert page.evaluate('Array.from(demoGroup.querySelectorAll("[data-peak=true]")).map(e=>+e.dataset.segment)')==[9,28]
+    assert page.evaluate('Array.from(demoGroup.querySelectorAll("[data-peak=true]")).every(e=>e.getAttribute("fill")==="#fff")')
+    assert page.evaluate('demoSquares.every((e,i)=>e===demoGroup.children[i])')
     page.evaluate('demo.destroy()');assert page.evaluate('demoGroup.children.length')==0
     page.screenshot(path=str(root/'lcd-indicator-preview.png'))
     assert not errors,errors

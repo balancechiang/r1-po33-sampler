@@ -109,20 +109,20 @@
       return square;
     });
 
-    const dots=Array.from({length:2},()=>{const dot=container.ownerDocument.createElementNS(SVG_NS,'circle');dot.setAttribute('r',geometry.size*.26);dot.setAttribute('cy',geometry.y+geometry.size/2);dot.setAttribute('data-peak-dot','');container.appendChild(dot);return dot;});
     function setProps(nextProps) {
       const next = Object.assign({}, props, nextProps);
       const active = segments(next);
       props = next;
+      const extent=props.mode==="meter"?Math.ceil(clamp(props.peak || 0,0,SEGMENT_COUNT)/2):0;
       squares.forEach(function (square, i) {
+        const peak=extent>0 && (i===19-extent || i===18+extent);
+        square.setAttribute("data-peak",String(peak));
         const ghost=props.mode==='meter' && !active[i] ? clamp((props.trail || [])[i] || 0,0,1)*.38:0;
-        const color = active[i] ? props.onColor : ghost>.025?'#'+Array(3).fill(Math.round(34+221*ghost).toString(16).padStart(2,'0')).join(''):props.offColor;
+        const color = (active[i] || peak) ? props.onColor : ghost>.025?'#'+Array(3).fill(Math.round(34+221*ghost).toString(16).padStart(2,'0')).join(''):props.offColor;
         square.setAttribute('data-trail',ghost>.025?'true':'false');
         if (square.getAttribute("fill") !== color) square.setAttribute("fill", color);
-        square.setAttribute("data-active", String(active[i]));
+        square.setAttribute("data-active", String(active[i] || peak));
       });
-      const extent=Math.ceil(clamp(props.peak || 0,0,SEGMENT_COUNT)/2);
-      dots.forEach((dot,i)=>{dot.setAttribute('cx',geometry.x+(i===0?19-extent:18+extent)*(geometry.size+geometry.gap)+geometry.size/2);dot.setAttribute('fill',props.mode==='meter'?props.onColor:props.offColor);dot.setAttribute('visibility',props.mode==='meter' && extent>0?'visible':'hidden');});
       container.setAttribute("data-indicator-mode", props.mode);
       container.setAttribute("data-indicator-origin", (props.mode === "level" || props.mode === "meter") ? props.origin : "");
       const detail = props.mode === "pitch" ? props.pitch + " semitones"
@@ -135,7 +135,7 @@
     return {
       setProps: setProps,
       destroy: function () {
-        squares.concat(dots).forEach(function (square) { square.remove(); });
+        squares.forEach(function (square) { square.remove(); });
         container.removeAttribute("role");
         container.removeAttribute("aria-label");
         container.removeAttribute("data-indicator-mode");
