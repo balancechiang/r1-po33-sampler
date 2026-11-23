@@ -159,3 +159,5 @@ body {height:100dvh;min-height:0;padding:env(safe-area-inset-top) env(safe-area-
 #instrument {touch-action:none;}
 
 html {touch-action:manipulation;}
+
+#panel .knob, #panel .knob:focus-visible, #panel .knob.trim-wheel-focus { outline:none; }

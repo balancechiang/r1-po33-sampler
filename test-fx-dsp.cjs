@@ -16,7 +16,7 @@ for(let kind=1;kind<=15;kind++){
   e.release();assert.deepEqual(run(e,signal(512)),signal(512));
 }
 // History starts before the first FX. Loop duration remains musically exact.
-for(const [kind,steps] of [[1,16],[2,12],[3,4],[4,2],[9,1],[10,4/3]]){
+for(const [kind,steps] of [[1,16],[2,12],[3,4],[4,2],[9,.5],[10,2/3]]){
   const e=new Engine(rate);run(e,input);e.engage(kind,step);
   assert.equal(e.loop.length,Math.round(rate*step*steps));
   const out=run(e,new Float32Array(e.loop.length*3));

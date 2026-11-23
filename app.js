@@ -1352,6 +1352,13 @@
   }
 
   function togglePlay() {
+    if(patternSelection.length)finishPatternInput();
+    var keepWrite=writeHeld || state.mode==="STEP";
+    ["sound","pattern","bpm","fx"].forEach(function(key){if(latchedKeys.has(key))dropLatch(key);});
+    soundHeld=patternHeld=bpmHeld=fxHeld=false;fxRelease();parameterDisplay=false;displayValue=null;displayUntil=0;
+    clearWheelTrim();if(stepEdit)endStepEdit(true);
+    if(!keepWrite)setMode("PLAY");
+
     if (seq.playing) {
       if(ac && ac.state!=="running"){window.PO33Runtime.resume(ac,true);return;}
       stopSeq(); return;
@@ -2397,17 +2404,7 @@
     }
     paintHolds();
   }
-  function checkPhysicalDelete(){
-    clearTimeout(deleteHoldTimer);deleteHoldTimer=null;
-    var target=physicalKeys.has('rec') && (physicalKeys.has('pattern')?'pattern':null);
-    if(!target || (activeKeys().has('write') && activeKeys().has('sound')))return;
-    consumeChord();recUsedPad=true;
-    deleteHoldTimer=setTimeout(function(){
-      if(!physicalKeys.has('rec') || !physicalKeys.has(target))return;
-      clearPattern(seq.pattern);patternExtras[seq.pattern-1]={effects:[],locks:{}};persistSoon();
-      showNumber('dEL','DELETE');paint();
-    },1800);
-  }
+  function checkPhysicalDelete(){clearTimeout(deleteHoldTimer);deleteHoldTimer=null;}
   d.addEventListener('pointerdown',function(e){
     var el=e.target.closest && e.target.closest('.cbtn,#bpmMode,.pad,.knob');if(!el)return;
     var act=el.id==='bpmMode'?'bpm':el.dataset.act || (el.dataset.pad?'pad'+el.dataset.pad:null);
@@ -2461,7 +2458,7 @@
     if(hardwareTransfer && hardwareTransfer.view.active)return;
     var act=btn.getAttribute("data-act");
     if(touchChord[act]!==undefined){dropLatch(act);return;}
-    if(latchedKeys.has('rec') && act==='pattern')dropLatch('rec');
+
     if(act!=='pattern' && latchedKeys.has('pattern') && patternSelection.length)finishPatternInput();
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
     modifierPointers[act]=pid(e); modifierUsed[act]=!!e.po33ChordConsumed;
@@ -2470,9 +2467,9 @@
       modifierUsed.write=modifierUsed.sound=true;
       consumeChord();hardwareTransfer.open(act==="play"?"send":"receive");clearTouchChord();return;
     }
-    if(!writeHeld && ((act==='sound' && recHeld) || (act==='rec' && soundHeld))){
-      consumeChord();modifierUsed.rec=modifierUsed.sound=true;recUsedPad=true;
-      deleteSlot(state.slot);showNumber('dEL','DELETE');if(latchedKeys.has('rec'))dropLatch('rec');paint();return;
+    if(!writeHeld && ((act==='sound' && recHeld) || (act==='rec' && soundHeld) || (act==='pattern' && recHeld) || (act==='rec' && patternHeld))){
+      consumeChord();modifierUsed.rec=modifierUsed.sound=modifierUsed.pattern=true;recUsedPad=true;
+      if(act==='pattern' || (act==='rec' && patternHeld)){var deletedPattern=seq.playing?(seq.visualPattern || seq.pattern):seq.pattern;clearPattern(deletedPattern);patternExtras[deletedPattern-1]={effects:[],locks:{}};persistSoon();}else deleteSlot(state.slot);clearTimeout(deleteHoldTimer);showNumber('dEL','DELETE');if(latchedKeys.has('rec'))dropLatch('rec');paint();return;
     }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true);if(!seq.playing)ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
@@ -2613,7 +2610,7 @@
     trim.frames=r;
     if(wheelTrim.index===1)trimLengthChanged(state.slot,lastNote);rebuildUnheard(state.slot);
     if(state.slot<=8){trim.start=(r.start-lo)/(hi-lo)*100;trim.length=hi===r.start?0:(r.end-r.start)/(hi-r.start)*100;}
-    parameterDisplay=true;clearTimeout(wheelTrimTimer);wheelTrimTimer=setTimeout(clearWheelTrim,8000);showNumber(((wheelTrim.index?r.end-r.start:r.start)/view.buffer.sampleRate).toFixed(2),wheelTrim.index?'LENGTH SEC':'START SEC');persistSoon();paint();return true;
+    parameterDisplay=true;clearTimeout(wheelTrimTimer);wheelTrimTimer=setTimeout(clearWheelTrim,8000);showNumber(String(Math.round((wheelTrim.index?r.end-r.start:r.start-lo)/(hi-lo)*999)).padStart(3,"0"),wheelTrim.index?'LENGTH':'START');persistSoon();paint();return true;
   }
   d.addEventListener('pointerdown',function(e){if(!e.target.closest('.knob,.pad'))clearWheelTrim();},true);
   function wheelAdjust(dir) {
@@ -2703,16 +2700,17 @@
       g.querySelector("text").setAttribute("fill",pair[1]?"#000":"#888");
     });
     if(!lcdIndicator)lcdIndicator=window.PO33Indicator.create(d.getElementById("lcdMeter"),{mode:"level",value:0},{x:19,y:24.25});
-    lcdIndicator.setProps(transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*32):Math.floor(Math.min(1,transferView.progress)*32)}:indicatorProps(level,inputActive));
+    lcdIndicator.setProps(transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*38):Math.floor(Math.min(1,transferView.progress)*38)}:indicatorProps(level,inputActive));
   }
   function indicatorProps(level,inputActive) {
-    var meter={mode:"level",origin:!inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*32)};
+    var meter={mode:"level",origin:!inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*38)};
     if(inputActive)return meter;
     if(soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))return {mode:"level",origin:"center",value:0};
     if(fx.kind)return meter;
-    if(bpmHeld)return {mode:"level",origin:"left",value:masterVolume*2};
+    if(bpmHeld)return {mode:"level",origin:"left",value:Math.round(masterVolume*38/16)};
     if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:effectiveTweak(stepEdit.slot).pitch+(stepEdit.slot<=8?window.PO33Sampling.MELODIC_OFFSETS[patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]]:0)};
     if(!parameterDisplay)return meter;
+    if(tweakMode===1)return {mode:"filter",cutoff:effectiveTweak(state.slot).filter};
     if(tweakMode===0)return {mode:"pitch",pitch:effectiveTweak(state.slot).pitch};
     if(tweakMode===2) {
       var t=selectedTweak(state.slot,lastNote),sample=samples[state.slot-1];
@@ -2779,7 +2777,7 @@
       modifierUsed.write=true;patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step]=Object.assign({},patternExtras[seq.pattern-1].locks[(state.slot-1)+":"+seq.step],{[edited]:value});
     }
     if(!bpmHeld)parameterDisplay=true;
-    var code=(!bpmHeld && tweakMode===1 && index===0)?(Math.abs(value)<=4?"noF":value<0?"LPF":"HPF"):(!bpmHeld && tweakMode===0 && index===0?value.toFixed(1):Math.round(value));
+    var code=bpmHeld?Math.round(value):tweakMode===2?String(Math.round(value*999/100)).padStart(3,"0"):tweakMode===1?(index===1?"res":Math.abs(value)<=4?"nof":value<0?"lpf":"hpf"):(index===0?"ptc":"vol");
     showNumber(code,spec[3]);persistSoon();paint();
   }
   d.getElementById("bpmMode").addEventListener("pointerdown",function(e){

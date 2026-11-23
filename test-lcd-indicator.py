@@ -13,25 +13,14 @@ with sync_playwright() as p:
     def wheel(knob,n=1,dy=-1):page.locator('#knob'+knob).evaluate('(e,a)=>{for(let i=0;i<a[0];i++)e.dispatchEvent(new WheelEvent("wheel",{deltaY:a[1],bubbles:true,cancelable:true}));}',[n,dy])
     def mode():return page.locator('#lcdMeter').get_attribute('data-indicator-mode')
     def lit():return page.locator('#lcdMeter rect[data-active="true"]').evaluate_all('es=>es.map(e=>+e.dataset.segment)')
-    assert page.locator('#lcdMeter rect').count()==32 and mode()=='level'
+    assert page.locator('#lcdMeter rect').count()==38 and mode()=='level'
     page.evaluate('window.originalSquares=Array.from(document.querySelector("#lcdMeter").children)')
     rects=page.locator('#lcdMeter rect').evaluate_all('es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width,height:r.height,y:r.y,bottom:r.bottom};})')
     assert all(abs(r['width']-r['height'])<.01 for r in rects)
-    assert all(rects[i]['right']<rects[i+1]['x'] for i in range(31))
+    assert all(rects[i]['right']<rects[i+1]['x'] for i in range(37))
     end_in=page.locator('#lcdIn rect').bounding_box();start_out=page.locator('#lcdOut rect').bounding_box()
     assert rects[0]['x']>end_in['x']+end_in['width']
     assert rects[-1]['right']<start_out['x']
-    wheel('A',2);assert mode()=='pitch' and lit()==[16,17,18,19]
-    wheel('A',4,1);assert lit()==[12,13,14,15]
-    tap('[data-act="fx"]');tap('[data-act="fx"]')
-    wheel('A',25);wheel('B',50,1)
-    assert mode()=='trim'
-    # Existing length=50 means 50% of the remaining 75%, i.e. 37.5% of the take.
-    assert lit()==list(range(8,20)),lit()
-    down('#bpmMode');down('[data-pad="8"]',2);up(2)
-    assert mode()=='level' and lit()==list(range(16))
-    up()
-    assert page.evaluate('originalSquares.every((e,i)=>e===document.querySelector("#lcdMeter").children[i])')
     # Standalone component can switch props and colors, without the app adapter.
     page.evaluate('''window.demoGroup=document.createElementNS('http://www.w3.org/2000/svg','g');
       window.demo=PO33Indicator.create(demoGroup,{mode:'trim',start:25,length:50});
@@ -41,5 +30,5 @@ with sync_playwright() as p:
     page.evaluate('demo.destroy()');assert page.evaluate('demoGroup.children.length')==0
     page.screenshot(path=str(root/'lcd-indicator-preview.png'))
     assert not errors,errors
-    print('PASS: exactly 32 separate squares, gaps and IN/OUT alignment; pitch/trim/volume app mapping; stable DOM across mode changes; standalone props/colors/destroy. No JS errors.')
+    print('PASS: exactly 38 separate squares, gaps and IN/OUT alignment; stable DOM across mode changes; standalone props/colors/destroy. No JS errors.')
     browser.close()

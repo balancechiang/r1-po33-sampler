@@ -1,20 +1,21 @@
-/** A reusable 32-square SVG indicator. No framework or animation required. */
+/** A reusable 38-square SVG indicator. No framework or animation required. */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.PO33Indicator = factory();
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  const SEGMENT_COUNT = 32;
+  const SEGMENT_COUNT = 38;
   const SVG_NS = "http://www.w3.org/2000/svg";
 
   /**
    * @typedef {Object} IndicatorProps
-   * @property {"pitch"|"trim"|"level"} mode
+   * @property {"pitch"|"trim"|"level"|"filter"} mode
+   * @property {number} [cutoff=0] Signed filter position (-100 to 100).
    * @property {number} [pitch=0] Semitone offset; 2 squares per semitone.
    * @property {number} [start=0] Trim start, in percent (0–100).
    * @property {number} [length=100] Trim length, in percent (0–100).
-   * @property {number} [value=0] Level/FX count (0–32).
+   * @property {number} [value=0] Level/FX count (0–38).
    * @property {"left"|"center"} [origin="left"] Level fill direction; center uses symmetric pairs.
    * @property {string} [onColor="#fff"] Solid active color.
    * @property {string} [offColor="#222"] Solid inactive color.
@@ -27,7 +28,7 @@
 
   /** Pure mapping, also usable by a canvas or another UI framework.
    * @param {IndicatorProps} props
-   * @returns {boolean[]} Exactly 32 states, ordered left to right.
+   * @returns {boolean[]} Exactly 38 states, ordered left to right.
    */
   function segments(props) {
     const result = Array(SEGMENT_COUNT).fill(false);
@@ -35,9 +36,13 @@
       const value = Number(props.pitch);
       const pitch = Number.isFinite(value) ? clamp(value, -8, 8) : 0;
       const count = Math.round(Math.abs(pitch) * 2);
-      // The center is between 15 and 16; neutral shows these two squares.
-      if (count === 0) result[15] = result[16] = true;
-      for (let i = 0; i < count; i++) result[pitch < 0 ? 15 - i : 16 + i] = true;
+      // The center is between 18 and 19; neutral shows these two squares.
+      if (count === 0) result[18] = result[19] = true;
+      for (let i = 0; i < count; i++) result[pitch < 0 ? 18 - i : 19 + i] = true;
+    } else if (props.mode === "filter") {
+      const value=clamp(props.cutoff || 0,-100,100);
+      if(Math.abs(value)<=4)result[18]=true;
+      else {const count=Math.round((1-Math.abs(value)/100)*SEGMENT_COUNT);for(let i=0;i<count;i++)result[value<0?i:SEGMENT_COUNT-1-i]=true;}
     } else if (props.mode === "trim") {
       const start = clamp(props.start === undefined ? 0 : props.start, 0, 100);
       const length = clamp(props.length === undefined ? 100 : props.length, 0, 100 - start);
@@ -48,7 +53,7 @@
       const count = Math.round(clamp(props.value === undefined ? 0 : props.value, 0, SEGMENT_COUNT));
       if (props.origin === "center") {
         const pairs = Math.ceil(count / 2);
-        for (let i = 0; i < pairs; i++) result[15 - i] = result[16 + i] = true;
+        for (let i = 0; i < pairs; i++) result[18 - i] = result[19 + i] = true;
       } else {
         for (let i = 0; i < count; i++) result[i] = true;
       }
@@ -66,7 +71,7 @@
    * @returns {{setProps: function(Partial<IndicatorProps>): void, destroy: function(): void}}
    */
   function create(container, initialProps, layout) {
-    const geometry = Object.assign({ x: 0, y: 0, size: 4.5, gap: 1.8 }, layout);
+    const geometry = Object.assign({ x: 0, y: 0, size: 4.5*199.8/237.6, gap: 1.8*199.8/237.6 }, layout);
     let props = Object.assign({ mode: "level", value: 0, origin: "left", pitch: 0, start: 0, length: 100,
       onColor: "#fff", offColor: "#222" }, initialProps);
     // Validate before touching an existing drawing.
@@ -97,7 +102,7 @@
       container.setAttribute("data-indicator-origin", props.mode === "level" ? props.origin : "");
       const detail = props.mode === "pitch" ? props.pitch + " semitones"
         : props.mode === "trim" ? props.start + "% start, " + props.length + "% length"
-        : clamp(props.value, 0, SEGMENT_COUNT) + "/32";
+        : clamp(props.value, 0, SEGMENT_COUNT) + "/38";
       container.setAttribute("aria-label", props.mode + ": " + detail);
     }
 

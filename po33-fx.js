@@ -6,7 +6,7 @@
 })(typeof globalThis!=="undefined"?globalThis:this,function(){
   "use strict";
   var names=["NO EFFECT","LOOP 16","LOOP 12","LOOP SHORT","LOOP SHORTER",
-    "UNISON","UNISON LOW","OCTAVE UP","OCTAVE DOWN","STUTTER 4","STUTTER 3",
+    "UNISON","UNISON LOW","OCTAVE UP","OCTAVE DOWN","STUTTER 8","STUTTER 6",
     "SCRATCH","SCRATCH FAST","6/8 QUANTIZE","RETRIGGER PATTERN","REVERSE","NO EFFECT"];
   function wrap(x,n){return ((x%n)+n)%n;}
   function read(data,pos){
@@ -38,7 +38,7 @@
     this.stepSamples=Math.max(1,stepSeconds*this.sampleRate);
     this.loop=null;this.pending=false;this.waitingForSignal=false;this.pos=0;this.scratchPhase=0;
     this.transition=Math.max(1,Math.round(this.sampleRate*.005));
-    var steps={1:16,2:12,3:4,4:2,9:1,10:4/3,11:4,12:4};
+    var steps={1:16,2:12,3:4,4:2,9:.5,10:2/3,11:4,12:4};
     this.requested=steps[kind]?Math.round(this.stepSamples*steps[kind]):0;
     if(this.requested){this.pending=true;this.capture();}
   };
@@ -92,7 +92,7 @@
     if(this.pending && blockPeak>1e-7)this.capture();
   };
   function quantizeStep(step){return Math.round(step*12/16)*16/12;}
-  var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st4","st3","scr","scf","6-8","rtr","rev","non"];
+  var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st8","st6","scr","scf","6-8","rtr","rev","non"];
   function stepRepeats(kind){return ({3:2,4:3})[kind] || 0;}
   function loopCell(pcm,offset,available,rate,period,playbackRate){
     var frames=Math.max(2,Math.ceil(period*rate*playbackRate)+1),out=new Float32Array(frames),start=Math.max(0,Math.round(offset*rate)),count=Math.min(frames,Math.round(available*rate),pcm.length-start);

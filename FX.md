@@ -14,8 +14,8 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | 06 | Unison low | Live dry signal plus a sub-octave granular delay voice (ratio 0.5). |
 | 07 | Octave up | Glide each active source from its current playback rate toward twice its neutral rate (35ms exponential time constant); new notes start at their base rate and glide too. |
 | 08 | Octave down | Same continuous source-rate glide toward half the neutral rate; preserve current source position. |
-| 09 | Stutter 4 | Capture a quarter-beat fragment and repeat it four times per beat. |
-| 10 | Stutter 3 | Capture a third-beat fragment and repeat it three times per beat. |
+| 09 | Stutter 8 | Capture a eighth-beat fragment and repeat it eight times per beat. |
+| 10 | Stutter 6 | Capture a sixth-beat fragment and repeat it six times per beat. |
 | 11 | Scratch | Live: freeze the audible step and retrigger its notes at half-step intervals, alternating forward/reverse with a pitch envelope. An empty step stays silent. |
 | 12 | Scratch fast | Same held-step playback at quarter-step intervals, twice the retrigger rate. |
 | 13 | 6/8 quantize | Move sequenced triggers onto 12 equally spaced positions per normal 16-step bar; collisions sound together. Keep the bar duration. |
@@ -67,11 +67,10 @@ to a physical PO-33. Hardware A/B recordings remain the reference for further tu
 
 ## Display aliases (2026-11-22)
 
-The app now shows L16, L12, L32, L48, uni, uno, ocu, ocd, st4, st3, scr,
+The app now shows L16, L12, L32, L48, uni, uno, ocu, ocd, st8, st6, scr,
 scf, 6-8, rtr, rev and non. These are compact app display aliases, not a claim
 that every glyph or the precise loop length matches measured firmware.
-Official FX 9/10 remain Stutter 4/3; the supplied Stutter 8/6 description is not
-used to replace the official mapping. Display aliases do not establish exact firmware DSP constants.
+FX 9/10 use the user's hardware-confirmed Stutter 8/6 naming and corresponding eighth-/sixth-beat repeat periods.
 
 ## Step-based performance model (2026-11-22)
 
