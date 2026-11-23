@@ -647,7 +647,7 @@
 
   var factoryMuted = [], knobAngles = [0,0],HOLD_DELAY=800,soundPreviewMeter=false;
   var parameterDisplay=false;
-  var lcdIndicator=null;
+  var lcdIndicator=null,outputBallistics=new window.PO33Indicator.Meter();
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
   var r1Focused=true;
@@ -738,8 +738,8 @@
     bus.connect(toneDry);toneDry.connect(mixVolume);toneWet.connect(mixVolume);mixVolume.connect(outTrim);
     installHardwareTone(ac);
     outTrim.connect(ac.destination);
-    outputMeter = ac.createAnalyser(); outputMeter.fftSize = 256;
-    outputData = new Float32Array(256); outTrim.connect(outputMeter);
+    outputMeter = ac.createAnalyser(); outputMeter.fftSize = 2048;
+    outputData = new Float32Array(2048); outTrim.connect(outputMeter);
     fxInstall(); // continuously warm history, including manual notes before PLAY
     return ac;
   }
@@ -2687,10 +2687,10 @@
       target.setAttribute("data-columns","4");
       target.setAttribute("data-value",number);target.setAttribute("aria-label",number);
     }
-    var level=0;
+    var level=0,rms=0;
     var inputActive=!!((recHeld||rec.on) && micReady());
     if(inputActive)level=inputLevel;
-    else if(outputMeter && outputData && ac && ac.state==="running"){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++)level=Math.max(level,Math.abs(outputData[ai]));}
+    else if(outputMeter && outputData && ac && ac.state==="running"){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++){level=Math.max(level,Math.abs(outputData[ai]));rms+=outputData[ai]*outputData[ai];}rms=Math.sqrt(rms/outputData.length);}
     if(!inputActive && level>.003)outputActiveUntil=Date.now()+110;
     if(!inputActive && (soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))){level=0;outputActiveUntil=0;}
     if(transferView){level=transferView.level || 0;inputActive=["listening","receiving"].indexOf(transferView.state)>=0;}
@@ -2700,7 +2700,10 @@
       g.querySelector("text").setAttribute("fill",pair[1]?"#000":"#888");
     });
     if(!lcdIndicator)lcdIndicator=window.PO33Indicator.create(d.getElementById("lcdMeter"),{mode:"level",value:0},{x:19,y:24.25});
-    lcdIndicator.setProps(transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*38):Math.floor(Math.min(1,transferView.progress)*38)}:indicatorProps(level,inputActive));
+    var props=transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*38):Math.floor(Math.min(1,transferView.progress)*38)}:indicatorProps(level,inputActive);
+    if(!transferView && props.mode==="level" && props.origin==="center" && !soundHeld && state.mode!=="SOUND" && !(!seq.playing && soundPreviewMeter)){props=outputBallistics.update(rms,level,performance.now());}
+    else outputBallistics.reset();
+    lcdIndicator.setProps(props);
   }
   function indicatorProps(level,inputActive) {
     var meter={mode:"level",origin:!inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*38)};

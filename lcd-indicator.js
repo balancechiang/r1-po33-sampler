@@ -10,7 +10,9 @@
 
   /**
    * @typedef {Object} IndicatorProps
-   * @property {"pitch"|"trim"|"level"|"filter"} mode
+   * @property {"pitch"|"trim"|"level"|"filter"|"meter"} mode
+   * @property {number} [peak=0] Symmetric peak extent (0–38), meter mode only.
+   * @property {number[]} [trail] Per-cell fading persistence (0–1), meter mode only.
    * @property {number} [cutoff=0] Signed filter position (-100 to 100).
    * @property {number} [pitch=0] Semitone offset; 2 squares per semitone.
    * @property {number} [start=0] Trim start, in percent (0–100).
@@ -30,6 +32,24 @@
    * @param {IndicatorProps} props
    * @returns {boolean[]} Exactly 38 states, ordered left to right.
    */
+  // Audio-clock-independent display ballistics; these timings are visual approximations.
+  class Meter {
+    constructor(){this.reset();}
+    reset(){this.last=null;this.body=0;this.peak=0;this.hold=0;this.trail=Array(SEGMENT_COUNT).fill(0);}
+    update(rms,peak,time){
+      const dt=this.last===null?0:Math.min(100,Math.max(0,time-this.last));this.last=time;
+      const scale=v=>v>.0005?clamp(v*1.5,0,1)*SEGMENT_COUNT:0;
+      const target=scale(rms),top=Math.max(target,scale(peak));
+      this.body=target+(this.body-target)*Math.exp(-dt/(target>this.body?25:140));
+      if(top>this.peak){this.peak=top;this.hold=time+240;}
+      else if(time>this.hold)this.peak=Math.max(top,this.peak-dt*SEGMENT_COUNT/650);
+      if(target===0 && this.body<.4)this.body=0;
+      if(top===0 && this.peak<.4)this.peak=0;
+      const active=segments({mode:'level',origin:'center',value:Math.floor(this.body)});
+      this.trail=this.trail.map((v,i)=>active[i]?1:v*Math.exp(-dt/130));
+      return {mode:'meter',origin:'center',value:Math.floor(this.body),peak:this.peak,trail:this.trail.slice()};
+    }
+  }
   function segments(props) {
     const result = Array(SEGMENT_COUNT).fill(false);
     if (props.mode === "pitch") {
@@ -49,7 +69,7 @@
       const first = Math.floor(start * SEGMENT_COUNT / 100);
       const end = Math.min(SEGMENT_COUNT, Math.ceil((start + length) * SEGMENT_COUNT / 100));
       if (length > 0) for (let i = first; i < end; i++) result[i] = true;
-    } else if (props.mode === "level") {
+    } else if ((props.mode === "level" || props.mode === "meter")) {
       const count = Math.round(clamp(props.value === undefined ? 0 : props.value, 0, SEGMENT_COUNT));
       if (props.origin === "center") {
         const pairs = Math.ceil(count / 2);
@@ -89,17 +109,22 @@
       return square;
     });
 
+    const dots=Array.from({length:2},()=>{const dot=container.ownerDocument.createElementNS(SVG_NS,'circle');dot.setAttribute('r',geometry.size*.26);dot.setAttribute('cy',geometry.y+geometry.size/2);dot.setAttribute('data-peak-dot','');container.appendChild(dot);return dot;});
     function setProps(nextProps) {
       const next = Object.assign({}, props, nextProps);
       const active = segments(next);
       props = next;
       squares.forEach(function (square, i) {
-        const color = active[i] ? props.onColor : props.offColor;
+        const ghost=props.mode==='meter' && !active[i] ? clamp((props.trail || [])[i] || 0,0,1)*.38:0;
+        const color = active[i] ? props.onColor : ghost>.025?'#'+Array(3).fill(Math.round(34+221*ghost).toString(16).padStart(2,'0')).join(''):props.offColor;
+        square.setAttribute('data-trail',ghost>.025?'true':'false');
         if (square.getAttribute("fill") !== color) square.setAttribute("fill", color);
         square.setAttribute("data-active", String(active[i]));
       });
+      const extent=Math.ceil(clamp(props.peak || 0,0,SEGMENT_COUNT)/2);
+      dots.forEach((dot,i)=>{dot.setAttribute('cx',geometry.x+(i===0?19-extent:18+extent)*(geometry.size+geometry.gap)+geometry.size/2);dot.setAttribute('fill',props.mode==='meter'?props.onColor:props.offColor);dot.setAttribute('visibility',props.mode==='meter' && extent>0?'visible':'hidden');});
       container.setAttribute("data-indicator-mode", props.mode);
-      container.setAttribute("data-indicator-origin", props.mode === "level" ? props.origin : "");
+      container.setAttribute("data-indicator-origin", (props.mode === "level" || props.mode === "meter") ? props.origin : "");
       const detail = props.mode === "pitch" ? props.pitch + " semitones"
         : props.mode === "trim" ? props.start + "% start, " + props.length + "% length"
         : clamp(props.value, 0, SEGMENT_COUNT) + "/38";
@@ -110,7 +135,7 @@
     return {
       setProps: setProps,
       destroy: function () {
-        squares.forEach(function (square) { square.remove(); });
+        squares.concat(dots).forEach(function (square) { square.remove(); });
         container.removeAttribute("role");
         container.removeAttribute("aria-label");
         container.removeAttribute("data-indicator-mode");
@@ -119,5 +144,5 @@
     };
   }
 
-  return { SEGMENT_COUNT: SEGMENT_COUNT, segments: segments, create: create };
+  return { Meter:Meter, SEGMENT_COUNT: SEGMENT_COUNT, segments: segments, create: create };
 });

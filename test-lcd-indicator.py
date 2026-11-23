@@ -13,7 +13,7 @@ with sync_playwright() as p:
     def wheel(knob,n=1,dy=-1):page.locator('#knob'+knob).evaluate('(e,a)=>{for(let i=0;i<a[0];i++)e.dispatchEvent(new WheelEvent("wheel",{deltaY:a[1],bubbles:true,cancelable:true}));}',[n,dy])
     def mode():return page.locator('#lcdMeter').get_attribute('data-indicator-mode')
     def lit():return page.locator('#lcdMeter rect[data-active="true"]').evaluate_all('es=>es.map(e=>+e.dataset.segment)')
-    assert page.locator('#lcdMeter rect').count()==38 and mode()=='level'
+    assert page.locator('#lcdMeter rect').count()==38 and mode()=='meter'
     page.evaluate('window.originalSquares=Array.from(document.querySelector("#lcdMeter").children)')
     rects=page.locator('#lcdMeter rect').evaluate_all('es=>es.map(e=>{const r=e.getBoundingClientRect();return {x:r.x,right:r.right,width:r.width,height:r.height,y:r.y,bottom:r.bottom};})')
     assert all(abs(r['width']-r['height'])<.01 for r in rects)
