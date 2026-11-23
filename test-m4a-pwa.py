@@ -2,7 +2,7 @@ from pathlib import Path
 from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
 from functools import partial
 from threading import Thread
-import tempfile,subprocess,base64,struct,math,json,sys
+import tempfile,subprocess,base64,struct,math,json,sys,os
 import imageio_ffmpeg
 from playwright.sync_api import sync_playwright
 root=Path(__file__).parent
@@ -14,7 +14,7 @@ try:
   d=Path(d);n=44100;values=[(int(12000*math.sin(i*.1)),int(8000*math.cos(i*.07))) for i in range(n)];data=b''.join(struct.pack('<hh',*v) for v in values);wav=b'RIFF'+struct.pack('<I',36+len(data))+b'WAVEfmt '+struct.pack('<IHHIIHH',16,1,2,44100,176400,4,16)+b'data'+struct.pack('<I',len(data))+data;(d/'source.wav').write_bytes(wav)
   subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),'-v','error','-i',str(d/'source.wav'),'-c:a','alac',str(d/'lossless.m4a')],check=True)
   with sync_playwright() as p:
-   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_function('document.body.dataset.loading==="false"')
+   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(os.environ.get('PO33_TEST_URL') or f'http://127.0.0.1:{server.server_port}/'+os.environ.get('PO33_TEST_ENTRY','flowers-20261120-ui21.html'));page.wait_for_function('document.body.dataset.loading==="false"')
    result=page.evaluate('''async b64=>{const b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)).buffer;const p=await PO33BackupAudio.decode(b);return {rate:p.sampleRate,left:Array.from(p.left),right:Array.from(p.right)};}''',base64.b64encode((d/'lossless.m4a').read_bytes()).decode())
    assert result['rate']==44100 and len(result['left'])==n,(result['rate'],len(result['left']))
    assert all(abs(result['left'][i]-v[0]/32768)<1e-7 and abs(result['right'][i]-v[1]/32768)<1e-7 for i,v in enumerate(values))
@@ -26,6 +26,8 @@ try:
    assert result['rate']==48000 and len(result['left'])==n
    assert all(abs(result['left'][i]-v[0]/8388608)<1e-8 and abs(result['right'][i]-v[1]/8388608)<1e-8 for i,v in enumerate(values24)), '24-bit PCM mismatch'
    print('PASS 24-bit ALAC, nonzero low bits preserved, independent stereo at 48000 Hz')
+   assert page.evaluate('typeof PO33BackupAudio.decode==="function"')
+   assert page.locator('link[rel=apple-touch-icon]').get_attribute('href').endswith('apple-touch-icon-ui21.png')
    manifest=page.evaluate('''async()=>await (await fetch(document.querySelector('link[rel=manifest]').href)).json()''');assert manifest['display']=='standalone' and len(manifest['icons'])==2
    from PIL import Image
    for name,size in [('apple-touch-icon.png',180),('pwa-icon-192.png',192),('pwa-icon-512.png',512)]:

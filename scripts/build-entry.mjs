@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+const edition=process.argv[2];
+if(!/^flowers-20261120-ui\d+$/.test(edition||''))throw Error('Expected flowers-20261120-uiN');
+let html=fs.readFileSync('index.html','utf8');
+html=html.replace('<html lang="en">','<html lang="en" data-po33-install="flowers-20261120">').replace(/src="\.\/presets\.js[^"]*"/,'src="./install/presets-flowers-20261120.js?v='+edition+'"');
+if(!html.includes('src="./backup-audio.js'))throw Error('Missing M4A decoder');
+html=html.replace(/href="\.\/manifest.webmanifest[^"]*"/,'href="./install/'+edition+'.webmanifest"');
+fs.writeFileSync(edition+'.html',html);
+const manifest=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));
+manifest.id='../';manifest.scope='../';manifest.start_url='../'+edition+'.html';manifest.icons=manifest.icons.map(i=>({...i,src:'.'+i.src}));
+fs.writeFileSync('install/'+edition+'.webmanifest',JSON.stringify(manifest,null,2)+'\n');
