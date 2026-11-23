@@ -35,7 +35,7 @@
    }else if(m.type==='LIST_RESULT'){
     if(!connected || !Array.isArray(m.payload))return;
     clearTimeout(timer);controls(false);$('hubFiles').replaceChildren();
-    const files=m.payload.filter(f=>typeof f?.name==='string' && /\.(wav|json)$/i.test(f.name) && Number.isFinite(f.sizeBytes));
+    const files=m.payload.filter(f=>typeof f?.name==='string' && /\.(wav|m4a|json)$/i.test(f.name) && Number.isFinite(f.sizeBytes));
     hint(origin+' · '+files.length+' projects / 个工程 · Bridge OK');
     for(const file of files){const button=document.createElement('button');button.type='button';button.textContent=file.name+' · '+(file.sizeBytes/1048576).toFixed(1)+' MB';button.setAttribute('role','listitem');button.onclick=()=>requestFile(file);$('hubFiles').append(button);}
     $('hubFiles button')?.focus({preventScroll:true});

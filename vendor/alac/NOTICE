@@ -1,0 +1,5 @@
+Aurora.js 0.4.9 (MIT), alac.js 0.1.0 (Apache-2.0), Audiocogs / Jens Nockert / Devon Govett.
+Sources: https://registry.npmjs.org/av/-/av-0.4.9.tgz and https://registry.npmjs.org/alac/-/alac-0.1.0.tgz
+Bundle includes only buffer-source, M4A demuxer and ALAC decoder dependencies; browser sources replace Node sources. No playback/device code.
+Local modifications: browser module wrapper, final-frame lookahead padding, final-buffer draining, partial-frame length, and 24-bit output/unmix with unsigned low-bit preservation.
+Voice Memos container handling uses a separate packet-table demuxer in alac-worker.js (stco/co64, stsc, stsz and extended-size atoms), rather than the legacy Aurora M4A demuxer.

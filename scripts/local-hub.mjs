@@ -15,7 +15,7 @@ export async function startHub({port=33033,host='0.0.0.0',directory=path.join(ro
  const missing=['/my-po33-projects/','/.certs/'].filter(s=>!text.split(/\r?\n/).includes(s));if(missing.length)await fsp.appendFile(ignore,'\n'+missing.join('\n')+'\n');
  const addresses=[...new Set(Object.values(os.networkInterfaces()).flat().filter(a=>a && a.family==='IPv4'&&!a.internal).map(a=>a.address))];
  const max=128*1024*1024;
- function filename(url){const n=url.searchParams.get('name');if(!n || n!==path.basename(n) || n!==path.win32.basename(n) || /[\x00-\x1f<>:"|?*]/.test(n) || n.length>200 || !/\.(wav|json)$/i.test(n))throw Object.assign(Error('Invalid .wav/.json filename'),{status:400});return n;}
+ function filename(url){const n=url.searchParams.get('name');if(!n || n!==path.basename(n) || n!==path.win32.basename(n) || /[\x00-\x1f<>:"|?*]/.test(n) || n.length>200 || !/\.(wav|m4a|json)$/i.test(n))throw Object.assign(Error('Invalid .wav/.m4a/.json filename'),{status:400});return n;}
  async function statFile(name){const p=path.join(directory,name),s=await fsp.lstat(p);if(!s.isFile() || s.isSymbolicLink())throw Object.assign(Error('Not a regular project file'),{status:400});return {p,s};}
  function send(res,status,body,type='application/json; charset=utf-8'){res.writeHead(status,{'Content-Type':type,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(type.startsWith('application/json')?JSON.stringify(body):body);}
  async function handler(req,res){
@@ -30,7 +30,7 @@ export async function startHub({port=33033,host='0.0.0.0',directory=path.join(ro
    if(req.method==='GET' && url.pathname==='/')return send(res,200,manager,'text/html; charset=utf-8');
    if(req.method==='GET' && url.pathname==='/bridge')return send(res,200,bridge,'text/html; charset=utf-8');
    if(req.method==='GET' && url.pathname==='/api/list'){
-    const files=[];for(const entry of await fsp.readdir(directory)){if(!/\.(wav|json)$/i.test(entry))continue;try{const {s}=await statFile(entry);files.push({name:entry,type:path.extname(entry).slice(1).toLowerCase(),sizeBytes:s.size,updatedAt:s.mtime.toISOString()});}catch{}}
+    const files=[];for(const entry of await fsp.readdir(directory)){if(!/\.(wav|m4a|json)$/i.test(entry))continue;try{const {s}=await statFile(entry);files.push({name:entry,type:path.extname(entry).slice(1).toLowerCase(),sizeBytes:s.size,updatedAt:s.mtime.toISOString()});}catch{}}
     return send(res,200,files.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.name.localeCompare(b.name)));
    }
    if(req.method==='GET' && url.pathname==='/api/file'){

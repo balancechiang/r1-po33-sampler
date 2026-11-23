@@ -14,7 +14,7 @@ window.addEventListener('message',event=>{
   }
   if(event.data.type==='po33-preview-error')fail(event.data.error);
 });
-function fail(message){status.textContent='Import failed · 导入失败：'+message;status.dataset.state='error';file.disabled=false;}
+function fail(message){if(worker)worker.terminate();status.textContent='Import failed · 导入失败：'+message;status.dataset.state='error';file.disabled=false;}
 async function load(buffer,name){
   loadedName=name || 'Project';
   if(worker)worker.terminate();
@@ -29,7 +29,8 @@ async function load(buffer,name){
     for(const message of p.warnings){const li=document.createElement('li');li.textContent=message;warnings.append(li);}
     pending=p;send();
   };
-  worker.postMessage(buffer,[buffer]);
+  if(/\.m4a$/i.test(name || '')){const pcm=await window.PO33BackupAudio.decode(buffer);worker.postMessage(pcm,[pcm.left.buffer,pcm.right.buffer]);}
+  else worker.postMessage(buffer,[buffer]);
 }
 file.addEventListener('change',async()=>{try{if(file.files[0])await load(await file.files[0].arrayBuffer(),file.files[0].name);}catch(error){fail(error.message);}});
 // Local-only test fixture; the copyrighted audio is deliberately excluded from Git/releases.
