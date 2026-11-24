@@ -43,7 +43,7 @@
       }catch(error){if(token!==session)return;cleanup();status.textContent=`${error.name || 'Camera'}: ${error.message || 'Unavailable'}. Paste URL below / 可在下方输入网址。`;}
     }
     return {get active(){return !!finish;},close:()=>settle(null),
-      open(){if(finish)settle(null);const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.showModal();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
+      open(){if(finish)settle(null);const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.show();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
     };
   }
   root.PO33QRCamera={create};

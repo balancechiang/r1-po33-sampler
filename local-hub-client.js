@@ -10,7 +10,7 @@
   function controls(busy){$('hubConnect').disabled=busy;$('hubTestHTTP').disabled=busy;for(const b of $('hubFiles').querySelectorAll('button'))b.disabled=busy;}
   function error(message){clearTimeout(timer);pending=null;controls(false);hint(message);}
   function send(message){frame?.contentWindow.postMessage({target:'po33-local-hub',...message},'*');}
-  function open(){cleanup();$('hubFiles').replaceChildren();$('hubTrust').hidden=true;try{$('hubIP').value=localStorage.getItem('po33.localHub.ip')||'';}catch{}$('hubProtocol').value='https';controls(false);hint('Enter computer IP. Start npm run hub on computer. / 输入电脑 IP，电脑运行 npm run hub。');dialog.showModal();}
+  function open(){cleanup();$('hubFiles').replaceChildren();$('hubTrust').hidden=true;try{$('hubIP').value=localStorage.getItem('po33.localHub.ip')||'';}catch{}$('hubProtocol').value='https';controls(false);hint('Enter computer IP. Start npm run hub on computer. / 输入电脑 IP，电脑运行 npm run hub。');dialog.show();}
   function close(){cleanup();if(dialog.open)dialog.close();}
   async function connect(testHTTP=false){
    cleanup();const ip=$('hubIP').value.trim();

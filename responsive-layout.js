@@ -3,16 +3,22 @@
  const panel=document.getElementById('panel'),lcd=document.getElementById('lcd');
  const instrument=document.createElement('main');instrument.id='instrument';instrument.setAttribute('aria-label','PO-33 sampler');
  panel.before(instrument);
+ const stage=document.createElement('div');stage.id='portraitStage';instrument.before(stage);stage.append(instrument);
  const screen=document.createElement('div');screen.id='samplerScreen';screen.append(lcd);
  const controls=document.createElement('div');controls.id='samplerControls';controls.append(panel);instrument.append(screen,controls);
  const wrappers={};
  for(const id of ['tapeHead','tapeLeft','tapeRight','factoryReset']){const el=document.getElementById(id),g=document.createElementNS('http://www.w3.org/2000/svg','g');el.before(g);g.append(el);wrappers[id]=g;}
  function layout(){
   const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
-  const vw=document.documentElement.clientWidth-horizontal,vh=(window.visualViewport?window.visualViewport.height:window.innerHeight)-vertical;
+  const rawWidth=document.documentElement.clientWidth-horizontal,rawHeight=(window.visualViewport?window.visualViewport.height:window.innerHeight)-vertical;
+  const touch=matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0;
+  const rotated=touch && rawWidth>rawHeight;
+  const vw=rotated?rawHeight:rawWidth,vh=rotated?rawWidth:rawHeight;
+  stage.dataset.rotated=String(rotated);stage.style.width=vw+'px';stage.style.height=vh+'px';
+
   const compact=vw<320 || vh<480;
-  const width=compact?Math.min(vw,vh*240/282):Math.min(vw,560,(vh-16)*240/342);
-  const unit=width/240,rows=compact?30:Math.max(90,Math.min(220,(vh-16)/unit-252));
+  const width=compact?Math.min(vw,vh*240/282):(touch || vw<=1100?vw:Math.min(vw,560));
+  const unit=width/240,rows=compact?30:Math.max(42,(vh-8)/unit-252);
   instrument.style.width=width+'px';instrument.style.setProperty('--unit',unit+'px');
   instrument.style.setProperty('--screen-height',rows*unit+'px');instrument.dataset.layout=compact?'compact':'expanded';
   lcd.setAttribute('viewBox','0 0 240 '+rows);
@@ -28,6 +34,9 @@
   place('tapeRight',gs,compact?139.5:168,compact?15.5:cy+6,139.5,13.5);
   window.dispatchEvent(new Event('po33-layout-change'));
  }
+ function lockPortrait(){try{const pending=window.screen.orientation?.lock?.('portrait');pending?.catch(()=>{});}catch{}}
+ document.addEventListener('pointerdown',lockPortrait,{once:true});
+ window.addEventListener('orientationchange',()=>{lockPortrait();layout();});
  window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
  layout();
 })();

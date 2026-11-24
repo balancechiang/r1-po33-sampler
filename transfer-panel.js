@@ -3,7 +3,7 @@
   function create(hooks){
     const box=document.createElement('section');box.id='transferControls';box.setAttribute('aria-label','Hardware project transfer');
     box.innerHTML='<p id="transferHint" role="status" aria-live="polite"></p><div><button id="transferFile">Open WAV</button><input id="transferFileInput" type="file" accept=".wav,audio/wav"><button id="transferRecord">Line in</button><button id="transferSend" class="primary">Line out</button><button id="transferSave">Save WAV</button><button id="transferStop">Stop</button><button id="transferClose">Close</button><button id="transferUndo">Undo restore</button><button id="transferDeviceToggle">I/O</button></div><div id="transferDevices" hidden><button id="transferRefresh">Find devices</button><button id="transferCheckInput">Check input</button><button id="transferTone" type="button">PO-33 TONE ON</button><p id="transferInputReport" role="status"></p><label>Input <select id="transferInput"><option value="">System default</option></select></label><label>Output <select id="transferOutput"><option value="">System default</option></select></label></div>';
-    document.body.append(box);const $=id=>document.getElementById(id);
+    (document.getElementById('samplerControls') || document.body).append(box);const $=id=>document.getElementById(id);
     const scanButton=document.createElement('button');scanButton.id='transferScan';scanButton.textContent='Scan QR / 扫码';$('transferFile').after(scanButton);
     const scanner=root.PO33QRCamera.create(box);
     const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
@@ -45,7 +45,8 @@
       $('transferUndo').disabled=busy;$('transferRefresh').disabled=busy;
       $('transferCheckInput').disabled=busy;
       $('transferInput').disabled=busy;$('transferOutput').disabled=busy;
-      if(view.active)document.body.style.setProperty('--transfer-height',(box.offsetHeight+4)+'px');
+      box.setAttribute('aria-hidden',String(!view.active));
+      document.getElementById('panel')?.toggleAttribute('inert',view.active);
       hooks.paint();
     }
     function set(state,hint,extra={}){Object.assign(view,{state},extra);$('transferHint').textContent=hint;render();}

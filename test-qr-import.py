@@ -47,7 +47,7 @@ try:
   assert page.evaluate('cameraStops>0 && cameraStream.getTracks().every(t=>t.readyState==="ended")')
   assert page.evaluate('["scanning","downloading","decoding","success"].every(s=>states.includes(s))')
   assert page.locator('#lcdNumber').get_attribute('data-value')=='End'
-  assert page.locator('#lcdMeter rect[data-active=true]').count()==32
+  assert page.locator('#lcdMeter rect[data-active=true]').count()==38
   assert page.locator('.pad.sampled').count()==1
   page.screenshot(path=str(root/'t/official-backup-tests/qr-import-end-preview.png'))
   page.wait_for_timeout(2800)
@@ -75,7 +75,7 @@ try:
   page.wait_for_timeout(200);assert not page.locator('#transferQR').is_visible()
   assert page.evaluate('cameraStream.getTracks().every(t=>t.readyState==="ended")')
   assert not errors,errors
-  print('PASS real camera MediaStream frames -> local jsQR worker -> WAV URL -> download/CRC/one-slot restore and audible 4-note pattern; camera released, denied-camera URL fallback, invalid WAV/CORS preserve project, cancel works; 32 squares/End. No physical R1 camera validation.')
+  print('PASS real camera MediaStream frames -> local jsQR worker -> WAV URL -> download/CRC/one-slot restore and audible 4-note pattern; camera released, denied-camera URL fallback, invalid WAV/CORS preserve project, cancel works; 38 squares/End. No physical R1 camera validation.')
   browser.close()
 finally:
  for s in [server,other]:s.shutdown();s.server_close()
