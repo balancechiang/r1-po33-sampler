@@ -1,12 +1,8 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PO-33</title><link rel="apple-touch-icon" href="./apple-touch-icon-ui21.png"><link rel="manifest" href="./manifest.webmanifest"></head><body style="background:#0a0a0a;color:white;font:16px system-ui"><p id="loading">Loading PO-33…</p><button onclick="location.reload()">Retry / 重试</button><script>
-(async()=>{try{
- const response=await fetch('./app-release.json?t='+Date.now(),{cache:'no-store'});if(!response.ok)throw Error('Version check failed');const release=await response.json();
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PO-33</title><link rel="apple-touch-icon" href="./apple-touch-icon-ui21.png"><link rel="manifest" href="./manifest.webmanifest"></head><body style="background:#0a0a0a;color:white;font:16px system-ui"><p id="loading">Checking PO-33 version… / 检查版本…</p><button onclick="location.reload()">Retry / 重试</button><script>
+(async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{
+ const response=await fetch('./app-release.json?t='+Date.now(),{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('Version check failed');const release=await response.json();
  if(!/^flowers-20261120-ui\d+\.html$/.test(release.entry))throw Error('Invalid release entry');
- const page=await fetch('./'+release.entry+'?boot='+Date.now(),{cache:'no-store'});if(!page.ok)throw Error('App download failed');let html=await page.text();
- const revision=release.version+(new URLSearchParams(location.search).has('refresh')?'-'+Date.now():'');
- html=html.replace(/(src|href)="(\.\/[^"?#]+)(?:\?[^"#]*)?"/g,(all,key,path)=>key+'="'+path+(path.includes('apple-touch-icon')?'':'?v='+encodeURIComponent(revision))+'"');
- html=html.replace(/href="\.\/install\/[^"]+\.webmanifest[^"]*"/,'href="./manifest.webmanifest?v='+encodeURIComponent(revision)+'"');
- html=html.replace('</head>','<script>window.PO33_BUILD='+JSON.stringify(revision)+';window.PO33_RESOURCE=p=>{const u=new URL(p,document.baseURI);u.searchParams.set("v",window.PO33_BUILD);return u.href;};<\/script></head>');
- history.replaceState(null,'',location.pathname);document.open();document.write(html);document.close();
- }catch(error){document.getElementById('loading').textContent='Update unavailable / 无法加载版本：'+error.message+'。User projects are unchanged / 用户工程未改动。';}})();
+ const url=new URL('./'+release.entry,location.href);url.searchParams.set('boot','1');url.searchParams.set('v',release.version);if(new URLSearchParams(location.search).has('refresh'))url.searchParams.set('refresh',Date.now());
+ location.replace(url.href);
+ }catch(error){document.getElementById('loading').textContent='Could not load update / 无法载入更新。请重试；Creation 内仍无法启动时，请退出后重新打开。用户工程未改动。';}finally{clearTimeout(timer);}})();
 </script></body></html>

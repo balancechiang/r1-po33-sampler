@@ -308,7 +308,7 @@
     });
     return {open,close,readFile,moveFocus,activateFocus(){const e=document.activeElement;if(box.contains(e)&&e.tagName==='BUTTON'&&!e.disabled)e.click();},get view(){return view;},get hasSession(){return session;},checkpoint,
       flush:writeCheckpoint,
-      async restore(){if(hooks.preview)return;try{const saved=await storage.get();if(saved){undo={snapshot:hooks.snapshot(),native:null,baseline:null,session:false};native=saved.native;baseline=saved.baseline;session=true;hooks.restoreSnapshot(saved.snapshot);}}catch(error){hooks.hint('CHECKPOINT UNAVAILABLE');}},
+      async restore(){if(hooks.preview)return;try{const saved=await storage.get();if(saved){undo={snapshot:hooks.snapshot(),native:null,baseline:null,session:false};native=saved.native;baseline=saved.baseline;session=true;hooks.restoreSnapshot(saved.snapshot);}}catch(error){hooks.hint('CHECKPOINT UNAVAILABLE');throw error;}},
       async reset(){clearTimeout(saveTimer);await close();session=false;native=null;baseline=null;undo=null;await saveChain.catch(()=>{});if(!hooks.preview)await storage.clear();}
     };
   }

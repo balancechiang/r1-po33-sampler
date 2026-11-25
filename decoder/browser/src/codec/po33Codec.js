@@ -1,14 +1,14 @@
 /** Pure TypeScript PO-33 backup decoder. No Node, Web Audio, native or WASM calls.
  * Reference versions, licenses and interpretation limits: ../../decoder/README.md.
  */
-import { decodePilotFrame } from "../../decoder/modem-pll.js?v=flowers-20261120-ui28";
-import { parseWav } from "../../decoder/vendor/so-sample/wav.js?v=flowers-20261120-ui28";
-import { parseFrame } from "../../decoder/vendor/so-sample/state.js?v=flowers-20261120-ui28";
-import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=flowers-20261120-ui28";
-import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js?v=flowers-20261120-ui28";
-import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js?v=flowers-20261120-ui28";
-import { TAG, decodeFrame } from "../../decoder/vendor/so-sample/packets.js?v=flowers-20261120-ui28";
-export { encodePO33Backup, transferTimeline } from "./po33Encode.js?v=flowers-20261120-ui28";
+import { decodePilotFrame } from "../../decoder/modem-pll.js?v=flowers-20261120-ui29";
+import { parseWav } from "../../decoder/vendor/so-sample/wav.js?v=flowers-20261120-ui29";
+import { parseFrame } from "../../decoder/vendor/so-sample/state.js?v=flowers-20261120-ui29";
+import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=flowers-20261120-ui29";
+import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js?v=flowers-20261120-ui29";
+import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js?v=flowers-20261120-ui29";
+import { TAG, decodeFrame } from "../../decoder/vendor/so-sample/packets.js?v=flowers-20261120-ui29";
+export { encodePO33Backup, transferTimeline } from "./po33Encode.js?v=flowers-20261120-ui29";
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
  * This does not relax the separate raw PCM16 hardware replay page.

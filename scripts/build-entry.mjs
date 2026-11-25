@@ -11,6 +11,8 @@ let html=fs.readFileSync('index.html','utf8').replace(/\?v=[^"\s]+/g,'?v='+revis
 fs.writeFileSync('index.html',html);
 fs.writeFileSync('app-release.json',JSON.stringify({version:revision,entry:edition+'.html',storageSchema:1})+'\n');
 html=html.replace('<html lang="en">','<html lang="en" data-po33-install="flowers-20261120">').replace(/src="\.\/presets\.js[^"]*"/,'src="./install/presets-flowers-20261120.js?v='+edition+'"');
+const bootScript='<script>window.PO33_BUILD='+JSON.stringify(edition)+'+(new URLSearchParams(location.search).has("refresh")?"-"+Date.now():"");window.PO33_RESOURCE=p=>{const u=new URL(p,document.baseURI);u.searchParams.set("v",window.PO33_BUILD);return u.href;};if(new URLSearchParams(location.search).has("boot")){history.replaceState(null,"","./creation.html");document.addEventListener("DOMContentLoaded",()=>{document.querySelector("link[rel=manifest]").href="./manifest.webmanifest?v="+window.PO33_BUILD;});}</script>';
+html=html.replace('</head>',bootScript+'</head>');
 if(!html.includes('src="./backup-audio.js'))throw Error('Missing M4A decoder');
 html=html.replace(/href="\.\/manifest.webmanifest[^"]*"/,'href="./install/'+edition+'.webmanifest"');
 fs.writeFileSync(edition+'.html',html);

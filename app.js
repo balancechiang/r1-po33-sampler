@@ -477,6 +477,7 @@
     for (var n = 1; n <= TOTAL_SLOTS; n++) reads.push(callStore(store, "get", PK.slot(n)));
     for (var p = 1; p <= PATTERNS; p++) reads.push(callStore(store, "get", PK.pat(p)));
     return Promise.all(reads).then(async function (res) {
+      if(res.some(function(item){return !item.ok;}))throw Error("Project storage read failed");
       if(!await ensureAssetScope())storageWarn="ASSET STORAGE UNAVAILABLE";
       var meta = null;
       if (res[0].ok && typeof res[0].value === "string") {
@@ -572,9 +573,8 @@
         migrate.forEach(saveSlot);
         return true;
       });
-    })["catch"](function () {
-      persistDone(null);
-      return false;
+    })["catch"](function (error) {
+      persistPaused=true;storageReady=true;throw error;
     });
   }
 
@@ -3086,7 +3086,7 @@
   async function startRestore() {
     if (!storageCandidate()) { store = null; storageReady = true; return; }
     store=storageCandidate();
-    await ensureAssetScope();
+    if(!await ensureAssetScope())throw Error("Storage bridge unavailable");
     var marker=await callStore(store,"get",PK.reset);
     if(marker.ok && marker.value)await factoryReset(true);
     else await restoreAll();
@@ -3141,7 +3141,7 @@
     hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
     window.PO33Transfer=hardwareTransfer;
   }
-  startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;paint();},function(){startupReady=true;storageWarn="PROJECT LOAD FAILED";paint();});
+  startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;window.PO33Startup?.ready();paint();},function(){persistPaused=true;startupReady=false;storageWarn="PROJECT LOAD FAILED";paint();window.PO33Startup?.fail("Project restore unavailable / 工程恢复未完成");});
   if (backupPreview && window.parent !== window) {
     window.addEventListener("message", async function(event) {
       if(event.source!==window.parent || event.origin!==window.location.origin || !event.data || event.data.type!=="po33-preview-project")return;
