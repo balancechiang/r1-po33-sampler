@@ -69,6 +69,7 @@ try:
     assert record['x']+record['width']<playRect['x'] and playRect['x']+playRect['width']<number['x'],(value,record,playRect,number)
     assert number['x']+number['width']<=screen['x']+screen['width']+.1,(value,number,screen)
    for bank in ['.melodic-bank','.drum-bank']:
+    assert page.locator(bank+' .bank-text').evaluate('e=>getComputedStyle(e).writingMode')=='vertical-rl'
     geometry=page.locator(bank).evaluate('e=>{const p=getComputedStyle(e,"::before"),t=e.querySelector(".bank-text").getBoundingClientRect(),r=e.getBoundingClientRect();return {left:p.borderLeftStyle,right:p.borderRightWidth,gap:t.top-r.top-parseFloat(p.height)-parseFloat(p.borderTopWidth)}}')
     assert geometry['left']=='solid' and geometry['right']=='0px' and geometry['gap']>0,geometry
   page.screenshot(path=str(root/'t/panel-order-spacing-preview.png'))

@@ -1762,7 +1762,7 @@
     pending: null,
     error: null
   };
-  var micGeneration=0,micModulePromise=null,clipUntil=0,sliceResultUntil=0,sliceResultSlot=0,sliceResultCount=0,sliceResultTimer=null;
+  var micGeneration=0,micModulePromise=null,micReleasePromise=null,clipUntil=0,sliceResultUntil=0,sliceResultSlot=0,sliceResultCount=0,sliceResultTimer=null;
   function disconnectMusicMic(){
     micGeneration++;
     if(rec.on)abortRecording("INPUT DISCONNECTED");
@@ -1808,7 +1808,17 @@
     return !!(mic.proc && mic.stream);
   }
 
+  function releaseMusicMic(){
+    if(micReleasePromise)return;
+    var finishing=rec.on?finishRec():null;
+    micGeneration++;mic.pending=null;
+    if(mic.stream)mic.stream.getTracks().forEach(function(track){track.onended=null;track.stop();});
+    if(finishing){micReleasePromise=finishing.finally(function(){disconnectMusicMic();micReleasePromise=null;});}
+    else disconnectMusicMic();
+  }
   function ensureMic() {
+    if(!recHeld || seq.playing || d.hidden)return Promise.resolve(false);
+    if(micReleasePromise)return micReleasePromise.then(function(){return ensureMic();});
     if(micReady())return Promise.resolve(true);
     if(mic.pending)return mic.pending;
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){mic.error="NO MIC";return Promise.resolve(false);}
@@ -1819,9 +1829,10 @@
       try{
         if(!c.audioWorklet || !window.AudioWorkletNode)throw Error("AUDIO WORKLET REQUIRED");
         stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+        if(requestGeneration!==micGeneration || !recHeld || d.hidden){stream.getTracks().forEach(function(t){t.stop();});return false;}
         if(!micModulePromise)micModulePromise=c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./recording-worklet.js'):'./recording-worklet.js?v=flowers-20261120-ui25').catch(function(error){micModulePromise=null;throw error;});
         await micModulePromise;
-        if(requestGeneration!==micGeneration || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
+        if(requestGeneration!==micGeneration || !recHeld || d.hidden || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
         mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
         mic.proc=new AudioWorkletNode(c,'po33-recorder',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit'});
         mic.proc.port.onmessage=onCapture;
@@ -2013,7 +2024,8 @@
     recHeld = v;
     if(!v)pendingRecSlot=0;
     if (v) { recUsedPad = false; recPressedAt = Date.now(); }
-    if (!v && rec.on) finishRec();
+    if(v && !seq.playing)ensureMic();
+    if(!v)releaseMusicMic();
     paint();
   }
 
@@ -2472,7 +2484,7 @@
       consumeChord();modifierUsed.rec=modifierUsed.sound=modifierUsed.pattern=true;recUsedPad=true;
       if(act==='pattern' || (act==='rec' && patternHeld)){var deletedPattern=seq.playing?(seq.visualPattern || seq.pattern):seq.pattern;clearPattern(deletedPattern);patternExtras[deletedPattern-1]={effects:[],locks:{}};persistSoon();}else deleteSlot(state.slot);clearTimeout(deleteHoldTimer);deleteDisplay={target:act,code:act==='pattern'?'clr':'del'};displayValue=null;displayUntil=0;paint();return;
     }
-    if(act==="rec") { recPointer=pid(e); setRecHeld(true);if(!seq.playing)ensureMic(); return; }
+    if(act==="rec") { recPointer=pid(e); setRecHeld(true); return; }
     if(act==="play") { togglePlay(); return; }
     if(act==="write") { writeHeld=true; return; }
     if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
@@ -2593,7 +2605,7 @@
   }
   window.addEventListener("sideClick",onSide);
   window.addEventListener("longPressStart",function(){
-    sideRecArmed=false;sideRecHeld=true;setRecHeld(true);ensureMic();
+    sideRecArmed=false;sideRecHeld=true;setRecHeld(true);
   });
   window.addEventListener("longPressEnd",function(){
     sideRecHeld=false;sideClickIgnoreUntil=Date.now()+300;
@@ -2922,8 +2934,8 @@
   // P = hold PATTERN, F = FX, E = export, Enter = PLAY
   window.addEventListener("keydown", function (e) {
     if (e.repeat) return;
-    if (e.code === "Space" || e.key === " ") { e.preventDefault(); sideRecHeld=true;setRecHeld(true);ensureMic(); }
-    else if (e.key === "r" || e.key === "R") { e.preventDefault(); setRecHeld(true); ensureMic(); }
+    if (e.code === "Space" || e.key === " ") { e.preventDefault(); sideRecHeld=true;setRecHeld(true); }
+    else if (e.key === "r" || e.key === "R") { e.preventDefault(); setRecHeld(true); }
     else if (e.key === "p" || e.key === "P") {
       e.preventDefault();
       if (!patternHeld) {clearTimeout(patternInputTimer);patternInputTimer=null;patternSelection=[]; patternHeld = true; patternUsedPad = false; patternPressedAt = Date.now() - 1000; paint(); }

@@ -96,7 +96,7 @@ body[data-mode="PATTERN"] #panel .pad.pat-cur .led,
 .bank-label {position:absolute;left:calc(5 / 240 * 100%);width:calc(7 * var(--unit,1px));color:#ff5705;}
 .melodic-bank {top:calc(102 / 282 * 100%);height:calc(49 / 282 * 100%);}
 .drum-bank {top:calc(201 / 282 * 100%);height:calc(49 / 282 * 100%);}
-.bank-text {position:absolute;left:50%;top:50%;white-space:nowrap;transform:translate(-50%,-50%) rotate(-90deg);font:700 calc(8 * var(--unit,1px))/1 Arial,sans-serif;}
+.bank-text {position:absolute;display:block;left:50%;top:50%;width:calc(8 * var(--unit,1px));height:max-content;writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;transform:translate(-50%,-50%) rotate(180deg);font:700 calc(8 * var(--unit,1px))/1 Arial,sans-serif;}
 .bank-label::before,.bank-label::after {content:"";position:absolute;left:50%;width:calc(3 * var(--unit,1px));height:calc(3 * var(--unit,1px));border-left:calc(1 * var(--unit,1px)) solid #ff5705;}
 .bank-label::before {top:0;border-top:calc(1 * var(--unit,1px)) solid #ff5705;}
 .bank-label::after {bottom:0;border-bottom:calc(1 * var(--unit,1px)) solid #ff5705;}
