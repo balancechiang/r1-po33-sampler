@@ -47,8 +47,8 @@ try:
   down('fx');page.evaluate('fxVoices=[]');pad(11);page.wait_for_timeout(300);assert page.evaluate('fxVoices.length')==0
   up(2);up(1);play();assert not errors,errors
   print('PASS Scratch freezes current note or silence, alternates direction, Fast doubles hit rate, release resumes next step')
-  tips=page.evaluate("""async()=>{const image=new Image();image.src='./panel-art.svg';await image.decode();const c=document.createElement('canvas');c.width=2400;c.height=2820;const x=c.getContext('2d');x.drawImage(image,0,0,2400,2820);return [152.4,252].flatMap(y=>[-1,1].map(sign=>Array.from(x.getImageData(Math.round((207.4+sign*12.3)*10),Math.round((y+sign*12.3)*10),1,1).data)));}""")
-  assert all(min(color[:3])>180 for color in tips),tips
-  print('PASS FX/WRITE diagonal white stripes reach NW and SE exposed circular edges')
+  geometry=page.evaluate('''async()=>{const doc=new DOMParser().parseFromString(await (await fetch('./panel-art.svg')).text(),'image/svg+xml');return ['fx','write'].every(key=>{const circle=doc.querySelector('[data-control="'+key+'"] circle');return circle.getAttribute('r')===doc.querySelector('[data-control="play"] circle').getAttribute('r')&&!circle.hasAttribute('stroke');})&&doc.querySelector('#stripes').getAttribute('patternTransform')==='rotate(45)';}''')
+  assert geometry
+  print('PASS FX/WRITE share normal backdrop radius, no rim stroke, 45-degree hatching')
   b.close()
 finally:server.shutdown();server.server_close()

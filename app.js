@@ -816,13 +816,14 @@
     if(kind<1||kind>15)return;
     var c=ctx(),now=c.currentTime;fxInstall();
     var previous=fx.kind;fx.kind=kind;
-    var stream=[5,6,9,10].indexOf(kind)>=0;fx.engine.engage(stream?kind:0,stepDur());
+    var stream=[9,10].indexOf(kind)>=0;fx.engine.engage(stream?kind:0,stepDur());
     rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
     if(previous===15 && kind!==15)refreshVoices(kind,true);
     if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern);
     if(loopHold && !(kind>=1 && kind<=4))releaseLoop();
     if(scratchHold && kind!==11 && kind!==12)releaseScratch();
     if(!fromPattern && (kind===11 || kind===12) && seq.playing)holdScratch(kind);
+    if(previous===5 || previous===6 || kind===5 || kind===6)retuneUnison(kind===5||kind===6?kind:0,fromPattern);
     if(kind===7 || kind===8)glideOctave(kind,fromPattern);
     if(kind>=1 && kind<=4 && seq.playing)holdLoop(kind,!!fromPattern);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
@@ -834,6 +835,7 @@
     var previous=fx.kind;fx.kind=0;if(fx.engine)fx.engine.release();
     var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
     if(scratchHold)releaseScratch();
+    if(previous===5 || previous===6)retuneUnison(0,fromPattern);
     if(previous===7 || previous===8)glideOctave(0,fromPattern);
     if(loopHold)releaseLoop();
     if(previous===15 && !fromPattern)refreshVoices(0,false);
@@ -877,6 +879,16 @@
       if(v.effect===effect || v.end<=now || (!includeActive && v.start<=now))return;
       cancelVoice(v,now);
       voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,Object.assign({},v.tweak,effectiveTweak(v.slot,Math.max(now,v.start))));
+    });
+  }
+  // Event/source-rate Unison model; no extra hidden voices or mixed-bus chorus.
+  function sourceRate(semitones,pitch,effect){return Math.pow(2,((effect===5||effect===6?0:semitones)+pitch)/12)*(effect===6||effect===8?.5:effect===7?2:1);}
+  function retuneUnison(kind,fromPattern){
+    var now=ctx().currentTime;
+    sampleVoices.slice().forEach(function(v){
+      if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;
+      var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at);v.effect=kind;
+      v.speed.target(at,sourceRate(v.semitones,values.pitch,kind),0,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);
     });
   }
   function glideOctave(kind,fromPattern){
@@ -1008,7 +1020,7 @@
     var values=effectiveTweak(v.slot,time);v.tweak=JSON.parse(JSON.stringify(effectiveTweak(v.slot,now)));
     setVoiceControls(v.controls,values,time,false);
     if(Number.isFinite(patch.pitch)){
-      v.speed.target(time,Math.pow(2,(v.semitones+values.pitch)/12)*(v.effect===7?2:v.effect===8?.5:1),.015,now);
+      v.speed.target(time,sourceRate(v.semitones,values.pitch,v.effect),.015,now);
       v.speed.apply(v.src.playbackRate,now);replanVoice(v);
     }
   }
@@ -1164,7 +1176,7 @@
     if(!recHeld && !rec.on)musicSession('ambient');
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
-    var rate = Math.pow(2, (semitones+(s.pitch || 0))/12);
+    var rate = sourceRate(semitones,s.pitch || 0,voiceEffect===7||voiceEffect===8?0:voiceEffect);
     var trimOff = (s.trim / 100) * s.duration;
     var off = (s.offset || 0) + trimOff;
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);

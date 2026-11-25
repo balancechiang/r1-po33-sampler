@@ -10,8 +10,8 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | 02 | Loop 12 | Cycle a 12-step window starting at the audible step captured on press, within the captured pattern. |
 | 03 | Loop short | Hold the captured step and retrigger its notes every half-step (32nd notes, two hits per original step). |
 | 04 | Loop shorter | Hold the captured step and retrigger its notes every third-step (48th notes, three hits per original step). |
-| 05 | Unison | Live dry signal plus a slightly detuned granular delay voice (ratio 1.008). |
-| 06 | Unison low | Live dry signal plus a sub-octave granular delay voice (ratio 0.5). |
+| 05 | Unison | Force source rates to slot base pitch, ignoring pad-note offsets; existing voices retain their sample position. No synthetic detuned layer. |
+| 06 | Unison low | Same source-rate alignment, one octave below slot base pitch. |
 | 07 | Octave up | Glide each active source from its current playback rate toward twice its neutral rate (35ms exponential time constant); new notes start at their base rate and glide too. |
 | 08 | Octave down | Same continuous source-rate glide toward half the neutral rate; preserve current source position. |
 | 09 | Stutter 8 | Capture a eighth-beat fragment and repeat it eight times per beat. |
@@ -38,11 +38,11 @@ from the supplied third-party implementation guide has been added.
 - If a loop is requested before enough history exists, use the available material.
   A request made before any signal waits for the first sound instead of freezing
   silence. Short edge fades keep captured loop periods intact.
-- 05, 06, 09 and 10 run on the master stream. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
+- 09 and 10 run on the master stream. 05/06 align source rates at the voice layer. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
   individual source regions, including independently copied drum slices.
-- The Unison stream pitch shifter uses two overlapping 40ms delay grains; it preserves ongoing
-  input timing rather than repeatedly replaying a frozen bar. Granular coloration
-  and latency are expected. The existing 512-frame ScriptProcessor path is retained
+- Unison no longer uses the master-stream granular shifter. Existing logical voices
+  are retained without adding layers; normal same-slot choke and the four-voice limit apply.
+  The existing 512-frame ScriptProcessor path for Stutter is retained
   for r1/browser compatibility; device performance and sound still need listening tests.
 - On-screen FX remains momentary. Shake FX remains latched and uses the same
   numbering. A held screen FX key takes priority over shake and saved effects.
@@ -95,3 +95,14 @@ step; releasing resumes at its successor. Saved Scratch automation applies the s
 subdivision/direction/envelope within each saved step, allowing the song to progress.
 Octave glides also use the source-rate trajectory used for live knob changes, keeping
 trim deadlines, choke and four-voice limits in sync.
+
+## Unison source-rate model (2026-11-25)
+
+The 05/06 behavior is a user-specified, hardware-unverified model. Manual and saved
+FX use the same source-rate mapping. 05 ignores pad pitch and retains slot pitch;
+06 applies an additional 0.5 ratio. Existing sources change rate immediately without
+restarting. Release restores the original note plus current slot pitch. Drum slice
+indices are never replaced. No invented timing jitter or detuned clones are added.
+07/08 retain the earlier requested octave glides; the instant-switch model is not
+generalized to all effects. Legacy DSP Engine modes 05/06 remain for compatibility
+but are bypassed by the current app routing.
