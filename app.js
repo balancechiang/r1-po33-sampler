@@ -750,7 +750,7 @@
   function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
-      await c.audioWorklet.addModule('./hardware-tone-worklet.js?v=20261120-stability1');
+      await c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./hardware-tone-worklet.js'):'./hardware-tone-worklet.js?v=flowers-20261120-ui25');
       if(c!==ac)return;
       toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
       toneNode.onprocessorerror=function(){if(c!==ac)return;hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
@@ -1819,7 +1819,7 @@
       try{
         if(!c.audioWorklet || !window.AudioWorkletNode)throw Error("AUDIO WORKLET REQUIRED");
         stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-        if(!micModulePromise)micModulePromise=c.audioWorklet.addModule('./recording-worklet.js').catch(function(error){micModulePromise=null;throw error;});
+        if(!micModulePromise)micModulePromise=c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./recording-worklet.js'):'./recording-worklet.js?v=flowers-20261120-ui25').catch(function(error){micModulePromise=null;throw error;});
         await micModulePromise;
         if(requestGeneration!==micGeneration || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
         mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
@@ -2994,7 +2994,8 @@
     for(var k=0;k<keys.length;k++){
       if(!(await callStore(store,"remove",keys[k])).ok)throw new Error("reset storage failed");
     }
-    var cleared=await callStore(store,"get",PK.meta);if(!cleared.ok || (cleared.value!=null && cleared.value!==""))throw new Error("reset metadata still present");
+    for(var key of keys){var cleared=await callStore(store,"get",key);if(!cleared.ok || (cleared.value!=null && cleared.value!==""))throw new Error("reset user data still present");}
+    try{localStorage.removeItem('po33.localHub.ip');}catch{}
   }
   var resetCommitting=false;
   async function factoryReset(recover){
@@ -3111,8 +3112,17 @@
     params.bpm=imported.bpm;SWING=imported.swing;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;
     state.slot=1;state.mode="PLAY";masterVolume=8;if(mixVolume)mixVolume.gain.value=.5;paint();return imported;
   }
+  async function forceUpdate(){
+    await stopForTransfer();if(startupRestore)await startupRestore;
+    if(hardwareTransfer && hardwareTransfer.hasSession)await hardwareTransfer.flush();
+    else {flushPersist();var deadline=Date.now()+15000;while(saveRunning || saveQueue.length){if(Date.now()>deadline)throw Error('Save not complete; update cancelled');await new Promise(r=>setTimeout(r,20));}if(failedSaveKeys.size)throw Error('Save failed; update cancelled');}
+    var check=await fetch('./app-release.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!check.ok)throw Error('Update server unavailable');var release=await check.json();
+    if(!/^flowers-20261120-ui\d+\.html$/.test(release.entry))throw Error('Invalid release');
+    var verify=await fetch('./'+release.entry+'?check='+Date.now(),{cache:'no-store'});if(!verify.ok)throw Error('Update download failed');await verify.text();
+    location.assign('./creation.html?refresh='+Date.now());
+  }
   if(window.PO33TransferFactory){
-    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
+    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
     window.PO33Transfer=hardwareTransfer;
   }
   startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;paint();},function(){startupReady=true;storageWarn="PROJECT LOAD FAILED";paint();});

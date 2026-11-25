@@ -2,7 +2,7 @@
   "name": "PO-33 K.O!",
   "short_name": "PO-33",
   "id": "./",
-  "start_url": "./index.html",
+  "start_url": "./creation.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#999999",

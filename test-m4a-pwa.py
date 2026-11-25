@@ -14,7 +14,7 @@ try:
   d=Path(d);n=44100;values=[(int(12000*math.sin(i*.1)),int(8000*math.cos(i*.07))) for i in range(n)];data=b''.join(struct.pack('<hh',*v) for v in values);wav=b'RIFF'+struct.pack('<I',36+len(data))+b'WAVEfmt '+struct.pack('<IHHIIHH',16,1,2,44100,176400,4,16)+b'data'+struct.pack('<I',len(data))+data;(d/'source.wav').write_bytes(wav)
   subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),'-v','error','-i',str(d/'source.wav'),'-c:a','alac',str(d/'lossless.m4a')],check=True)
   with sync_playwright() as p:
-   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(os.environ.get('PO33_TEST_URL') or f'http://127.0.0.1:{server.server_port}/'+os.environ.get('PO33_TEST_ENTRY','flowers-20261120-ui21.html'));page.wait_for_function('document.body.dataset.loading==="false"')
+   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(os.environ.get('PO33_TEST_URL') or f'http://127.0.0.1:{server.server_port}/'+os.environ.get('PO33_TEST_ENTRY','flowers-20261120-ui21.html'));page.wait_for_function('document.body?.dataset.loading==="false"')
    result=page.evaluate('''async b64=>{const b=Uint8Array.from(atob(b64),c=>c.charCodeAt(0)).buffer;const p=await PO33BackupAudio.decode(b);return {rate:p.sampleRate,left:Array.from(p.left),right:Array.from(p.right)};}''',base64.b64encode((d/'lossless.m4a').read_bytes()).decode())
    assert result['rate']==44100 and len(result['left'])==n,(result['rate'],len(result['left']))
    assert all(abs(result['left'][i]-v[0]/32768)<1e-7 and abs(result['right'][i]-v[1]/32768)<1e-7 for i,v in enumerate(values))
@@ -39,14 +39,14 @@ try:
    if fixture.exists():
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),'-v','error','-i',str(fixture),'-c:a','alac',str(d/'backup.m4a')],check=True)
     page.locator('#transferFileInput').set_input_files(str(d/'backup.m4a'))
-    page.wait_for_function('document.body.dataset.transfer==="success" || document.body.dataset.transfer==="error"',timeout=60000)
+    page.wait_for_function('document.body?.dataset.transfer==="success" || document.body?.dataset.transfer==="error"',timeout=60000)
     assert page.locator('body').get_attribute('data-transfer')=='success',page.locator('#transferHint').text_content()
     assert page.evaluate('PO33Transfer.hasSession')
     print('PASS valid stereo backup WAV -> ALAC M4A -> file picker -> hardware checksum -> restored project')
    if len(sys.argv)>1:
-    page.reload();page.wait_for_function('document.body.dataset.loading==="false"')
+    page.reload();page.wait_for_function('document.body?.dataset.loading==="false"')
     for act,i in [('write',1),('sound',2),('rec',3)]:page.locator('[data-act='+act+']').dispatch_event('pointerdown',{'pointerId':i,'bubbles':True})
-    page.locator('#transferFileInput').set_input_files(sys.argv[1]);page.wait_for_function('document.body.dataset.transfer==="success" || document.body.dataset.transfer==="error"',timeout=120000)
+    page.locator('#transferFileInput').set_input_files(sys.argv[1]);page.wait_for_function('document.body?.dataset.transfer==="success" || document.body?.dataset.transfer==="error"',timeout=120000)
     assert page.locator('body').get_attribute('data-transfer')=='success',page.locator('#transferHint').text_content()
     print('PASS supplied private iOS backup restored and checksum-validated')
    browser.close()

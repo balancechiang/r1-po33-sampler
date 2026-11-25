@@ -1,0 +1,12 @@
+{
+ "schema":1,"userNamespace":"po33.install.flowers-20261120.",
+ "userKV":["po33.meta","po33.slot1..16","po33.pat1..16"],
+ "userBinary":"po33-sample-assets-<persistent asset-scope>",
+ "userCheckpoint":"po33-hardware-project-flowers-20261120/current",
+ "userPreferences":["po33.localHub.ip"],
+ "identity":["po33.asset-scope"],"recoveryMarker":"po33.reset",
+ "application":["app-release.json","HTML/JS/CSS/SVG/PNG runtime resources"],
+ "factory":"install/presets-flowers-20261120.js (read-only)",
+ "update":"Save/checkpoint first; fetch release without cache; version runtime URLs; never clear user stores",
+ "factoryReset":"Stop capture/playback; drain writes; clear user KV, sample stores, checkpoint and preferences; verify; reseed bundled factory demo"
+}

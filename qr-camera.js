@@ -7,7 +7,7 @@
     const video=dialog.querySelector('video'),status=dialog.querySelector('#transferQRStatus'),input=dialog.querySelector('input');
     let stream=null,worker=null,timer=null,finish=null,session=0,busy=false;
     function cleanup(){clearTimeout(timer);timer=null;if(worker)worker.terminate();worker=null;if(stream)stream.getTracks().forEach(t=>{t.onended=null;t.stop();});stream=null;video.srcObject=null;busy=false;}
-    function settle(text){session++;cleanup();if(dialog.open)dialog.close();const resolve=finish;finish=null;resolve?.(text);}
+    function settle(text){root.dispatchEvent(new CustomEvent('po33-scan-state',{detail:{active:false}}));session++;cleanup();if(dialog.open)dialog.close();const resolve=finish;finish=null;resolve?.(text);}
     dialog.querySelector('#transferQRCancel').onclick=()=>settle(null);
     dialog.addEventListener('cancel',e=>{e.preventDefault();settle(null);});
     dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(input.value.trim())settle(input.value.trim());};
@@ -19,8 +19,8 @@
         const acquired=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:640},height:{ideal:480}}});
         if(token!==session){acquired.getTracks().forEach(t=>t.stop());return;}
         stream=acquired;stream.getVideoTracks().forEach(t=>{t.onended=()=>{cleanup();status.textContent='Camera disconnected. Paste URL or reopen scanner / 摄像头已断开，可输入网址。';};});
-        video.srcObject=stream;await video.play();if(token!==session || !stream)return;
-        worker=new Worker('./qr-camera-worker.js');
+        video.setAttribute('webkit-playsinline','');video.disablePictureInPicture=true;video.srcObject=stream;await video.play();if(token!==session || !stream)return;
+        worker=new Worker((root.PO33_RESOURCE?root.PO33_RESOURCE('./qr-camera-worker.js'):'./qr-camera-worker.js'));
         worker.onerror=()=>{cleanup();status.textContent='QR decoder unavailable. Paste URL below / 扫码不可用，请输入网址。';};
         worker.onmessage=async({data:m})=>{
           if(token!==session)return;
@@ -43,7 +43,7 @@
       }catch(error){if(token!==session)return;cleanup();status.textContent=`${error.name || 'Camera'}: ${error.message || 'Unavailable'}. Paste URL below / 可在下方输入网址。`;}
     }
     return {get active(){return !!finish;},close:()=>settle(null),
-      open(){if(finish)settle(null);const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.show();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
+      open(){if(finish)settle(null);root.dispatchEvent(new CustomEvent('po33-scan-state',{detail:{active:true}}));const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.show();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
     };
   }
   root.PO33QRCamera={create};

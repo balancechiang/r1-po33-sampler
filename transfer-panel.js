@@ -9,6 +9,10 @@
     const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
     const jsonButton=document.createElement('button');jsonButton.id='transferJSON';jsonButton.textContent='Save JSON';$('transferSave').after(jsonButton);
     $('transferFileInput').accept='.wav,.m4a,audio/mp4,audio/x-m4a,.json,.po33frame,.gz';$('transferFile').textContent='Load File';
+    const updateButton=document.createElement('button');updateButton.id='transferUpdate';updateButton.textContent='Force update / 强制更新';box.querySelector('div').append(updateButton);
+    const resetButton=document.createElement('button');resetButton.id='transferFactoryReset';resetButton.textContent='Factory reset / 恢复出厂';updateButton.after(resetButton);let resetArmedUntil=0;
+    updateButton.onclick=async()=>{try{set('updating','Saving project and checking update / 保存工程并检查更新');await hooks.update();}catch(error){await fail(error);}};
+    resetButton.onclick=async()=>{if(Date.now()>resetArmedUntil){resetArmedUntil=Date.now()+5000;resetButton.textContent='CONFIRM RESET / 确认清除';return;}resetArmedUntil=0;await hooks.factoryReset();};
     const hub=root.PO33LocalHub.create(box,{onFile:(name,buffer)=>loadBuffer(name,buffer),onClose:()=>set('waiting','rcv · Ready / 就绪',{progress:0}),loadFile:()=>$('transferFileInput').click()});
     function renderTone(){if(!hooks.toneStatus){$('transferTone').hidden=true;return;}const t=hooks.toneStatus();$('transferTone').textContent=t.error?'PO-33 TONE UNAVAILABLE':'PO-33 TONE '+(t.enabled?'ON':'OFF');$('transferTone').setAttribute('aria-pressed',String(t.enabled));$('transferTone').disabled=!!t.error;}
     $('transferTone').onclick=()=>{hooks.setTone(!hooks.toneStatus().enabled);renderTone();};root.addEventListener('po33-tone-state',renderTone);renderTone();
@@ -35,7 +39,8 @@
     function render(){
       root.PO33Runtime.setActive("transfer",view.active);
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=probing || ['encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
+      const busy=probing || ['updating','encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
+      updateButton.hidden=resetButton.hidden=view.mode!=='receive';updateButton.disabled=resetButton.disabled=busy;
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
       scanButton.hidden=view.mode!=='receive';scanButton.disabled=busy;
       hubButton.hidden=view.mode!=='receive';hubButton.disabled=busy;jsonButton.hidden=view.mode!=='send';jsonButton.disabled=busy;
@@ -85,7 +90,7 @@
       end((saved?'End · Project restored / 工程已恢复': 'End · Restored in memory; storage unavailable / 仅本次有效')+(unresolved?` · ${unresolved} unavailable slices / 异常切片`:''));
     }
     function run(command,data){
-      terminate();worker=new Worker('./transfer-worker.js?v=20261120-live1',{type:'module'});const token=generation;
+      terminate();worker=new Worker((root.PO33_RESOURCE?root.PO33_RESOURCE('./transfer-worker.js?v=20261120-live1'):'./transfer-worker.js?v=20261120-live1'),{type:'module'});const token=generation;
       worker.onerror=()=>{if(token===generation)fail(Error('Codec worker unavailable. Use HTTP/HTTPS.'));};
       worker.onmessage=async({data:m})=>{
         if(token!==generation)return;
@@ -187,7 +192,7 @@
       if(context.destination.maxChannelCount<2)throw Error('Stereo output is unavailable');
       context.destination.channelCount=2;context.destination.channelInterpretation='discrete';
       if($('transferOutput').value){if(!context.setSinkId)throw Error('Select audio output in system settings');await context.setSinkId($('transferOutput').value);}
-      await context.audioWorklet.addModule('./backup-worklet.js');
+      await context.audioWorklet.addModule(root.PO33_RESOURCE?root.PO33_RESOURCE('./backup-worklet.js'):'./backup-worklet.js?v=flowers-20261120-ui25');
       if(token!==generation){if(context.state!=='closed')await context.close();return false;}
       node=new AudioWorkletNode(context,'po33-backup',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2],channelCountMode:'max',channelInterpretation:'discrete'});
       node.connect(context.destination);node.port.onmessage=e=>{if(token===generation)onAudio(e);};await context.resume();

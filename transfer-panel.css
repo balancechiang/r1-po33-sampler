@@ -28,3 +28,7 @@ body.transfer-open #samplerControls #panel {width:100%;visibility:hidden;pointer
 #transferControls #transferQR video {height:32%;min-height:60px;}
 #transferControls #transferQR input,#transferControls #hubIP {font:inherit;}
 @media(prefers-reduced-motion:reduce){#samplerControls #transferControls{transition:none;}}
+
+#transferUpdate,#transferFactoryReset {grid-column:span 2;}
+#transferControls #transferQR[open] {display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:calc(3 * var(--unit));overflow:auto;}
+#transferControls #transferQR video {height:100%;min-height:0;max-height:100%;min-width:0;object-fit:contain;contain:size;}

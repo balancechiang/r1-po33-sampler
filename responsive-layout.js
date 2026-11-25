@@ -8,9 +8,12 @@
  const controls=document.createElement('div');controls.id='samplerControls';controls.append(panel);instrument.append(screen,controls);
  const wrappers={};
  for(const id of ['tapeHead','tapeLeft','tapeRight','factoryReset']){const el=document.getElementById(id),g=document.createElementNS('http://www.w3.org/2000/svg','g');el.before(g);g.append(el);wrappers[id]=g;}
+ let scanFrozen=false;
+ window.addEventListener('po33-scan-state',e=>{scanFrozen=e.detail.active;if(!scanFrozen)layout();});
  function layout(){
+  if(scanFrozen){stage.dataset.rotated=String((matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0) && document.documentElement.clientWidth>window.innerHeight);return;}
   const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
-  const rawWidth=document.documentElement.clientWidth-horizontal,rawHeight=(window.visualViewport?window.visualViewport.height:window.innerHeight)-vertical;
+  const rawWidth=document.documentElement.clientWidth-horizontal,rawHeight=window.innerHeight-vertical;
   const touch=matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0;
   const rotated=touch && rawWidth>rawHeight;
   const vw=rotated?rawHeight:rawWidth,vh=rotated?rawWidth:rawHeight;

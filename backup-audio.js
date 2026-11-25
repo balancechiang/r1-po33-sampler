@@ -20,7 +20,7 @@
     const context=new Context(2,1,sampleRate);let audio;
     try{audio=await new Promise((resolve,reject)=>{const result=context.decodeAudioData(buffer.slice(0),resolve,reject);if(result&&result.then)result.then(resolve,reject);});}
     catch(error){return new Promise((resolve,reject)=>{
-      const worker=new Worker(new URL('./alac-worker.js',document.baseURI));
+      const worker=new Worker(root.PO33_RESOURCE?root.PO33_RESOURCE('./alac-worker.js'):new URL('./alac-worker.js',document.baseURI));
       const timer=setTimeout(()=>{worker.terminate();reject(Error('M4A decoding timed out'));},60000);
       worker.onmessage=({data})=>{clearTimeout(timer);worker.terminate();data.error?reject(Error(data.error)):resolve(data.pcm);};
       worker.onerror=(event)=>{clearTimeout(timer);worker.terminate();reject(Error('M4A decoder unavailable; use stereo PCM WAV: '+event.message));};

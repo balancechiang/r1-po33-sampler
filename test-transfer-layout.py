@@ -24,7 +24,17 @@ try:
    assert page.locator('#panel').evaluate('e=>getComputedStyle(e).visibility')=='hidden'
    if w in [240,768]:page.screenshot(path=str(root/('t/transfer-'+str(w)+'-preview.png')))
    page.locator('#transferHub').click();dialog=page.locator('#localHubPanel').bounding_box();assert all(abs(dialog[k]-controls[k])<1 for k in ['x','y','width','height'])
-   page.locator('#hubClose').click();page.locator('#transferClose').click();page.wait_for_timeout(220)
+   page.locator('#hubClose').click()
+   if w==390:
+    page.locator('#transferScan').click();page.wait_for_timeout(100)
+    oldWidth=page.locator('#instrument').evaluate('e=>e.style.width')
+    page.set_viewport_size({'width':844,'height':390});page.wait_for_timeout(100)
+    assert page.locator('#instrument').evaluate('e=>e.style.width')==oldWidth
+    assert page.locator('#portraitStage').get_attribute('data-rotated')=='true'
+    camera=page.locator('#transferQRVideo').bounding_box();area=page.locator('#samplerControls').bounding_box()
+    assert camera['x']>=area['x']-1 and camera['y']>=area['y']-1 and camera['x']+camera['width']<=area['x']+area['width']+1 and camera['y']+camera['height']<=area['y']+area['height']+1
+    page.locator('#transferQRCancel').click();page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(100)
+   page.locator('#transferClose').click();page.wait_for_timeout(220)
    assert page.locator('#panel').evaluate('e=>getComputedStyle(e).visibility')=='visible'
    assert page.locator('#samplerScreen').bounding_box()==before
    for act,i in [('write',1),('sound',2),('play',3)]:page.locator('[data-act='+act+']').dispatch_event('pointerdown',{'pointerId':i,'bubbles':True})
