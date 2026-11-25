@@ -15,7 +15,7 @@ const input=path.resolve(process.argv[2]),output=path.resolve(process.argv[3]);f
 const info=JSON.parse(fs.readFileSync(path.join(input,'preparation.json'),'utf8')),eighth=30/info.bpm;
 const reports=[],previews=[];
 function pcmWav(a){const b=Buffer.alloc(44+a.length*2);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(44100,24);b.writeUInt32LE(88200,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(a.length*2,40);a.forEach((v,i)=>b.writeInt16LE(Math.round(Math.max(-1,Math.min(1,v))*32767),44+2*i));return b;}
-for(const [role,label] of [['rhythm','01-DRUMS-BASS'],['vocal','02-VOCAL-CHOPS']]){
+for(const [role,label] of [['rhythm','01-DRUMS-BASS'],['vocal',info.vocalLabel || '02-VOCAL-CHOPS']]){
  const bytes=fs.readFileSync(path.join(input,role+'.f32')),pcm=new Float32Array(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
  const native=toNativeRate(pcm,info.rate),model=emptyProject(info.bpm),library=new Map();model.chain=Array.from({length:16},(_,i)=>i+1);model.swing=0;
  for(let kit=0;kit<8;kit++){
