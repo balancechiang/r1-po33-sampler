@@ -1,20 +1,37 @@
 /* Behavioral approximation; PO-33 transient thresholds/voice arbitration are not public. */
 (function(root){'use strict';
- function transientSlices(data,rate){
-  if(!(rate>0)||!data.length)return Array(16).fill(null);
-  var hop=Math.max(1,Math.round(rate*.002)),envelope=[],peak=0;
-  for(var i=0;i<data.length;i+=hop){var energy=0,end=Math.min(data.length,i+hop);for(var j=i;j<end;j++)energy+=data[j]*data[j];var rms=Math.sqrt(energy/(end-i));envelope.push(rms);peak=Math.max(peak,rms);}
-  if(peak<.0001)return Array(16).fill(null);
-  var floor=Math.max(.0001,peak*.035),baseline=0,previous=0,last=-Infinity,points=[],gap=Math.ceil(.035*rate/hop);
-  for(var k=0;k<envelope.length && points.length<16;k++){
-   var value=envelope[k],rise=value-previous;
-   if(value>floor && k-last>=gap && (points.length===0 || (value>baseline*1.8 && rise>peak*.025))){
-    // Include one analysis window before the onset so the attack isn't trimmed away.
-    points.push(Math.max(0,(k-1)*hop));last=k;
-   }
-   baseline+=.06*(value-baseline);previous=value;
+ // Calibration defaults, not verified PO-33 firmware constants.
+ const AUTO_SLICE_DEFAULTS=Object.freeze({maxSlices:16,minDistanceMs:55,snapBackMs:2,fastMs:3,slowMs:45,relativeThreshold:.015});
+ function transientSlices(data,rate,options){
+  const settings=Object.assign({},AUTO_SLICE_DEFAULTS,options),empty=()=>Array(16).fill(null);
+  if(!(rate>0)||!data.length)return empty();
+  const hop=Math.max(1,Math.round(rate*.001)),fastAlpha=1-Math.exp(-1/(rate*settings.fastMs/1000)),slowAlpha=1-Math.exp(-1/(rate*settings.slowMs/1000));
+  const features=[];let fast=0,slow=0,previous=0,amplitude=0,maximum=0;
+  for(let start=0;start<data.length;start+=hop){
+   const end=Math.min(data.length,start+hop);let framePeak=0;
+   for(let i=start;i<end;i++){const value=Math.abs(data[i]);amplitude=Math.max(amplitude,value);fast+=(value-fast)*fastAlpha;slow+=(value-slow)*slowAlpha;framePeak=Math.max(framePeak,fast);}
+   const rise=Math.max(0,framePeak-previous),score=framePeak>Math.max(.0001,slow*1.3) && rise>framePeak*.15?Math.max(0,framePeak-slow)*rise:0;
+   features.push({sample:start,score});maximum=Math.max(maximum,score);previous=framePeak;
   }
-  var result=points.map(function(start,n){return {start:start,end:n+1<points.length?points[n+1]:data.length};});
+  if(amplitude<.0001)return empty();
+  const distance=Math.max(1,Math.round(rate*Math.max(0,settings.minDistanceMs)/1000)),back=Math.max(0,Math.round(rate*Math.max(0,settings.snapBackMs)/1000));
+  function snap(sample){
+   const lo=Math.max(0,sample-back);let best=sample;
+   for(let i=sample;i>=lo;i--){
+    if(Math.abs(data[i])<Math.abs(data[best]))best=i;
+    if(data[i]===0)return i;
+    if(i>lo && (data[i-1]<0)!==(data[i]<0))return Math.abs(data[i-1])<Math.abs(data[i])?i-1:i;
+   }
+   return best;
+  }
+  const threshold=maximum*Math.max(0,settings.relativeThreshold),candidates=[];
+  for(let i=0;i<features.length;i++){const item=features[i];if(item.score>0 && item.score>=threshold && item.score>=(features[i-1]?.score||0) && item.score>(features[i+1]?.score||0))candidates.push({sample:snap(item.sample),score:item.score});}
+  // Select globally by strength, not the first sixteen chronological detections.
+  candidates.sort((a,b)=>b.score-a.score||a.sample-b.sample);
+  const points=[0],limit=Math.max(1,Math.min(16,Math.floor(settings.maxSlices)||16));
+  for(const candidate of candidates){if(points.length>=limit)break;if(candidate.sample<data.length && points.every(p=>Math.abs(p-candidate.sample)>=distance))points.push(candidate.sample);}
+  points.sort((a,b)=>a-b);
+  const result=points.map((start,i)=>({start,end:i+1<points.length?points[i+1]:data.length}));
   while(result.length<16)result.push(null);return result;
  }
  function choke(voices,slot,time,cut){
@@ -58,6 +75,6 @@
   manual(slot,key,value,now){this.flush(now);this.held[slot-1][key]=value;}
   stop(now){this.flush(now);this.events=[];}
  }
- var api={MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
+ var api={AUTO_SLICE_DEFAULTS:AUTO_SLICE_DEFAULTS,MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
  if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

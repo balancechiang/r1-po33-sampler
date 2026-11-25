@@ -42,9 +42,9 @@ try:
   page.wait_for_function('document.body.classList.contains("recording")');page.wait_for_timeout(1600);up(2);up()
   page.wait_for_function('!document.body.classList.contains("recording") && !!window.detected')
   assert .5<page.evaluate('recordPeak')<.65 # no post-capture normalization to .9
-  assert page.locator('[data-led-reason="slice-result"][data-led-level="bright"]').count()==3
-  detected=page.evaluate('detected.filter(Boolean)');assert len(detected)==3,detected
-  assert abs((detected[1]['start']-detected[0]['start'])/page.evaluate('recordRate')-.37)<.015
+  assert page.locator('[data-led-reason="slice-result"][data-led-level="bright"]').count()==4
+  detected=page.evaluate('detected.filter(Boolean)');assert len(detected)==4,detected
+  assert abs((detected[2]['start']-detected[1]['start'])/page.evaluate('recordRate')-.37)<.015
   select(9);page.evaluate('notes=[];voiceStops=[]');pad(1);page.wait_for_timeout(25);pad(2)
   notes=page.evaluate('notes');stops=page.evaluate('voiceStops');assert len(notes)==2,notes
   assert any(x['id']==notes[0]['id'] and abs(x['time']-notes[1]['args'][0]-.002)<.015 for x in stops),stops
@@ -63,6 +63,6 @@ try:
   select(9);page.evaluate('notes=[]');pad(2)
   assert abs(page.evaluate('notes.at(-1).args[1]')-second)<.0001
   assert not errors,errors
-  browser.close();print('PASS real synthetic microphone take -> 3 irregular slices, unused-pad choke, live same-slot cut, global voice cap, equal melodic-copy slices, persisted slice offsets on reload.')
+  browser.close();print('PASS real synthetic microphone take -> zero anchor + 3 irregular slices, unused-pad choke, live same-slot cut, global voice cap, equal melodic-copy slices, persisted slice offsets on reload.')
 finally:server.shutdown();server.server_close()
 
