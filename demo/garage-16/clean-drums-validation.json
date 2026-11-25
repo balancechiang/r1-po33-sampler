@@ -1,0 +1,40 @@
+{
+  "uniquePatterns": 16,
+  "bpm": 132,
+  "chain": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16
+  ],
+  "seconds": 29.09090909090909,
+  "synthesized": true,
+  "sourceRecordingRead": false,
+  "activeSlots": [
+    9,
+    10,
+    11,
+    12
+  ],
+  "maxConcurrentSlots": 4,
+  "notes": 261,
+  "pages": 16,
+  "sampleSeconds": 2.5632853333333334,
+  "checksumErrors": 0,
+  "unresolvedAudioRanges": 0,
+  "backupSeconds": 24.863356009070294,
+  "drumPeak": 0.692949116230011,
+  "mixPeak": null
+}
