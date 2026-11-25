@@ -1,6 +1,30 @@
 (function(root){
   class Sync {
-    constructor(ctx,bus,onEvent){this.ctx=ctx;this.bus=bus;this.onEvent=onEvent;this.mode=0;this.gain=.7;this.bpm=120;this.generation=0;this.active=false;}
+    constructor(ctx,bus,onEvent){this.ctx=ctx;this.bus=bus;this.onEvent=onEvent;this.mode=0;this.gain=.7;this.bpm=120;this.generation=0;this.active=false;this.outputNeedsPrime=true;}
+    playbackSession(){try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch{}}
+    async prepareOutput(token){
+      // Select the output category before resume; microphone teardown can otherwise
+      // leave iOS on its capture route until a physical adapter reconnect.
+      this.playbackSession();
+      const destination=this.ctx.destination;
+      if(destination.maxChannelCount && destination.maxChannelCount<2)throw Error('Sync needs a stereo output');
+      destination.channelCount=2;
+      const resume=this.ctx.resume();
+      let timer;
+      try{await Promise.race([resume,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Audio output did not resume. Tap PLAY to retry.')),1800);})]);}finally{clearTimeout(timer);}
+      if(token!==this.generation)return false;
+      if(this.ctx.state!=='running')throw Error('Audio output is not running. Tap PLAY to retry.');
+      if(this.outputNeedsPrime){
+        // Render silence through the actual stereo output, without sending
+        // clock pulses or advancing music while the USB route settles.
+        const buffer=this.ctx.createBuffer(2,Math.ceil(this.ctx.sampleRate*.12),this.ctx.sampleRate),source=this.ctx.createBufferSource();
+        source.buffer=buffer;source.connect(destination);source.start();
+        await new Promise(resolve=>setTimeout(resolve,140));source.disconnect();
+        if(token!==this.generation)return false;
+        this.playbackSession();this.outputNeedsPrime=false;
+      }
+      return true;
+    }
     async init(){if(this.node)return;if(this.pending)return this.pending;this.pending=(async()=>{await this.ctx.audioWorklet.addModule(root.PO33_RESOURCE?root.PO33_RESOURCE('./po33-sync-worklet.js'):'./po33-sync-worklet.js');this.node=new AudioWorkletNode(this.ctx,'po33-sync',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2],channelCount:2,channelCountMode:'explicit'});this.node.port.onmessage=({data})=>{if(this.active)this.onEvent(data);};this.route();})();return this.pending;}
     route(){try{this.bus.disconnect(this.ctx.destination);}catch{}if(this.split)this.split.disconnect();if(this.mono){try{this.bus.disconnect(this.mono);}catch{}this.mono.disconnect();}if(this.merger)this.merger.disconnect();if(this.node)this.node.disconnect();
       if(!this.mode){this.bus.connect(this.ctx.destination);return;}
@@ -11,8 +35,8 @@
       this.merger.connect(this.ctx.destination);this.config();
     }
     config(){this.node?.port.postMessage({type:'config',mode:this.mode,bpm:this.bpm,gain:this.gain});}
-    async setMode(mode){if(!Number.isInteger(mode)||mode<0||mode>5)throw Error("Invalid sync mode");this.stop();await this.init();this.mode=mode;this.route();}
-    async start(time,bpm,inputId){const token=++this.generation;await this.init();this.bpm=bpm;this.config();
+    async setMode(mode){if(!Number.isInteger(mode)||mode<0||mode>5)throw Error("Invalid sync mode");this.stop();if(mode===1)this.playbackSession();await this.init();this.mode=mode;this.outputNeedsPrime=true;this.route();}
+    async start(time,bpm,inputId){const token=++this.generation;const outputReady=this.mode===1?this.prepareOutput(token):null;const ready=await Promise.all([this.init(),outputReady]);if(outputReady && !ready[1])return false;if(token!==this.generation)return false;this.bpm=bpm;this.config();
       if(this.mode>=2){let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:inputId?{exact:inputId}:undefined,channelCount:{exact:2},echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){throw Error('Stereo sync input unavailable: '+e.message);}
         if(token!==this.generation){stream.getTracks().forEach(t=>t.stop());return false;}
         if(stream.getAudioTracks()[0].getSettings().channelCount!==2){stream.getTracks().forEach(t=>t.stop());throw Error('Sync requires verified stereo input');}

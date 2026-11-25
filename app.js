@@ -715,7 +715,7 @@
     var AC = window.AudioContext || window.webkitAudioContext;
     ac = new AC({latencyHint:"interactive"});window.PO33Runtime.register(ac);window.PO33Runtime.resume(ac);
     var graphContext=ac,hasRun=ac.state==='running';
-    ac.addEventListener('statechange',function(){if(ac!==graphContext)return;if(ac.state==='running')hasRun=true;else if(hasRun)musicGraphStale=true;});
+    ac.addEventListener('statechange',function(){if(ac!==graphContext)return;if(ac.state==='running')hasRun=true;else if(hasRun && !syncStarting && !syncConfiguring)musicGraphStale=true;});
 
     master = ac.createGain();
     master.gain.value = 1;
@@ -743,11 +743,11 @@
     return ac;
   }
 
-  var syncMode=0,syncController=null,syncStarting=false,syncStartToken=0;
+  var syncMode=0,syncController=null,syncStarting=false,syncStartToken=0,syncConfiguring=false;
   async function setSyncMode(mode){
-    stopSeq();syncStartToken++;syncStarting=false;setRecHeld(false);disconnectMusicMic();
-    try{var c=ctx();if(!syncController)syncController=new window.PO33Sync(c,outTrim,onSyncEvent);await syncController.setMode(Number(mode));syncMode=Number(mode);showNumber('SY'+syncMode,'SYNC');paint();return syncMode;}
-    catch(e){flashHint(e.message);throw e;}
+    syncConfiguring=true;stopSeq();syncStartToken++;syncStarting=false;setRecHeld(false);disconnectMusicMic();
+    try{if(Number(mode)===1)musicSession('playback');var c=ctx();if(!syncController)syncController=new window.PO33Sync(c,outTrim,onSyncEvent);await syncController.setMode(Number(mode));syncMode=Number(mode);musicSession(syncMode===1?'playback':'ambient');showNumber('SY'+syncMode,'SYNC');paint();return syncMode;}
+    catch(e){flashHint(e.message);throw e;}finally{syncConfiguring=false;}
   }
   function onSyncEvent(event){
     if(!seq.playing || syncMode<2)return;
@@ -1809,7 +1809,7 @@
   var micGeneration=0,micModulePromise=null,micReleasePromise=null,clipUntil=0,sliceResultUntil=0,sliceResultSlot=0,sliceResultCount=0,sliceResultTimer=null;
   var sampleMicAuto=false,sampleMicGainDb=0,lastMicReport='No take yet / 尚无录音';
   try{sampleMicAuto=localStorage.getItem('po33.micAutoLevel')==='true';sampleMicGainDb=Math.max(0,Math.min(18,Number(localStorage.getItem('po33.micGainDb'))||0));}catch{}
-  function musicSession(type){if(type==='ambient'){try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';}}catch{}}try{if(navigator.audioSession && !(hardwareTransfer && hardwareTransfer.view.active))navigator.audioSession.type=type;}catch{}}
+  function musicSession(type){if(type==='ambient'){try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';}}catch{}}if(type==='ambient' && syncMode===1)type='playback';try{if(navigator.audioSession && !(hardwareTransfer && hardwareTransfer.view.active))navigator.audioSession.type=type;}catch{}}
   function setSampleMicGain(value){sampleMicAuto=value==='auto';try{localStorage.setItem('po33.micAutoLevel',String(sampleMicAuto));}catch{}if(sampleMicAuto)return;sampleMicGainDb=[0,6,12,18].includes(Number(value))?Number(value):0;try{localStorage.setItem('po33.micGainDb',String(sampleMicGainDb));}catch{}}
   function disconnectMusicMic(){
     musicSession('ambient');micGeneration++;
@@ -1879,10 +1879,10 @@
       try{
         if(!c.audioWorklet || !window.AudioWorkletNode)throw Error("AUDIO WORKLET REQUIRED");
         stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-        if(requestGeneration!==micGeneration || !recHeld || d.hidden){stream.getTracks().forEach(function(t){t.stop();});return false;}
+        if(requestGeneration!==micGeneration || !recHeld || d.hidden){stream.getTracks().forEach(function(t){t.stop();});if(syncMode===1 && !recHeld)musicSession("playback");return false;}
         if(!micModulePromise)micModulePromise=c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./recording-worklet.js'):'./recording-worklet.js?v=flowers-20261120-ui25').catch(function(error){micModulePromise=null;throw error;});
         await micModulePromise;
-        if(requestGeneration!==micGeneration || !recHeld || d.hidden || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
+        if(requestGeneration!==micGeneration || !recHeld || d.hidden || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});if(syncMode===1 && !recHeld)musicSession("playback");return false;}
         mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
         mic.proc=new AudioWorkletNode(c,'po33-recorder',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit',processorOptions:{inputGain:Math.pow(10,sampleMicGainDb/20),autoLevel:sampleMicAuto}});
         mic.proc.port.onmessage=onCapture;
@@ -2992,13 +2992,15 @@
   function prepareMusicAfterInterruption(){
     if(!musicGraphStale || document.hidden || (hardwareTransfer && hardwareTransfer.view.active) || rec.on)return;
     stopSeq();disconnectMusicMic();micModulePromise=null;
-    if(syncController){syncController.stop();syncController=null;}syncMode=0;
+    var retainedSyncMode=syncMode,retainedSyncGain=syncController?syncController.gain:.7;
+    if(syncController){syncController.stop();syncController=null;}
     var old=ac;if(old){sampleVoices.slice().forEach(function(v){try{v.src.stop();}catch(e){}});window.PO33Runtime.unregister(old);if(fx.proc)fx.proc.onaudioprocess=null;old.close().catch(function(){});}
     sampleVoices=[];parameterLatches.reset();clearFxTimers();transportGeneration++;
     ac=null;master=bus=mixVolume=dryGain=outTrim=outputMeter=outputData=null;
     toneDry=toneWet=toneNode=null;hardwareToneReady=false;hardwareToneError='';noiseBuf=null;
     fx={kind:0,proc:null,wet:null,engine:null,installed:false};musicGraphStale=false;
-    ctx();
+    ctx();syncMode=retainedSyncMode;
+    if(syncMode){syncController=new window.PO33Sync(ac,outTrim,onSyncEvent);syncController.mode=syncMode;syncController.gain=retainedSyncGain;}
   }
   ['pointerdown','keydown','sideClick','longPressStart','scrollUp','scrollDown'].forEach(function(type){window.addEventListener(type,prepareMusicAfterInterruption,true);});
   function retireBackgroundMusic(){if(ac){musicGraphStale=true;stopSeq();}}

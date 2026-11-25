@@ -45,7 +45,7 @@ Factory reset now remains in the receive menu (WRITE + SOUND + RECORD). The rabb
 
 ## Using the implementation
 
-Hold RECORD and tap BPM to cycle SY0–SY5, or open receive/send → I/O → SYNC. Stop playback before changing modes. Settings default to SY0 after a fresh page load or audio-context rebuild; they are not project or backup metadata.
+Hold RECORD and tap BPM to cycle SY0–SY5, or open receive/send → I/O → SYNC. Stop playback before changing modes. Settings default to SY0 after a fresh page load; they are not project or backup metadata. UI38 preserves the selected mode and pulse gain when rebuilding a stale audio context.
 
 - Master: choose SY1, connect computer output to PO-33 input, set the real unit to SY4 for incoming music plus clock (SY2 for clock only), arm the real unit with PLAY, then press webpage PLAY.
 - Slave: select the stereo input in I/O, choose SY2/3 for clock-only or SY4/5 for right-channel audio pass-through, close the menu, then PLAY. Permission is requested on PLAY; playback waits for clock. Stop, page background, or entering backup transfer releases input tracks.
@@ -56,3 +56,14 @@ Hold RECORD and tap BPM to cycle SY0–SY5, or open receive/send → I/O → SYN
 - Rapid master tempo changes, external tempo jumps, Swing, punch-in FX and chain boundaries under external sync still need stress testing and hardware calibration.
 
 Validation: `node test-sync-worklet.cjs` checks fractional master phase for 60 seconds, four slave routing modes, clock detection and timeout. `python test-sync-browser.py` exercises actual browser Worklets, synthetic stereo capture, note scheduling, mono rejection and track release. Existing update/reset and first-touch unlock tests are also run. These tests do not verify jack voltages or real hardware recovery.
+
+
+## UI38: first SY1 start on iPhone USB adapters
+
+A hardware report found SY1 clock could begin working only after unplugging/replugging the adapter. The identified software risk was RECORD entering a capture session before mode selection, followed by SY1 using ambient playback and starting pulses without awaiting output resume. This is a plausible cause, not a measured iOS root cause.
+
+SY1 now selects a playback session before output resume, requests two output channels, and primes the destination with 120 ms of silence plus a 140 ms settling wait on the first start after mode selection. Clock and music are scheduled together after preparation. Repeated PLAY in the same mode skips the extra priming. A late cancelled microphone permission result restores SY1 playback category after stopping its tracks. Other modes return to ordinary audio-session policy. Intentional sync setup/resume does not invalidate the music graph merely because the session temporarily interrupts it.
+
+Tests cover playback-before-resume ordering, explicit stereo, mode-switch reprime, cancellation before clock start, and unchanged real browser routing. Actual first-start behavior on the user's iPhone / USB-C adapter is pending retest. The browser cannot select or prove the physical jack route; playback category may also affect iOS media UI, which the page cannot guarantee to suppress.
+
+UI38 also preserves mode and pulse gain when rebuilding after an audio interruption. This avoids silently returning SY1 to SY0 during route recovery.
