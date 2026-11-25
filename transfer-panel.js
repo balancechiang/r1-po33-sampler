@@ -19,6 +19,13 @@
     const gainSelect=document.createElement('select');gainSelect.id='sampleMicGain';gainSelect.setAttribute('aria-label','Sampler input gain (not backup transfer)');for(const db of ['auto',0,6,12,18]){const option=document.createElement('option');option.value=db;option.textContent=db==='auto'?'Auto level / 自动增益':'+'+db+' dB';gainSelect.append(option);}gainSelect.value=hooks.micGain?(hooks.micGain().mode || hooks.micGain().db):0;gainLabel.hidden=!hooks.micGain;gainLabel.append(gainSelect);$('transferDevices').append(gainLabel);
     const micReport=document.createElement('p');micReport.id='sampleMicReport';$('transferDevices').append(micReport);gainSelect.onchange=()=>hooks.setMicGain?.(gainSelect.value);
     $('transferTone').onclick=()=>{hooks.setTone(!hooks.toneStatus().enabled);renderTone();};root.addEventListener('po33-tone-state',renderTone);renderTone();
+    if(hooks.syncStatus){
+      const label=document.createElement('label');label.textContent='SYNC (experimental) ';const select=document.createElement('select');select.id='syncMode';
+      ['SY0 · OFF','SY1 · Master','SY2 · Clock in','SY3 · Clock thru','SY4 · Clock + audio in','SY5 · Clock + audio thru'].forEach((text,i)=>{const option=document.createElement('option');option.value=i;option.textContent=text;select.append(option);});
+      label.append(select);$('transferDevices').append(label);select.onchange=async()=>{try{await hooks.setSync(Number(select.value));}catch(e){select.value=hooks.syncStatus().mode;micReport.textContent=e.message;}};
+      const gain=document.createElement('input');gain.id='syncPulseGain';gain.type='range';gain.min=.1;gain.max=.95;gain.step=.05;gain.value=.7;gain.setAttribute('aria-label','Sync pulse gain');gain.oninput=()=>hooks.setSyncGain(Number(gain.value));label.append(gain);
+      root.addEventListener('pointerdown',()=>{select.value=hooks.syncStatus().mode;},true);
+    }
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;

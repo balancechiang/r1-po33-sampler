@@ -1,6 +1,6 @@
 # Analog sync implementation reference
 
-Status: not implemented. User-supplied code is a design reference, not verified firmware behavior. Playback and backup routing are unchanged.
+Status: experimental sync enabled in UI37. The mode routing and Worklet are software-tested; physical PO-33 / R1 / iOS compatibility is not yet verified. User-supplied code remains a design reference rather than a firmware specification.
 
 Official source: https://teenage.engineering/guides/po-33/en (section 9, checked 2026-11-25).
 
@@ -41,3 +41,18 @@ Implementation criteria:
 - Confirm browser/WebView support on each target, including R1 and iOS. Do not promise zero latency or universal support.
 
 Factory reset now remains in the receive menu (WRITE + SOUND + RECORD). The rabbit mascot has no pointer or keyboard reset action as of UI36.
+
+
+## Using the implementation
+
+Hold RECORD and tap BPM to cycle SY0–SY5, or open receive/send → I/O → SYNC. Stop playback before changing modes. Settings default to SY0 after a fresh page load or audio-context rebuild; they are not project or backup metadata.
+
+- Master: choose SY1, connect computer output to PO-33 input, set the real unit to SY4 for incoming music plus clock (SY2 for clock only), arm the real unit with PLAY, then press webpage PLAY.
+- Slave: select the stereo input in I/O, choose SY2/3 for clock-only or SY4/5 for right-channel audio pass-through, close the menu, then PLAY. Permission is requested on PLAY; playback waits for clock. Stop, page background, or entering backup transfer releases input tracks.
+- Pulse gain: I/O slider defaults to 0.7; output is left-only, 3 ms, 2 PPQN. Digital gain is not a voltage specification. Configure physical output cautiously and measure where possible.
+- Input uses a 0.30/0.10 Schmitt detector with an 80 ms minimum pulse interval. A missing-clock watchdog stops reception after at least 850 ms; this is an application safety policy, not verified hardware transport behavior.
+- Slave notes use a 40 ms scheduling cushion after detected clock, plus browser/interface latency. Right-channel audio passes immediately; it is not delay-compensated against the webpage sampler. Initial inter-pulse interpolation uses 120 BPM until a second clock arrives.
+- SY0/1 currently do not capture external audio for optional audio pass-through. They render the webpage's own audio only. SY4/5 implement external right-channel audio pass-through while actively receiving sync.
+- Rapid master tempo changes, external tempo jumps, Swing, punch-in FX and chain boundaries under external sync still need stress testing and hardware calibration.
+
+Validation: `node test-sync-worklet.cjs` checks fractional master phase for 60 seconds, four slave routing modes, clock detection and timeout. `python test-sync-browser.py` exercises actual browser Worklets, synthetic stereo capture, note scheduling, mono rejection and track release. Existing update/reset and first-touch unlock tests are also run. These tests do not verify jack voltages or real hardware recovery.

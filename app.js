@@ -743,6 +743,27 @@
     return ac;
   }
 
+  var syncMode=0,syncController=null,syncStarting=false,syncStartToken=0;
+  async function setSyncMode(mode){
+    stopSeq();syncStartToken++;syncStarting=false;setRecHeld(false);disconnectMusicMic();
+    try{var c=ctx();if(!syncController)syncController=new window.PO33Sync(c,outTrim,onSyncEvent);await syncController.setMode(Number(mode));syncMode=Number(mode);showNumber('SY'+syncMode,'SYNC');paint();return syncMode;}
+    catch(e){flashHint(e.message);throw e;}
+  }
+  function onSyncEvent(event){
+    if(!seq.playing || syncMode<2)return;
+    if(event.type==='timeout'){stopSeq();flashHint('SYNC CLOCK LOST');return;}
+    if(event.type!=='pulse')return;
+    var period=event.period;params.bpm=Math.max(40,Math.min(300,30/period));
+    if(loopHold || scratchHold)return;
+    var when=Math.max(ac.currentTime+.012,event.time+.04);
+    for(var k=0;k<2;k++){
+      var step=seq.schedStep,at=when+(k?period*.5*(1+SWING):0),effect=effectAt(step);
+      if(effect===16)effect=0;if(effect===14){step=0;seq.schedStep=0;}
+      fireStep(step,at,effect);visQueue.push({t:at,s:step,pattern:seq.pattern,chain:chainPosition});
+      seq.schedStep++;if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}if(seq.queued){seq.pattern=seq.queued;seq.queued=0;}}
+    }
+  }
+
   function toneStatus(){return {enabled:hardwareToneEnabled,ready:hardwareToneReady,error:hardwareToneError};}
   function announceTone(){window.dispatchEvent(new Event('po33-tone-state'));}
   function applyHardwareTone(){if(toneDry){var now=ac.currentTime;rampGain(toneDry,hardwareToneEnabled&&hardwareToneReady?0:1,now);rampGain(toneWet,hardwareToneEnabled&&hardwareToneReady?1:0,now);}announceTone();}
@@ -1172,7 +1193,7 @@
 
   // Melodic keys follow the requested PO-33 scale; pad 5 is the original pitch.
   function playPitched(s, semitones, when) {
-    if(!recHeld && !rec.on)musicSession('ambient');
+    if(!recHeld && !rec.on)musicSession(syncMode>=2?'play-and-record':'ambient');
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
     var rate = sourceRate(semitones,s.pitch || 0,voiceEffect===7||voiceEffect===8?0:voiceEffect);
@@ -1286,9 +1307,11 @@
 
   function scheduler() {
     if (!ac || !seq.playing || ac.state!=="running") return;
+    if(syncController&&syncMode===1){syncController.bpm=params.bpm;syncController.config();}
     var now = ac.currentTime;
     if(loopHold){scheduleLoop(now);return;}
     if(scratchHold){scheduleScratch(now);return;}
+    if(syncMode>=2)return;
     if (seq.nextTime < now-stepDur()) seq.nextTime = now + 0.02;
     var guard = 0;
     while (seq.nextTime < now + 0.12 && guard++ < 64) {
@@ -1320,8 +1343,14 @@
     }
   }
 
-  function startSeq() {
-    if(!recHeld && !rec.on)musicSession('ambient');
+  async function startSeq() {
+    if(syncStarting || seq.playing || !startupReady)return;
+    if(rec.on){flashHint("FINISH SAMPLING FIRST");return;}
+    if(syncMode){
+      var token=++syncStartToken;syncStarting=true;
+      try{var ok=await syncController.start(ctx().currentTime+.04,params.bpm,d.getElementById("transferInput")?.value);if(!ok || token!==syncStartToken)return;}catch(e){flashHint(e.message);return;}finally{syncStarting=false;}
+    }
+    if(!recHeld && !rec.on)musicSession(syncMode>=2?'play-and-record':'ambient');
     if (seq.playing || !startupReady) return;
     if(rec.on){flashHint("FINISH SAMPLING FIRST");return;}
     pendingRecSlot=0;soundPreviewMeter=false;
@@ -1339,7 +1368,7 @@
     seq.step = 0;
     seq.totalSteps = 0;
     visQueue = [];
-    seq.nextTime = c.currentTime + 0.012;seq.visualBeatTime=Infinity;
+    seq.nextTime = syncMode===1?syncController.startTime:c.currentTime + 0.012;seq.visualBeatTime=Infinity;
     fxInstall(); // keep the FX history warm
     // Write mode stays active while the transport runs.
     scheduler();seq.timer = setInterval(scheduler, 20);
@@ -1349,8 +1378,9 @@
   }
 
   function stopSeq() {
+    syncStartToken++;syncStarting=false;if(syncController)syncController.stop();
     if (!seq.playing) return;
-    seq.playing = false;
+    seq.playing = false;musicSession('ambient');
     parameterLatches.stop(ctx().currentTime);
     stopShakeSensors(); cancelShakeFx(); stopTransportAnimation();
     if (seq.timer) { clearInterval(seq.timer); seq.timer = null; }
@@ -1372,6 +1402,7 @@
     clearWheelTrim();if(stepEdit)endStepEdit(true);
     if(!keepWrite)setMode("PLAY");
 
+    if(syncStarting){stopSeq();return;}
     if (seq.playing) {
       if(ac && ac.state!=="running"){window.PO33Runtime.resume(ac,true);return;}
       stopSeq(); return;
@@ -2844,6 +2875,7 @@
     showNumber(code,spec[3]);persistSoon();paint();
   }
   d.getElementById("bpmMode").addEventListener("pointerdown",function(e){
+    if((recHeld || physicalKeys.has("rec") || latchedKeys.has("rec")) && !writeHeld){e.preventDefault();consumeChord();modifierUsed.rec=modifierUsed.bpm=true;modifierPointers.bpm=pid(e);bpmHeld=true;setSyncMode((syncMode+1)%6).catch(function(){});return;}
     if(soundHeld && !writeHeld){e.preventDefault();consumeChord();bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=true;showNumber(memLeft().toFixed(1),"FREE");paint();return;}
     if(stepEdit && stepEdit.slot>8) {
       e.preventDefault();var counts=[1,2,3,4,6,8],detail=editDetail(stepEdit);
@@ -2960,6 +2992,7 @@
   function prepareMusicAfterInterruption(){
     if(!musicGraphStale || document.hidden || (hardwareTransfer && hardwareTransfer.view.active) || rec.on)return;
     stopSeq();disconnectMusicMic();micModulePromise=null;
+    if(syncController){syncController.stop();syncController=null;}syncMode=0;
     var old=ac;if(old){sampleVoices.slice().forEach(function(v){try{v.src.stop();}catch(e){}});window.PO33Runtime.unregister(old);if(fx.proc)fx.proc.onaudioprocess=null;old.close().catch(function(){});}
     sampleVoices=[];parameterLatches.reset();clearFxTimers();transportGeneration++;
     ac=null;master=bus=mixVolume=dryGain=outTrim=outputMeter=outputData=null;
@@ -3139,7 +3172,7 @@
     location.assign('./creation.html?refresh='+Date.now());
   }
   if(window.PO33TransferFactory){
-    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,micGain:()=>({db:sampleMicGainDb,mode:sampleMicAuto?'auto':String(sampleMicGainDb),report:lastMicReport}),setMicGain:setSampleMicGain,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
+    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,micGain:()=>({db:sampleMicGainDb,mode:sampleMicAuto?'auto':String(sampleMicGainDb),report:lastMicReport}),setMicGain:setSampleMicGain,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone,syncStatus:()=>({mode:syncMode,gain:syncController?syncController.gain:.7}),setSync:setSyncMode,setSyncGain:(gain)=>{if(syncController){syncController.gain=gain;syncController.config();}}});
     window.PO33Transfer=hardwareTransfer;
   }
   startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;window.PO33Startup?.ready();paint();},function(){persistPaused=true;startupReady=false;storageWarn="PROJECT LOAD FAILED";paint();window.PO33Startup?.fail("Project restore unavailable / 工程恢复未完成");});
