@@ -19,7 +19,7 @@ try:
   page.evaluate('knobTest.mode(1)');assert state()['angles']==angles
   rotate(0,30);assert abs(state()['tweaks'][0]['filter']-60)<.01;assert abs(state()['angles'][0]-216)<.01
   page.evaluate('knobTest.mode(0)');assert abs(state()['angles'][0]-216)<.01
-  rotate(0,-10);assert state()['tweaks'][0]['pitch']==0 and not state()['pickup'][0]['caught']
+  display=page.locator('#lcdNumber').get_attribute('data-value');rotate(0,-10);assert page.locator('#lcdNumber').get_attribute('data-value')==display;assert state()['tweaks'][0]['pitch']==0 and not state()['pickup'][0]['caught']
   rotate(0,-25);assert abs(state()['tweaks'][0]['pitch']+1.2)<.01 and state()['pickup'][0]['caught']
   page.evaluate('knobTest.slot(2)');old=state()['angles'];rotate(0,-10);assert state()['tweaks'][1]['pitch']==0
   rotate(0,20);assert abs(state()['tweaks'][1]['pitch']-1.2)<.01 and abs(state()['tweaks'][0]['pitch']+1.2)<.01

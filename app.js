@@ -2786,7 +2786,7 @@
     var spec=syncKnobTarget(index),pickup=knobPickup[index],before=knobAngles[index]/KNOB_SWEEP;
     var after=Math.max(0,Math.min(1,before+dir/100));knobAngles[index]=after*KNOB_SWEEP;
     if(!pickup.caught){var tolerance=.5/KNOB_SWEEP;pickup.caught=Math.abs(after-pickup.target)<=tolerance || (before-pickup.target)*(after-pickup.target)<=0;}
-    if(!pickup.caught){showNumber('P-UP','PICKUP');paint();return null;}
+    if(!pickup.caught){paint();return null;}
     var value=spec[1]+after*(spec[2]-spec[1]);
     if(stepEdit && index===1 && stepEdit.slot>8){var counts=[1,2,3,4,6,8];value=counts[Math.round(after*(counts.length-1))];}
     else value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
