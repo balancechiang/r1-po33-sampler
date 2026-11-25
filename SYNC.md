@@ -17,6 +17,19 @@ Hold RECORD and press BPM to cycle modes. PLAY arms the receiving unit to wait f
 
 The reference conflates sync-only and mono/sync input. Verify exact pass-through behavior on hardware.
 
+## Additional routing references
+
+- https://www.spongefile.com/pocket-operator-sync-modes-explained/
+- https://www.soundtech.co.uk/musicians-blog/pocket-operator-sync-modes.html
+
+These explain the practical distinction in the official table: SY2/3 receive clock without incoming audio pass-through; SY4/5 receive left clock plus right audio and mix that audio with the instrument. SY3/5 send clock onward; SY2/4 end the chain with audio-only output. SY0/1 allow incoming audio pass-through. Thus a master carrying both music and clock should feed SY4, rather than SY2, when its music must remain audible.
+
+Both references describe hardware input-cable detection: without a line-in cable only SY0/1 are selectable. A browser cannot equate microphone permission or an enumerated audio device with physical cable detection; explicit stereo-input setup will be needed instead.
+
+Clock pulses carry timing, not separate transport or pattern-position commands. Receivers must first be armed with PLAY. Do not treat a proposed fixed timeout as a verified hardware STOP/reset command. Confirm loss-of-clock and resume behavior on a real unit.
+
+The articles corroborate 2 PPQN. Sound Technology reports a tested pulse-width range of 3–67 ms, which is an experiment rather than a universal device specification. Use measured hardware waveforms to calibrate pulse width and detection. Keep the official 5 V peak-to-peak limit; do not infer required physical voltage from floating-point audio amplitude.
+
 Implementation criteria:
 
 - Use one audio timeline for music and proposed 2 PPQN pulses. Generate pulses in AudioWorklet with fractional timing; flooring each step causes accumulated drift.
