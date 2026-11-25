@@ -67,3 +67,14 @@ SY1 now selects a playback session before output resume, requests two output cha
 Tests cover playback-before-resume ordering, explicit stereo, mode-switch reprime, cancellation before clock start, and unchanged real browser routing. Actual first-start behavior on the user's iPhone / USB-C adapter is pending retest. The browser cannot select or prove the physical jack route; playback category may also affect iOS media UI, which the page cannot guarantee to suppress.
 
 UI38 also preserves mode and pulse gain when rebuilding after an audio interruption. This avoids silently returning SY1 to SY0 during route recovery.
+
+
+## UI39: FX must not move synchronized transport
+
+A separate background timeline now owns sync position. Master mode derives it from the original audio-clock start; slave modes anchor it to every timestamped input pulse, including pulses received while Loop or Scratch owns the audible cursor. Loop and Scratch enter on clock subdivisions and restore the next actual global step and repeated-chain entry when released. They no longer resume an old Scratch position or invent a new clock origin after a delayed scheduler callback.
+
+Sync-mode FX14 is deliberately constrained: it retriggers the first step's sounds once at the next sixteenth boundary, without resetting global step or chain position. A stored FX14 does the same on its marked step. Normal unsynchronized FX14 still resets the pattern cursor as before. Audio clock pulses alone cannot reset the other device's pattern position, so the original structural jump cannot be applied locally while also promising unchanged inter-device arrangement alignment.
+
+Late slave callbacks preserve their Worklet pulse timestamps. A note whose scheduling window has already passed is skipped rather than shifted to a new time; this can cause a missed note under heavy load but avoids accumulated phase drift. Slave buffering and physical I/O latency still exist.
+
+`test-sync-fx.py` exercises all 15 live FX in master and simulated slave modes, checks restored note timestamps, step numbers and a repeated pattern chain, and checks stored FX14. Existing standalone loop/retrigger tests retain their original behavior. Physical PO-33 FX release alignment remains pending device retest.

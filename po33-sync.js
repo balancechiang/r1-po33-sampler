@@ -1,4 +1,15 @@
 (function(root){
+  // Position is separate from the audible FX cursor. Audio clocks do not carry
+  // pattern-position resets, so an FX must never move this background timeline.
+  class Timeline {
+    constructor(time,bpm,pattern,external){this.time=time;this.position=0;this.duration=15/bpm;this.bpm=bpm;this.pattern=pattern;this.external=external;this.ready=!external;this.pulses=0;}
+    at(time){return this.position+(time-this.time)/this.duration;}
+    tempo(bpm,time){if(this.external||bpm===this.bpm)return;this.position=this.at(time);this.time=time;this.duration=15/bpm;this.bpm=bpm;}
+    pulse(time,period){this.position=this.pulses*2;this.pulses++;this.time=time;this.duration=period/2;this.ready=true;}
+    point(index,order){const list=order.length?order:[this.pattern],chain=Math.floor(index/16)%list.length;return {index,step:index%16,chain,pattern:list[chain],time:this.time+(index-this.position)*this.duration};}
+    frame(time,order){if(!this.ready)return null;const position=Math.max(0,this.at(time)),index=Math.floor(position+1e-7);return {...this.point(index,order),phase:position-index};}
+    next(time,order,division=1){if(!this.ready)return null;if(this.at(time)<0)return this.time;const position=Math.max(0,this.at(time)),index=Math.floor(position*division+1e-7)+1;return this.time+(index/division-this.position)*this.duration;}
+  }
   class Sync {
     constructor(ctx,bus,onEvent){this.ctx=ctx;this.bus=bus;this.onEvent=onEvent;this.mode=0;this.gain=.7;this.bpm=120;this.generation=0;this.active=false;this.outputNeedsPrime=true;}
     playbackSession(){try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch{}}
@@ -47,4 +58,5 @@
     stop(){this.generation++;this.active=false;this.node?.port.postMessage({type:'stop'});this.source?.disconnect();this.source=null;this.stream?.getTracks().forEach(t=>t.stop());this.stream=null;}
   }
   root.PO33Sync=Sync;
+  root.PO33SyncTimeline=Timeline;
 })(window);

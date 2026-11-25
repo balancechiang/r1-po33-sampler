@@ -743,25 +743,53 @@
     return ac;
   }
 
+  var syncClock=null,syncRetriggerAt=null;
   var syncMode=0,syncController=null,syncStarting=false,syncStartToken=0,syncConfiguring=false;
   async function setSyncMode(mode){
     syncConfiguring=true;stopSeq();syncStartToken++;syncStarting=false;setRecHeld(false);disconnectMusicMic();
     try{if(Number(mode)===1)musicSession('playback');var c=ctx();if(!syncController)syncController=new window.PO33Sync(c,outTrim,onSyncEvent);await syncController.setMode(Number(mode));syncMode=Number(mode);musicSession(syncMode===1?'playback':'ambient');showNumber('SY'+syncMode,'SYNC');paint();return syncMode;}
     catch(e){flashHint(e.message);throw e;}finally{syncConfiguring=false;}
   }
+  function syncNext(division){return syncClock?syncClock.next(ctx().currentTime,patternChain,division||1):null;}
+  function fireSyncStep(step,time,effect){
+    var retrigger=(effect===14 && !fxHeld && !shakeFx) || (syncRetriggerAt!==null && time>=syncRetriggerAt-.00001);
+    if(syncRetriggerAt!==null && time>=syncRetriggerAt-.00001)syncRetriggerAt=null;
+    fireStep(retrigger?0:step,time,effect);
+  }
+  function restoreSyncCursor(now){
+    if(!syncMode || !syncClock || !seq.playing)return false;
+    var frame=syncClock.frame(now,patternChain);if(!frame)return true;
+    var at=syncClock.next(now,patternChain),next=syncClock.frame(at+.0000001,patternChain);
+    chainPosition=next.chain;seq.pattern=next.pattern;seq.schedStep=next.step;seq.nextTime=at;scheduledEffect=-1;
+    seq.step=frame.step;seq.visualPattern=frame.pattern;seq.visualChainPosition=frame.chain;seq.visualStepTime=frame.time;paintChase();
+    // Each external pulse schedules an even step and its interpolated odd step.
+    // Restore any still-future step of the latest received pulse, including
+    // an even step inside the receiver scheduling cushion.
+    if(syncMode>=2){
+      for(var index=next.index;index<=syncClock.position+1;index++){
+        var point=syncClock.point(index,patternChain);seq.pattern=point.pattern;chainPosition=point.chain;
+        var effect=effectAt(point.step);if(effect===16)effect=0;var audible=point.time+(point.step%2?stepDur()*SWING:0);
+        fireSyncStep(point.step,audible,effect);visQueue.push({t:audible,s:point.step,pattern:point.pattern,chain:point.chain});
+      }
+    }
+    return true;
+  }
   function onSyncEvent(event){
     if(!seq.playing || syncMode<2)return;
     if(event.type==='timeout'){stopSeq();flashHint('SYNC CLOCK LOST');return;}
     if(event.type!=='pulse')return;
     var period=event.period;params.bpm=Math.max(40,Math.min(300,30/period));
+    var when=event.time+.04;
+    syncClock.pulse(when,period);
+    // Background position advances on every pulse, even when FX owns the sound.
     if(loopHold || scratchHold)return;
-    var when=Math.max(ac.currentTime+.012,event.time+.04);
     for(var k=0;k<2;k++){
-      var step=seq.schedStep,at=when+(k?period*.5*(1+SWING):0),effect=effectAt(step);
-      if(effect===16)effect=0;if(effect===14){step=0;seq.schedStep=0;}
-      fireStep(step,at,effect);visQueue.push({t:at,s:step,pattern:seq.pattern,chain:chainPosition});
-      seq.schedStep++;if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}if(seq.queued){seq.pattern=seq.queued;seq.queued=0;}}
+      var point=syncClock.point(syncClock.position+k,patternChain),step=point.step,at=when+(k?period*.5*(1+SWING):0);
+      seq.pattern=point.pattern;chainPosition=point.chain;if(point.step===0 && seq.queued===point.pattern)seq.queued=0;
+      var effect=effectAt(step);if(effect===16)effect=0;
+      if(at>=ac.currentTime+.002){fireSyncStep(step,at,effect);visQueue.push({t:at,s:step,pattern:point.pattern,chain:point.chain});}
     }
+    var future=syncClock.point(syncClock.position+2,patternChain);seq.pattern=future.pattern;chainPosition=future.chain;seq.schedStep=future.step;seq.nextTime=future.time;
   }
 
   function toneStatus(){return {enabled:hardwareToneEnabled,ready:hardwareToneReady,error:hardwareToneError};}
@@ -926,18 +954,19 @@
   function holdScratch(kind){
     var now=ctx().currentTime,old=scratchHold,audible=audibleStepAt(now),pattern=old?old.pattern:audible.pattern,step=old?old.step:audible.step;
     sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
-    parameterLatches.stop(now);scratchHold={pattern:pattern,step:step,chain:old?old.chain:audible.chain,next:now+.004,hit:0,kind:kind};
+    parameterLatches.stop(now);scratchHold={pattern:pattern,step:step,chain:old?old.chain:audible.chain,next:syncMode?(syncNext(kind===11?2:4)||now+.004):now+.004,hit:0,kind:kind};
     seq.step=step;seq.visualPattern=pattern;seq.visualChainPosition=scratchHold.chain;seq.visualStepTime=now;seq.visualStarted=true;paintChase();scheduledEffect=kind;clearFxTimers();transportGeneration++;
     scheduler();
   }
   function scheduleScratch(now){
     var hold=scratchHold,period=stepDur()/(hold.kind===11?2:4);
-    if(hold.next<now)hold.next=now+.004;
+    if(hold.next<now)hold.next=syncMode?(syncNext(hold.kind===11?2:4)||now+.004):now+.004;
     while(hold.next<now+.12){var pat=patterns[hold.pattern-1];for(var i=0;i<16;i++){var note=pat.lanes[i][hold.step];if(note>=0)voice(i+1,note,hold.next,period,hold.kind,undefined,{scratch:true,reverse:!!(hold.hit%2)});}hold.hit++;hold.next+=period;}
   }
   function releaseScratch(){
     if(!scratchHold)return;var hold=scratchHold,now=ctx().currentTime;scratchHold=null;
     sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
+    if(restoreSyncCursor(now)){scheduledEffect=-1;return;}
     // Finish the held step and resume its successor, including the pattern boundary.
     chainPosition=hold.chain;resetStepCursor(hold.step,hold.pattern,now+.008);seq.schedStep=hold.step+1;
     if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
@@ -954,13 +983,13 @@
     var shadow=old?old.shadow:{step:audible.step,pattern:audible.pattern,chain:audible.chain,phase:Math.max(0,(now-audible.start)/stepDur()+(audible.step%2?SWING:0)),last:now,order:patternChain.slice(),queued:seq.queued};
     if(exporting)exportSteps-=visQueue.filter(function(e){return e.t>now;}).length;
     sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);
-    loopHold={kind:kind,automatic:automatic,pattern:audible.pattern,chain:audible.chain,origin:audible.step,index:0,next:now+.004,shadow:shadow};
+    loopHold={kind:kind,automatic:automatic,pattern:audible.pattern,chain:audible.chain,origin:audible.step,index:0,next:syncMode?(syncNext(kind===3?2:kind===4?3:1)||now+.004):now+.004,shadow:shadow};
     advanceLoopShadow(now);scheduledEffect=kind;seq.queued=0;scheduler();
   }
   function scheduleLoop(now){
     var h=loopHold;advanceLoopShadow(now);
     if(h.automatic){var effect=patternExtras[h.shadow.pattern-1].effects[h.shadow.step] || 0;if(effect!==h.kind){fxRelease(true);return;}}
-    if(h.next<now)h.next=now+.004;
+    if(h.next<now)h.next=syncMode?(syncNext(h.kind===3?2:h.kind===4?3:1)||now+.004):now+.004;
     var period=stepDur()/(h.kind===3?2:h.kind===4?3:1),guard=0;
     while(h.next<now+.12 && guard++<128){
       if(exporting && exportSteps>=EXPORT_BARS*STEPS)break;
@@ -972,6 +1001,7 @@
   function releaseLoop(){
     if(!loopHold)return;var now=ctx().currentTime;advanceLoopShadow(now);var h=loopHold.shadow;loopHold=null;
     sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];clearFxTimers();transportGeneration++;parameterLatches.stop(now);
+    if(restoreSyncCursor(now))return;
     chainPosition=h.chain;seq.pattern=h.pattern;seq.queued=h.queued;seq.schedStep=h.step;scheduledEffect=-1;
     seq.step=h.step;seq.visualPattern=h.pattern;seq.visualChainPosition=h.chain;seq.visualStepTime=now-h.phase*stepDur();paintChase();
     if(!seq.playing){seq.nextTime=now+.012;return;}
@@ -984,6 +1014,11 @@
   }
   function restartPatternFx() {
     var now=ctx().currentTime,audible=audibleStepAt(now);
+    if(syncMode){
+      syncRetriggerAt=syncNext(1);
+      if(syncRetriggerAt!==null){var boundary=syncRetriggerAt;sampleVoices.slice().forEach(function(v){if(v.start>=boundary-.000001)cancelVoice(v,now);});visQueue=visQueue.filter(function(e){return e.t<boundary-.000001;});clearFxTimers();transportGeneration++;restoreSyncCursor(now);scheduler();}
+      return;
+    }
     // Quantize the rising edge to the next nominal sixteenth, not a new clock.
     var grid=audible.start-(audible.step%2?SWING*stepDur():0);
     var boundary=grid+Math.max(1,Math.ceil((now-grid)/stepDur()))*stepDur();
@@ -1307,12 +1342,12 @@
 
   function scheduler() {
     if (!ac || !seq.playing || ac.state!=="running") return;
-    if(syncController&&syncMode===1){syncController.bpm=params.bpm;syncController.config();}
+    if(syncController&&syncMode===1){syncClock?.tempo(params.bpm,ac.currentTime);syncController.bpm=params.bpm;syncController.config();}
     var now = ac.currentTime;
     if(loopHold){scheduleLoop(now);return;}
     if(scratchHold){scheduleScratch(now);return;}
     if(syncMode>=2)return;
-    if (seq.nextTime < now-stepDur()) seq.nextTime = now + 0.02;
+    if (seq.nextTime < now-stepDur()) {if(syncMode===1)restoreSyncCursor(now);else seq.nextTime = now + 0.02;}
     var guard = 0;
     while (seq.nextTime < now + 0.12 && guard++ < 64) {
       // an export stops scheduling once its 64 steps are in; the recorder
@@ -1321,9 +1356,9 @@
       var t = seq.nextTime;
       var s = seq.schedStep;
       var effect=effectAt(s);if(effect===16)effect=0;
-      if(effect===14 && !fxHeld && !shakeFx){s=0;seq.schedStep=0;}
+      if(effect===14 && !syncMode && !fxHeld && !shakeFx){s=0;seq.schedStep=0;}
       var at = effect===13 ? t+(window.PO33FX.quantizeStep(s)-s)*stepDur() : ((s % 2 === 1) ? t + stepDur() * SWING : t);
-      fireStep(s, at,effect);
+      if(syncMode)fireSyncStep(s,at,effect);else fireStep(s,at,effect);
       visQueue.push({ t: at, s: s, pattern: seq.pattern,chain:chainPosition });
       seq.schedStep++;
       seq.nextTime += stepDur();
@@ -1369,6 +1404,7 @@
     seq.totalSteps = 0;
     visQueue = [];
     seq.nextTime = syncMode===1?syncController.startTime:c.currentTime + 0.012;seq.visualBeatTime=Infinity;
+    syncClock=syncMode?new window.PO33SyncTimeline(seq.nextTime,params.bpm,seq.pattern,syncMode>=2):null;syncRetriggerAt=null;
     fxInstall(); // keep the FX history warm
     // Write mode stays active while the transport runs.
     scheduler();seq.timer = setInterval(scheduler, 20);
@@ -1380,7 +1416,7 @@
   function stopSeq() {
     syncStartToken++;syncStarting=false;if(syncController)syncController.stop();
     if (!seq.playing) return;
-    seq.playing = false;musicSession('ambient');
+    seq.playing = false;syncRetriggerAt=null;musicSession('ambient');
     parameterLatches.stop(ctx().currentTime);
     stopShakeSensors(); cancelShakeFx(); stopTransportAnimation();
     if (seq.timer) { clearInterval(seq.timer); seq.timer = null; }

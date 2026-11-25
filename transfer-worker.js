@@ -1,8 +1,8 @@
-import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=flowers-20261120-ui38';
-import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=flowers-20261120-ui38';
-import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=flowers-20261120-ui38';
-import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=flowers-20261120-ui38';
-import './project-compression.js?v=flowers-20261120-ui38';
+import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=flowers-20261120-ui39';
+import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=flowers-20261120-ui39';
+import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=flowers-20261120-ui39';
+import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=flowers-20261120-ui39';
+import './project-compression.js?v=flowers-20261120-ui39';
 self.onmessage=async({data:m})=>{
   try{
     if(m.command==='decode'){

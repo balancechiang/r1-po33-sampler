@@ -1,5 +1,5 @@
 var global=globalThis;
-importScripts('./vendor/alac/alac-bundle.js?v=flowers-20261120-ui38');
+importScripts('./vendor/alac/alac-bundle.js?v=flowers-20261120-ui39');
 // Demux packet tables directly, including iOS Voice Memos' 64-bit mdat atoms.
 self.onmessage=({data:{buffer,sampleRate}})=>{
  try{

@@ -9,7 +9,7 @@ Updated 2026-11-25, UI37. Implemented behavior is not automatically verified fir
 - Verify SY2/3 mute external audio while SY4/5 mix right input; SY3/5 clock forwarding. Confirm hardware chain and headphone isolation.
 - Calibrate slave audio alignment; current note scheduling has a 40 ms cushion, direct audio does not. No zero-latency guarantee.
 - Integrate optional external audio pass-through in SY0/1 if required; currently not captured.
-- Stress-test external-clock Loop, Scratch, retrigger, saved FX, P-Lock and repeated Pattern chains. Recheck phase after master tempo changes.
+- UI39 software tests cover all 15 live FX restoring clock/step/repeated Chain, plus stored FX14, in master and simulated slave modes. Hardware A/B, chained FX switching, P-Lock and live chain edits still need validation. Recheck phase after master tempo changes.
 - R1 USB stereo capture and iOS Safari capture remain device-dependent. Mode and gain reset on page reload; UI38 retains them across audio-graph rebuilds. First SY1 start on iPhone USB adapters needs retesting after the playback-session and stereo-priming fix.
 
 ## Sampling and sound

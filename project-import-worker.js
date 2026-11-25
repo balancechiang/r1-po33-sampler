@@ -1,4 +1,4 @@
-import {decodePO33Backup} from './decoder/browser/src/codec/po33Codec.js?v=flowers-20261120-ui38';
+import {decodePO33Backup} from './decoder/browser/src/codec/po33Codec.js?v=flowers-20261120-ui39';
 self.onmessage=event=>{
   try {self.postMessage({project:decodePO33Backup(event.data)});}
   catch(error){self.postMessage({error:error.message});}
