@@ -36,7 +36,7 @@
   class Meter {
     constructor(){this.reset();}
     reset(){this.last=null;this.body=0;this.peak=0;this.hold=0;this.trail=Array(SEGMENT_COUNT).fill(0);}
-    update(rms,peak,time){
+    update(rms,peak,time,origin="center"){
       const dt=this.last===null?0:Math.min(100,Math.max(0,time-this.last));this.last=time;
       const scale=v=>v>.0005?clamp(v*1.5,0,1)*SEGMENT_COUNT:0;
       const target=scale(rms),top=Math.max(target,scale(peak));
@@ -45,9 +45,9 @@
       else if(time>this.hold)this.peak=Math.max(top,this.peak-dt*SEGMENT_COUNT/650);
       if(target===0 && this.body<.4)this.body=0;
       if(top===0 && this.peak<.4)this.peak=0;
-      const active=segments({mode:'level',origin:'center',value:Math.floor(this.body)});
+      const active=segments({mode:'level',origin:origin,value:Math.floor(this.body)});
       this.trail=this.trail.map((v,i)=>active[i]?1:v*Math.exp(-dt/130));
-      return {mode:'meter',origin:'center',value:Math.floor(this.body),peak:this.peak,trail:this.trail.slice()};
+      return {mode:'meter',origin:origin,value:Math.floor(this.body),peak:this.peak,trail:this.trail.slice()};
     }
   }
   function segments(props) {
@@ -113,9 +113,9 @@
       const next = Object.assign({}, props, nextProps);
       const active = segments(next);
       props = next;
-      const extent=props.mode==="meter"?Math.ceil(clamp(props.peak || 0,0,SEGMENT_COUNT)/2):0;
+      const extent=props.mode==="meter"?Math.ceil(clamp(props.peak || 0,0,SEGMENT_COUNT)/(props.origin==='left'?1:2)):0;
       squares.forEach(function (square, i) {
-        const peak=extent>0 && (i===19-extent || i===18+extent);
+        const peak=extent>0 && (props.origin==='left'?i===extent-1:(i===19-extent || i===18+extent));
         square.setAttribute("data-peak",String(peak));
         const ghost=props.mode==='meter' && !active[i] ? clamp((props.trail || [])[i] || 0,0,1)*.38:0;
         const color = (active[i] || peak) ? props.onColor : ghost>.025?'#'+Array(3).fill(Math.round(34+221*ghost).toString(16).padStart(2,'0')).join(''):props.offColor;

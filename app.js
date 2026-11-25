@@ -647,7 +647,7 @@
 
   var factoryMuted = [], knobAngles = [0,0],HOLD_DELAY=800,soundPreviewMeter=false;
   var parameterDisplay=false;
-  var lcdIndicator=null,outputBallistics=new window.PO33Indicator.Meter();
+  var lcdIndicator=null,outputBallistics=new window.PO33Indicator.Meter(),inputBallistics=new window.PO33Indicator.Meter();
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
   var r1Focused=true;
@@ -661,7 +661,7 @@
   var lastNote = 0, displayValue = null, displayUntil = 0;
   var lastNotes = Array(16).fill(0), lastWasSlice=false;
   var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null;
-  var masterVolume = 8, outputMeter = null, outputData = null, inputLevel = 0;
+  var masterVolume = 8, outputMeter = null, outputData = null, inputLevel = 0,inputPeak=0;
   var tweaks = [], patternExtras = [];
   for (var ti = 0; ti < 16; ti++) {
     tweaks.push({pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}});
@@ -1769,7 +1769,7 @@
     if(mic.proc){mic.proc.port.onmessage=null;mic.proc.port.close();}
     if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
     [mic.node,mic.proc,mic.silent].forEach(function(n){if(n){try{n.disconnect();}catch(error){}}});
-    mic.stream=mic.node=mic.proc=mic.silent=mic.pending=null;mic.error=null;mic.warning="";mic.settings=null;inputLevel=0;clipUntil=0;d.body.dataset.captureState="idle";
+    mic.stream=mic.node=mic.proc=mic.silent=mic.pending=null;mic.error=null;mic.warning="";mic.settings=null;inputLevel=inputPeak=0;clipUntil=0;d.body.dataset.captureState="idle";
   }
 
   var rec = {
@@ -1842,7 +1842,7 @@
   }
   function onCapture(event){
     var m=event.data;
-    if(m.type==='meter'){inputLevel=m.rms;if(m.clipped && (recHeld||rec.on))clipUntil=Date.now()+150;return;}
+    if(m.type==='meter'){inputLevel=m.rms;inputPeak=m.peak;if(m.clipped && (recHeld||rec.on))clipUntil=Date.now()+150;return;}
     if(!rec.on || m.id!==rec.id)return;
     if(m.type==='started'){d.body.dataset.captureState=rec.stopping?"stopping":"recording";return;}
     if(m.type==='chunk'){
@@ -2452,6 +2452,7 @@
     });
   }
 
+  var deleteDisplay=null;
   function onCtlDown(e) {
     var btn=e.target.closest ? e.target.closest(".cbtn") : null;
     if(!btn) return; e.preventDefault(); lastPointer=Date.now();
@@ -2469,7 +2470,7 @@
     }
     if(!writeHeld && (recHeld && (act==='sound' || act==='pattern'))){
       consumeChord();modifierUsed.rec=modifierUsed.sound=modifierUsed.pattern=true;recUsedPad=true;
-      if(act==='pattern' || (act==='rec' && patternHeld)){var deletedPattern=seq.playing?(seq.visualPattern || seq.pattern):seq.pattern;clearPattern(deletedPattern);patternExtras[deletedPattern-1]={effects:[],locks:{}};persistSoon();}else deleteSlot(state.slot);clearTimeout(deleteHoldTimer);showNumber('dEL','DELETE');if(latchedKeys.has('rec'))dropLatch('rec');paint();return;
+      if(act==='pattern' || (act==='rec' && patternHeld)){var deletedPattern=seq.playing?(seq.visualPattern || seq.pattern):seq.pattern;clearPattern(deletedPattern);patternExtras[deletedPattern-1]={effects:[],locks:{}};persistSoon();}else deleteSlot(state.slot);clearTimeout(deleteHoldTimer);deleteDisplay={target:act,code:act==='pattern'?'clr':'del'};displayValue=null;displayUntil=0;paint();return;
     }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true);if(!seq.playing)ensureMic(); return; }
     if(act==="play") { togglePlay(); return; }
@@ -2488,6 +2489,7 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    if(deleteDisplay && modifierPointers[deleteDisplay.target]===pid(e) && latchedKeys.has("rec"))dropLatch("rec");
     clearTimeout(touchChordTimers[pid(e)]);delete touchChordTimers[pid(e)];
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
@@ -2664,14 +2666,16 @@
     if(seq.playing && state.mode!=="SOUND" && state.mode!=="PATTERN" && !bpmHeld && !(displayValue && Date.now()<displayUntil)){label="PATTERN";number="P"+String(seq.visualPattern || seq.pattern).padStart(2,"0");}
     if(!startupReady){label="LOADING";number="LoAd";}
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
-    else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":memLeft().toFixed(1);}
+    else if(recHeld){label="REC READY";number="rec";}
     if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=window.PO33FX.codes[fx.kind];}
-    if(recHeld && !rec.on && !writeHeld && !soundHeld && !patternHeld && !bpmHeld){label=mic.error || 'REC READY';number=mic.error?'err':memLeft().toFixed(1);}
+    if(recHeld && !rec.on){label='REC READY';number='rec';}
+    if(deleteDisplay){if(activeKeys().has('rec') && activeKeys().has(deleteDisplay.target)){label=deleteDisplay.code==='clr'?'CLEAR':'DELETE';number=deleteDisplay.code;}else deleteDisplay=null;}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
     if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
+    target.classList.toggle("record-armed-blink",recHeld && !rec.on && !deleteDisplay && !transferView && !resetBusy);
     if(!transferView && Date.now()<clipUntil)label="CLP";
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
@@ -2702,6 +2706,7 @@
     var props=transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*38):Math.floor(Math.min(1,transferView.progress)*38)}:indicatorProps(level,inputActive);
     if(!transferView && props.mode==="level" && props.origin==="center" && !soundHeld && state.mode!=="SOUND" && !(!seq.playing && soundPreviewMeter)){props=outputBallistics.update(rms,level,performance.now());}
     else outputBallistics.reset();
+    if(!transferView && (recHeld||rec.on)){props=inputBallistics.update(inputActive?inputLevel:0,inputActive?inputPeak:0,performance.now(),'left');}else inputBallistics.reset();
     lcdIndicator.setProps(props);
   }
   function indicatorProps(level,inputActive) {

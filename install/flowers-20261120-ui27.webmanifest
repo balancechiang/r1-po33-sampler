@@ -1,0 +1,25 @@
+{
+  "name": "PO-33 K.O!",
+  "short_name": "PO-33",
+  "id": "../",
+  "start_url": "../flowers-20261120-ui27.html",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#999999",
+  "theme_color": "#999999",
+  "icons": [
+    {
+      "src": "../pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "orientation": "portrait"
+}

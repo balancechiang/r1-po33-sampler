@@ -16,7 +16,7 @@ try:
   page.add_init_script("window.fxVoices=[];const alloc=()=>{if(!window.PO33Sampling)return setTimeout(alloc,5);const a=PO33Sampling.allocate;PO33Sampling.allocate=(vs,v,c,n)=>{fxVoices.push(v);return a(vs,v,c,n);};window.spyReady=true;};alloc();const wav="+json.dumps(wav)+";if(!localStorage.getItem('step-fx')){localStorage.setItem('step-fx','1');for(let i=1;i<=5;i++)localStorage.setItem('po33.slot'+i,btoa(JSON.stringify(wav)));localStorage.setItem('po33.meta',btoa(JSON.stringify({factoryRevision:1,bpm:120,swing:0,hardwareTone:false,chain:[1]})));}")
   base=f'http://127.0.0.1:{server.server_port}/'
   def instrument(route):
-   response=route.fetch();source=response.text();source=source.rsplit('})();',1)[0]+"window.uiTest={display:v=>{showNumber(v,'TEST');updateLCD();},mode:n=>{tweakMode=n;parameterDisplay=true;paint();},knob:adjustKnob,snapshot:()=>({parameterDisplay,writeHeld,mode:state.mode,pattern:seq.pattern,slot:state.slot,tweaks,patterns,extras:patternExtras,samples:samples.map(Boolean)})};})();"
+   response=route.fetch();source=response.text();source=source.rsplit('})();',1)[0]+"window.uiTest={input:(r,p)=>{inputLevel=r;inputPeak=p;micReady=()=>true;updateLCD();},display:v=>{showNumber(v,'TEST');updateLCD();},mode:n=>{tweakMode=n;parameterDisplay=true;paint();},knob:adjustKnob,snapshot:()=>({parameterDisplay,writeHeld,mode:state.mode,pattern:seq.pattern,slot:state.slot,tweaks,patterns,extras:patternExtras,samples:samples.map(Boolean)})};})();"
    route.fulfill(response=response,body=source)
   page.route('**/app.js*',instrument)
   page.goto(base+'index.html');page.wait_for_function('document.body.dataset.loading==="false"')
@@ -79,10 +79,20 @@ try:
   assert page.evaluate('uiTest.snapshot().patterns[0].lanes.some(l=>l.some(n=>n>=0))'), 'reverse PATTERN then REC deleted pattern'
   print('PASS ordered delete ignores reversed chords; status elements never overlap at R1/phone/iPad sizes; brackets open right with text clearance')
   assert page.evaluate('uiTest.snapshot().patterns[0].lanes.some(l=>l.some(n=>n>=0))')
-  down('rec');down('pattern',2);up(2);up(1)
+  down('rec');page.wait_for_timeout(100)
+  assert display().lower()=='rec' and page.locator('#lcdNumber').evaluate('e=>getComputedStyle(e).animationName')=='record-code-blink'
+  page.evaluate('uiTest.input(.2,.8)');page.wait_for_timeout(180)
+  assert page.locator('#lcdMeter').get_attribute('data-indicator-origin')=='left'
+  assert page.locator('#lcdMeter [data-peak=true]').count()==1
+  peak=page.locator('#lcdMeter [data-peak=true]').get_attribute('data-segment');assert int(peak)>10
+  down('pattern',2);page.wait_for_timeout(1400)
+  assert display().lower()=='clr' and 'record-armed-blink' not in page.locator('#lcdNumber').get_attribute('class')
+  up(2);page.wait_for_timeout(80);assert display().lower()=='rec';up(1)
   assert page.evaluate('uiTest.snapshot().patterns[0].lanes.every(l=>l.every(n=>n<0))')
   assert page.evaluate('uiTest.snapshot().patterns[1].lanes.some(l=>l.some(n=>n>=0))')
-  down('rec');down('sound',2);up(2);up(1)
+  down('rec');down('sound',2);page.wait_for_timeout(100)
+  assert display().lower()=='del';page.wait_for_timeout(1300);assert display().lower()=='del'
+  up(2);up(1);page.wait_for_timeout(80);assert 'record-armed-blink' not in (page.locator('#lcdNumber').get_attribute('class') or '')
   assert page.evaluate('!uiTest.snapshot().samples[0] && uiTest.snapshot().samples[1]')
   assert not errors,errors;print('PASS immediate REC+PATTERN and REC+SOUND clear selected target only')
   b.close()
