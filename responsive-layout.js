@@ -26,8 +26,8 @@
   instrument.style.setProperty('--screen-height',rows*unit+'px');instrument.dataset.layout=compact?'compact':'expanded';
   lcd.setAttribute('viewBox','0 0 240 '+rows);
   for(const id of ['lcdMode','lcdNumber'])document.getElementById(id).setAttribute('transform','translate(0 '+(compact?2:6)+')');
-  document.getElementById('lcdRecord').setAttribute('transform','translate(-7 '+(compact?2:6)+')');
-  document.getElementById('lcdPlay').setAttribute('transform','translate(-8 '+(compact?2:6)+')');
+  document.getElementById('lcdRecord').setAttribute('transform','translate(-20 '+(compact?2:6)+')');
+  document.getElementById('lcdPlay').setAttribute('transform','translate(-23 '+(compact?2:6)+')');
   for(const id of ['lcdIn','lcdOut','lcdMeter'])document.getElementById(id).setAttribute('transform','translate(0 '+(rows-(compact?30:42))+')');
   const scale=compact?1:Math.min(3.65,(rows-38)/22)*.69,cy=compact?13:(23+rows-25)/2;
   function place(id,s,x,y,ox,oy){wrappers[id].setAttribute('transform','matrix('+s+' 0 0 '+s+' '+(x-ox*s)+' '+(y-oy*s)+')');}

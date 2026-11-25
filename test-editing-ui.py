@@ -16,7 +16,7 @@ try:
   page.add_init_script("window.fxVoices=[];const alloc=()=>{if(!window.PO33Sampling)return setTimeout(alloc,5);const a=PO33Sampling.allocate;PO33Sampling.allocate=(vs,v,c,n)=>{fxVoices.push(v);return a(vs,v,c,n);};window.spyReady=true;};alloc();const wav="+json.dumps(wav)+";if(!localStorage.getItem('step-fx')){localStorage.setItem('step-fx','1');for(let i=1;i<=5;i++)localStorage.setItem('po33.slot'+i,btoa(JSON.stringify(wav)));localStorage.setItem('po33.meta',btoa(JSON.stringify({factoryRevision:1,bpm:120,swing:0,hardwareTone:false,chain:[1]})));}")
   base=f'http://127.0.0.1:{server.server_port}/'
   def instrument(route):
-   response=route.fetch();source=response.text();source=source.rsplit('})();',1)[0]+"window.uiTest={mode:n=>{tweakMode=n;parameterDisplay=true;paint();},knob:adjustKnob,snapshot:()=>({parameterDisplay,writeHeld,mode:state.mode,pattern:seq.pattern,slot:state.slot,tweaks,patterns,extras:patternExtras,samples:samples.map(Boolean)})};})();"
+   response=route.fetch();source=response.text();source=source.rsplit('})();',1)[0]+"window.uiTest={display:v=>{showNumber(v,'TEST');updateLCD();},mode:n=>{tweakMode=n;parameterDisplay=true;paint();},knob:adjustKnob,snapshot:()=>({parameterDisplay,writeHeld,mode:state.mode,pattern:seq.pattern,slot:state.slot,tweaks,patterns,extras:patternExtras,samples:samples.map(Boolean)})};})();"
    route.fulfill(response=response,body=source)
   page.route('**/app.js*',instrument)
   page.goto(base+'index.html');page.wait_for_function('document.body.dataset.loading==="false"')
@@ -60,7 +60,25 @@ try:
   play();assert page.evaluate('!uiTest.snapshot().parameterDisplay && uiTest.snapshot().mode==="PLAY"')
   play();down('write');up(1);play();assert page.evaluate('uiTest.snapshot().mode==="STEP"');play()
   print('PASS 38 squares, filter directions, parameter codes, trim 000–999, no knob outline; PLAY exits editing and preserves WRITE')
-  configure();assert page.evaluate('uiTest.snapshot().patterns[0].lanes.some(l=>l.some(n=>n>=0))')
+  configure()
+  for w,h in [(240,282),(390,844),(768,1024)]:
+   page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(80)
+   for value in ['8888','39.8','0901','P16','nof','rcv']:
+    page.evaluate('v=>uiTest.display(v)',value)
+    record=page.locator('#lcdRecord').bounding_box();playRect=page.locator('#lcdPlay').bounding_box();number=page.locator('#lcdNumber').bounding_box();screen=page.locator('#samplerScreen').bounding_box()
+    assert record['x']+record['width']<playRect['x'] and playRect['x']+playRect['width']<number['x'],(value,record,playRect,number)
+    assert number['x']+number['width']<=screen['x']+screen['width']+.1,(value,number,screen)
+   for bank in ['.melodic-bank','.drum-bank']:
+    geometry=page.locator(bank).evaluate('e=>{const p=getComputedStyle(e,"::before"),t=e.querySelector(".bank-text").getBoundingClientRect(),r=e.getBoundingClientRect();return {left:p.borderLeftStyle,right:p.borderRightWidth,gap:t.top-r.top-parseFloat(p.height)-parseFloat(p.borderTopWidth)}}')
+    assert geometry['left']=='solid' and geometry['right']=='0px' and geometry['gap']>0,geometry
+  page.screenshot(path=str(root/'t/panel-order-spacing-preview.png'))
+  page.set_viewport_size({'width':240,'height':282})
+  down('sound');down('rec',2);up(2);up(1)
+  assert page.evaluate('uiTest.snapshot().samples[0]'), 'reverse SOUND then REC deleted sound'
+  down('pattern');down('rec',2);up(2);up(1)
+  assert page.evaluate('uiTest.snapshot().patterns[0].lanes.some(l=>l.some(n=>n>=0))'), 'reverse PATTERN then REC deleted pattern'
+  print('PASS ordered delete ignores reversed chords; status elements never overlap at R1/phone/iPad sizes; brackets open right with text clearance')
+  assert page.evaluate('uiTest.snapshot().patterns[0].lanes.some(l=>l.some(n=>n>=0))')
   down('rec');down('pattern',2);up(2);up(1)
   assert page.evaluate('uiTest.snapshot().patterns[0].lanes.every(l=>l.every(n=>n<0))')
   assert page.evaluate('uiTest.snapshot().patterns[1].lanes.some(l=>l.some(n=>n>=0))')

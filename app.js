@@ -2467,7 +2467,7 @@
       modifierUsed.write=modifierUsed.sound=true;
       consumeChord();hardwareTransfer.open(act==="play"?"send":"receive");clearTouchChord();return;
     }
-    if(!writeHeld && ((act==='sound' && recHeld) || (act==='rec' && soundHeld) || (act==='pattern' && recHeld) || (act==='rec' && patternHeld))){
+    if(!writeHeld && (recHeld && (act==='sound' || act==='pattern'))){
       consumeChord();modifierUsed.rec=modifierUsed.sound=modifierUsed.pattern=true;recUsedPad=true;
       if(act==='pattern' || (act==='rec' && patternHeld)){var deletedPattern=seq.playing?(seq.visualPattern || seq.pattern):seq.pattern;clearPattern(deletedPattern);patternExtras[deletedPattern-1]={effects:[],locks:{}};persistSoon();}else deleteSlot(state.slot);clearTimeout(deleteHoldTimer);showNumber('dEL','DELETE');if(latchedKeys.has('rec'))dropLatch('rec');paint();return;
     }
@@ -2667,7 +2667,6 @@
     else if(recHeld){label=mic.error || "REC READY";number=mic.error?"err":memLeft().toFixed(1);}
     if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
     if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
-    if(physicalKeys.has("rec") && (physicalKeys.has("sound")||physicalKeys.has("pattern"))){label="DELETE";number="dEL";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=window.PO33FX.codes[fx.kind];}
     if(recHeld && !rec.on && !writeHeld && !soundHeld && !patternHeld && !bpmHeld){label=mic.error || 'REC READY';number=mic.error?'err':memLeft().toFixed(1);}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
@@ -2683,7 +2682,7 @@
     if(target.getAttribute("data-value")!==number){
       var cells=(number.match(/[^.]\.?/g) || []).slice(-4);
       while(cells.length<4)cells.unshift("");
-      target.replaceChildren.apply(target,cells.map(function(text,i){var cell=d.createElementNS("http://www.w3.org/2000/svg","tspan");cell.setAttribute("x",String(202+i*12));cell.setAttribute("data-digit",String(i));cell.textContent=text;return cell;}));
+      target.replaceChildren.apply(target,cells.map(function(text,i){var cell=d.createElementNS("http://www.w3.org/2000/svg","tspan");cell.setAttribute("x",String(190+i*12));cell.setAttribute("text-anchor","start");if(text){cell.setAttribute("textLength","10.5");cell.setAttribute("lengthAdjust","spacingAndGlyphs");}cell.setAttribute("data-digit",String(i));cell.textContent=text;return cell;}));
       target.setAttribute("data-columns","4");
       target.setAttribute("data-value",number);target.setAttribute("aria-label",number);
     }

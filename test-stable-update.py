@@ -3,6 +3,7 @@ from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler
 from functools import partial
 from threading import Thread
 from playwright.sync_api import sync_playwright
+import json
 root=Path(__file__).parent
 class Quiet(SimpleHTTPRequestHandler):
  def log_message(self,*args):pass
@@ -19,7 +20,7 @@ try:
    for act,i in [('write',1),('sound',2),('rec',3)]:page.locator('[data-act='+act+']').dispatch_event('pointerdown',{'pointerId':i,'bubbles':True})
    for i in [3,2,1]:page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
    page.wait_for_timeout(250)
-  page.goto(base+'creation.html');loaded();assert page.url==base+'creation.html';assert page.evaluate('PO33_BUILD')=='flowers-20261120-ui25'
+  page.goto(base+'creation.html');loaded();assert page.url==base+'creation.html';assert page.evaluate('PO33_BUILD')==json.loads((root/'app-release.json').read_text())['version']
   page.evaluate('testChange();localStorage.setItem("unrelated-app","keep");localStorage.setItem("po33.localHub.ip","192.168.1.1")');page.wait_for_timeout(1200)
   page.route('**/app-release.json?*',lambda route:route.abort())
   receive();page.locator('#transferUpdate').click();page.wait_for_function('document.body?.dataset.transfer==="error"');assert page.evaluate('testSnapshot().bpm')==137
