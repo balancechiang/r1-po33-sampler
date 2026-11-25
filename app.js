@@ -1161,7 +1161,7 @@
 
   // Melodic keys follow the requested PO-33 scale; pad 5 is the original pitch.
   function playPitched(s, semitones, when) {
-    if(!recHeld && !rec.on)musicSession('playback');
+    if(!recHeld && !rec.on)musicSession('ambient');
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
     var rate = Math.pow(2, (semitones+(s.pitch || 0))/12);
@@ -1310,7 +1310,7 @@
   }
 
   function startSeq() {
-    if(!recHeld && !rec.on)musicSession('playback');
+    if(!recHeld && !rec.on)musicSession('ambient');
     if (seq.playing || !startupReady) return;
     if(rec.on){flashHint("FINISH SAMPLING FIRST");return;}
     pendingRecSlot=0;soundPreviewMeter=false;
@@ -1765,12 +1765,12 @@
     error: null
   };
   var micGeneration=0,micModulePromise=null,micReleasePromise=null,clipUntil=0,sliceResultUntil=0,sliceResultSlot=0,sliceResultCount=0,sliceResultTimer=null;
-  var sampleMicGainDb=0,lastMicReport='No take yet / 尚无录音';
-  try{sampleMicGainDb=Math.max(0,Math.min(18,Number(localStorage.getItem('po33.micGainDb'))||0));}catch{}
-  function musicSession(type){try{if(navigator.audioSession && !(hardwareTransfer && hardwareTransfer.view.active))navigator.audioSession.type=type;}catch{}}
-  function setSampleMicGain(value){sampleMicGainDb=[0,6,12,18].includes(Number(value))?Number(value):0;try{localStorage.setItem('po33.micGainDb',String(sampleMicGainDb));}catch{}}
+  var sampleMicAuto=false,sampleMicGainDb=0,lastMicReport='No take yet / 尚无录音';
+  try{sampleMicAuto=localStorage.getItem('po33.micAutoLevel')==='true';sampleMicGainDb=Math.max(0,Math.min(18,Number(localStorage.getItem('po33.micGainDb'))||0));}catch{}
+  function musicSession(type){if(type==='ambient'){try{if(navigator.mediaSession){navigator.mediaSession.metadata=null;navigator.mediaSession.playbackState='none';}}catch{}}try{if(navigator.audioSession && !(hardwareTransfer && hardwareTransfer.view.active))navigator.audioSession.type=type;}catch{}}
+  function setSampleMicGain(value){sampleMicAuto=value==='auto';try{localStorage.setItem('po33.micAutoLevel',String(sampleMicAuto));}catch{}if(sampleMicAuto)return;sampleMicGainDb=[0,6,12,18].includes(Number(value))?Number(value):0;try{localStorage.setItem('po33.micGainDb',String(sampleMicGainDb));}catch{}}
   function disconnectMusicMic(){
-    musicSession('playback');micGeneration++;
+    musicSession('ambient');micGeneration++;
     if(rec.on)abortRecording("INPUT DISCONNECTED");
     if(mic.proc){mic.proc.port.onmessage=null;mic.proc.port.close();}
     if(mic.stream)mic.stream.getTracks().forEach(function(t){t.stop();});
@@ -1819,7 +1819,7 @@
     var finishing=rec.on?finishRec():null;
     micGeneration++;mic.pending=null;
     if(mic.stream)mic.stream.getTracks().forEach(function(track){track.onended=null;track.stop();});
-    musicSession('playback');
+    musicSession('ambient');
     if(finishing){micReleasePromise=finishing.finally(function(){disconnectMusicMic();micReleasePromise=null;});}
     else disconnectMusicMic();
   }
@@ -1842,7 +1842,7 @@
         await micModulePromise;
         if(requestGeneration!==micGeneration || !recHeld || d.hidden || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});return false;}
         mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
-        mic.proc=new AudioWorkletNode(c,'po33-recorder',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit',processorOptions:{inputGain:Math.pow(10,sampleMicGainDb/20)}});
+        mic.proc=new AudioWorkletNode(c,'po33-recorder',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1],channelCount:1,channelCountMode:'explicit',processorOptions:{inputGain:Math.pow(10,sampleMicGainDb/20),autoLevel:sampleMicAuto}});
         mic.proc.port.onmessage=onCapture;
         mic.proc.onprocessorerror=function(){abortRecording("RECORDER ERROR");disconnectMusicMic();mic.error="RECORDER ERROR";paint();};
         mic.silent=c.createGain();mic.silent.gain.value=0;
@@ -1999,7 +1999,7 @@
     ['pitch','volume','filter','resonance'].forEach(function(key){parameterLatches.manual(slotNum,key,tweaks[slotNum-1][key],c.currentTime);});
     var takePeak=0,takeEnergy=0;for(var k=0;k<data.length;k++){takePeak=Math.max(takePeak,Math.abs(data[k]));takeEnergy+=data[k]*data[k];}
     function dbfs(value){return value>0?(20*Math.log10(value)).toFixed(1):'-inf';}
-    lastMicReport='Last take / 上次录音: peak '+dbfs(takePeak)+' dBFS · RMS '+dbfs(Math.sqrt(takeEnergy/data.length))+' dBFS · gain +'+sampleMicGainDb+' dB';
+    lastMicReport='Last take / 上次录音: peak '+dbfs(takePeak)+' dBFS · RMS '+dbfs(Math.sqrt(takeEnergy/data.length))+' dBFS · gain '+(sampleMicAuto?'AUTO':'+'+sampleMicGainDb+' dB');
     // No automatic normalization: apply only the explicitly selected input gain in the recorder.
     var buf = c.createBuffer(1, data.length, rate);
     if (buf.copyToChannel) buf.copyToChannel(data, 0);
@@ -3022,7 +3022,7 @@
       if(!(await callStore(store,"remove",keys[k])).ok)throw new Error("reset storage failed");
     }
     for(var key of keys){var cleared=await callStore(store,"get",key);if(!cleared.ok || (cleared.value!=null && cleared.value!==""))throw new Error("reset user data still present");}
-    try{localStorage.removeItem('po33.localHub.ip');localStorage.removeItem('po33.micGainDb');sampleMicGainDb=0;}catch{}
+    try{localStorage.removeItem('po33.localHub.ip');localStorage.removeItem('po33.micGainDb');localStorage.removeItem('po33.micAutoLevel');sampleMicGainDb=0;sampleMicAuto=false;}catch{}
   }
   var resetCommitting=false;
   async function factoryReset(recover){
@@ -3149,7 +3149,7 @@
     location.assign('./creation.html?refresh='+Date.now());
   }
   if(window.PO33TransferFactory){
-    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,micGain:()=>({db:sampleMicGainDb,report:lastMicReport}),setMicGain:setSampleMicGain,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
+    hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,micGain:()=>({db:sampleMicGainDb,mode:sampleMicAuto?'auto':String(sampleMicGainDb),report:lastMicReport}),setMicGain:setSampleMicGain,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone});
     window.PO33Transfer=hardwareTransfer;
   }
   startupRestore=startRestore().then(async function(){if(hardwareTransfer)await hardwareTransfer.restore();}).then(function(){startupReady=true;window.PO33Startup?.ready();paint();},function(){persistPaused=true;startupReady=false;storageWarn="PROJECT LOAD FAILED";paint();window.PO33Startup?.fail("Project restore unavailable / 工程恢复未完成");});

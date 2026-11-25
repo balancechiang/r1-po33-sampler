@@ -23,5 +23,12 @@ for(const rate of [44100,48000]){
  boosted.port.onmessage({data:{type:'start',id:4,maxFrames:300}});boosted.process([[new Float32Array(128).fill(.1)]],out);boosted.port.onmessage({data:{type:'stop',id:4}});
  const amplified=new Float32Array(boosted.messages.find(m=>m.type==='chunk').data);assert(amplified.every(v=>Math.abs(v-.39810717)<1e-6));
  const clipped=new Processor({processorOptions:{inputGain:8}});clipped.port.onmessage({data:{type:'start',id:5,maxFrames:2048}});for(let i=0;i<10;i++)clipped.process([[new Float32Array(128).fill(.5)]],out);clipped.port.onmessage({data:{type:'stop',id:5}});assert(clipped.messages.filter(m=>m.type==='chunk').every(m=>new Float32Array(m.data).every(v=>v===1)));assert(clipped.messages.some(m=>m.type==='meter'&&m.clipped));
+ const auto=new Processor({processorOptions:{autoLevel:true}});auto.port.onmessage({data:{type:'start',id:6,maxFrames:rate*2}});
+ const quiet=Float32Array.from({length:128},(_,i)=>.01*Math.sin(i*2*Math.PI/32));for(let i=0;i<Math.ceil(rate*2/128);i++)auto.process([[quiet]],out);
+ const autoSamples=auto.messages.filter(m=>m.type==='chunk').flatMap(m=>Array.from(new Float32Array(m.data)));const tail=autoSamples.slice(-Math.floor(rate/2));assert(Math.sqrt(tail.reduce((e,v)=>e+v*v,0)/tail.length)>.08);assert(autoSamples.every(v=>Math.abs(v)<=.940001));
+ const noise=new Processor({processorOptions:{autoLevel:true}});for(let i=0;i<200;i++)noise.process([[new Float32Array(128).fill(.0001)]],out);assert.equal(noise.autoGain,1);
+ for(let i=0;i<100;i++)auto.process([[new Float32Array(128).fill(1)]],out);assert(auto.messages.some(m=>m.type==='meter'&&m.clipped));
+ console.log('PASS auto level raises quiet input, limits sudden peaks, leaves noise-only input unboosted and reports raw clipping at',rate);
+
 }
 console.log('PASS worklet raw quiet PCM, retained silence, exact non-block-aligned capacity cutoff, stop drain, stale-stop isolation, silent monitoring output and RMS/near-clipping at 44.1/48 kHz.');

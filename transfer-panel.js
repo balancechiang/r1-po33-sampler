@@ -16,7 +16,7 @@
     const hub=root.PO33LocalHub.create(box,{onFile:(name,buffer)=>loadBuffer(name,buffer),onClose:()=>set('waiting','rcv · Ready / 就绪',{progress:0}),loadFile:()=>$('transferFileInput').click()});
     function renderTone(){if(!hooks.toneStatus){$('transferTone').hidden=true;return;}const t=hooks.toneStatus();$('transferTone').textContent=t.error?'PO-33 TONE UNAVAILABLE':'PO-33 TONE '+(t.enabled?'ON':'OFF');$('transferTone').setAttribute('aria-pressed',String(t.enabled));$('transferTone').disabled=!!t.error;}
     const gainLabel=document.createElement('label');gainLabel.textContent='Sample mic gain / 采样输入增益 ';
-    const gainSelect=document.createElement('select');gainSelect.id='sampleMicGain';gainSelect.setAttribute('aria-label','Sampler input gain (not backup transfer)');for(const db of [0,6,12,18]){const option=document.createElement('option');option.value=db;option.textContent='+'+db+' dB';gainSelect.append(option);}gainSelect.value=hooks.micGain?hooks.micGain().db:0;gainLabel.hidden=!hooks.micGain;gainLabel.append(gainSelect);$('transferDevices').append(gainLabel);
+    const gainSelect=document.createElement('select');gainSelect.id='sampleMicGain';gainSelect.setAttribute('aria-label','Sampler input gain (not backup transfer)');for(const db of ['auto',0,6,12,18]){const option=document.createElement('option');option.value=db;option.textContent=db==='auto'?'Auto level / 自动增益':'+'+db+' dB';gainSelect.append(option);}gainSelect.value=hooks.micGain?(hooks.micGain().mode || hooks.micGain().db):0;gainLabel.hidden=!hooks.micGain;gainLabel.append(gainSelect);$('transferDevices').append(gainLabel);
     const micReport=document.createElement('p');micReport.id='sampleMicReport';$('transferDevices').append(micReport);gainSelect.onchange=()=>hooks.setMicGain?.(gainSelect.value);
     $('transferTone').onclick=()=>{hooks.setTone(!hooks.toneStatus().enabled);renderTone();};root.addEventListener('po33-tone-state',renderTone);renderTone();
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
@@ -298,7 +298,7 @@
       try{if(session)await writeCheckpoint();else {await saveChain.catch(()=>{});await storage.clear();}}catch(error){hooks.hint('RESTORED IN MEMORY');}
       await close();
     };
-    $('transferDeviceToggle').onclick=()=>{$('transferDevices').hidden=!$('transferDevices').hidden;gainSelect.value=hooks.micGain?hooks.micGain().db:0;gainLabel.hidden=!hooks.micGain;micReport.textContent=hooks.micGain?hooks.micGain().report:'';};$('transferRefresh').onclick=devices;
+    $('transferDeviceToggle').onclick=()=>{$('transferDevices').hidden=!$('transferDevices').hidden;gainSelect.value=hooks.micGain?(hooks.micGain().mode || hooks.micGain().db):0;gainLabel.hidden=!hooks.micGain;micReport.textContent=hooks.micGain?hooks.micGain().report:'';};$('transferRefresh').onclick=devices;
     $('transferCheckInput').onclick=checkInput;
     document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));if(document.hidden && view.state==='downloading')close();});
     root.addEventListener('pagehide',()=>{scanner.close();hub.close();downloadAbort?.abort();closeAudio();terminate();});
