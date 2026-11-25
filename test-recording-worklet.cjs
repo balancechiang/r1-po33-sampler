@@ -19,5 +19,9 @@ for(const rate of [44100,48000]){
  send({type:'start',id:3,maxFrames:rate});for(let i=0;i<10;i++)feed(new Float32Array(128).fill(.99));send({type:'stop',id:3});
  assert.ok(p.messages.some(m=>m.type==='meter'&&m.clipped&&m.rms>.9));
  assert.ok(p.messages.filter(m=>m.type==='chunk'&&m.id===3).every(m=>new Float32Array(m.data).every(v=>Math.abs(v-.99)<1e-6)));
+ const boosted=new Processor({processorOptions:{inputGain:Math.pow(10,12/20)}});
+ boosted.port.onmessage({data:{type:'start',id:4,maxFrames:300}});boosted.process([[new Float32Array(128).fill(.1)]],out);boosted.port.onmessage({data:{type:'stop',id:4}});
+ const amplified=new Float32Array(boosted.messages.find(m=>m.type==='chunk').data);assert(amplified.every(v=>Math.abs(v-.39810717)<1e-6));
+ const clipped=new Processor({processorOptions:{inputGain:8}});clipped.port.onmessage({data:{type:'start',id:5,maxFrames:2048}});for(let i=0;i<10;i++)clipped.process([[new Float32Array(128).fill(.5)]],out);clipped.port.onmessage({data:{type:'stop',id:5}});assert(clipped.messages.filter(m=>m.type==='chunk').every(m=>new Float32Array(m.data).every(v=>v===1)));assert(clipped.messages.some(m=>m.type==='meter'&&m.clipped));
 }
 console.log('PASS worklet raw quiet PCM, retained silence, exact non-block-aligned capacity cutoff, stop drain, stale-stop isolation, silent monitoring output and RMS/near-clipping at 44.1/48 kHz.');
