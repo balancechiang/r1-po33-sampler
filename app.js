@@ -2764,23 +2764,46 @@
     if(state.slot>8){var view=rawSlice(samples[state.slot-1],lastNote);if(!view)return [0,0,100,index===0?'START':'LENGTH'];var r=window.PO33Sampling.trimFrames(view,sl,view.buffer.length,view.buffer.sampleRate);return index===0?[r.start*100/view.buffer.length,0,100,'START']:[(r.end-r.start)*100/view.buffer.length,0,100,'LENGTH'];}
     return index===0 ? [sl.start,0,100,"START"] : [sl.length,0,100,"LENGTH"];
   }
+  var knobPickup=[{key:null,target:0,caught:false},{key:null,target:0,caught:false}],knobVisualReady=false;
+  function knobContext(index){
+    if(stepEdit)return 'step:'+stepEdit.pattern+':'+stepEdit.slot+':'+stepEdit.step+':'+index;
+    if(bpmHeld)return 'bpm:'+index;
+    return 'sound:'+state.slot+':'+tweakMode+':'+(state.slot>8 && tweakMode===2?lastNote:'slot')+':'+index;
+  }
+  function syncKnobTarget(index){
+    var spec=knobSpec(index),target=Math.max(0,Math.min(1,(spec[0]-spec[1])/(spec[2]-spec[1]))),key=knobContext(index),pickup=knobPickup[index];
+    if(pickup.key!==key || Math.abs(target-pickup.target)>1e-7){pickup.key=key;pickup.target=target;pickup.caught=false;}
+    return spec;
+  }
   function updateKnobVisuals() {
-    ["knobA","knobB"].forEach(function(id,i){
-      var spec=knobSpec(i);knobAngles[i]=Math.max(0,Math.min(KNOB_SWEEP,(spec[0]-spec[1])/(spec[2]-spec[1])*KNOB_SWEEP));
-      d.getElementById(id).style.setProperty("--knob-angle",knobAngles[i]+"deg");
+    if(startupReady && !knobVisualReady){knobVisualReady=true;for(var i=0;i<2;i++){var spec=syncKnobTarget(i);knobAngles[i]=knobPickup[i].target*KNOB_SWEEP;knobPickup[i].caught=true;}}
+    ['knobA','knobB'].forEach(function(id,i){
+      syncKnobTarget(i);
+      var node=d.getElementById(id);node.style.setProperty('--knob-angle',knobAngles[i]+'deg');node.setAttribute('data-picked-up',String(knobPickup[i].caught));
     });
+  }
+  function movePhysicalKnob(index,dir){
+    var spec=syncKnobTarget(index),pickup=knobPickup[index],before=knobAngles[index]/KNOB_SWEEP;
+    var after=Math.max(0,Math.min(1,before+dir/100));knobAngles[index]=after*KNOB_SWEEP;
+    if(!pickup.caught){var tolerance=.5/KNOB_SWEEP;pickup.caught=Math.abs(after-pickup.target)<=tolerance || (before-pickup.target)*(after-pickup.target)<=0;}
+    if(!pickup.caught){showNumber('P-UP','PICKUP');paint();return null;}
+    var value=spec[1]+after*(spec[2]-spec[1]);
+    if(stepEdit && index===1 && stepEdit.slot>8){var counts=[1,2,3,4,6,8];value=counts[Math.round(after*(counts.length-1))];}
+    else value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
+    pickup.target=(value-spec[1])/(spec[2]-spec[1]);return {spec:spec,value:value};
   }
   function adjustKnob(index,dir) {
     if(loopHold)advanceLoopShadow(ctx().currentTime);
     consumeChord();
+    var movement=movePhysicalKnob(index,dir);if(!movement)return;
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       e.used=true;
-      if(index===0)lane[e.step]=Math.max(0,Math.min(15,lane[e.step]+dir));
-      else if(e.slot<=8)detail.length=Math.max(1,Math.min(16,detail.length+dir));
-      else {var counts=[1,2,3,4,6,8],at=counts.indexOf(detail.retrigs);detail.retrigs=counts[Math.max(0,Math.min(5,at+dir))];}
-      var after=knobSpec(index);knobAngles[index]=Math.max(0,Math.min(KNOB_SWEEP,knobAngles[index]+(after[0]-before[0])/(after[2]-after[1])*KNOB_SWEEP));
+      if(index===0)lane[e.step]=Math.max(0,Math.min(15,movement.value-1));
+      else if(e.slot<=8)detail.length=Math.max(1,Math.min(16,movement.value));
+      else {var counts=[1,2,3,4,6,8],at=counts.indexOf(detail.retrigs);detail.retrigs=movement.value;}
+      var after=knobSpec(index);
       writePattern(e.pattern);showNumber(index===0?lane[e.step]+1:(e.slot<=8?detail.length:detail.retrigs),knobSpec(index)[3]);
       if(!seq.playing)voice(e.slot,lane[e.step],undefined,e.slot<=8?detail.length*stepDur():undefined);
       paint();return;
@@ -2790,8 +2813,7 @@
       reset[key]=key==="volume"?100:0;manualParameter(state.slot,key,reset[key]);recUsedPad=true;persistSoon();showNumber(reset[key],"RESET");paint();return;
     }
     var spec=knobSpec(index), t=tweaks[state.slot-1], sl=selectedTweak(state.slot,lastNote);
-    var value=Math.max(spec[1],Math.min(spec[2],spec[0]+dir*(tweakMode===0 && index===0 && !bpmHeld ? .1 : 1)));
-    knobAngles[index]=Math.max(0,Math.min(KNOB_SWEEP,knobAngles[index]+(value-spec[0])/(spec[2]-spec[1])*KNOB_SWEEP));
+    var value=movement.value;
     if(bpmHeld) {modifierUsed.bpm=true;if(index===0)SWING=value/100;else params.bpm=value;}
     else if(tweakMode===0) { if(index===0)t.pitch=value;else t.volume=value; }
     else if(tweakMode===1) {if(index===0)t.filter=value;else t.resonance=value;}
@@ -2827,9 +2849,7 @@
     knob.addEventListener("pointermove",function(e){
       if(!active)return;
       var scale=d.getElementById("panel").getBoundingClientRect().width/240,delta=(lastY-e.clientY)/scale;
-      if(tweakMode===0 && index===0 && !bpmHeld && !stepEdit){if(Math.abs(delta)>.05){adjustKnob(index,delta*5);lastY=e.clientY;}return;}
-      var steps=Math.floor(Math.abs(delta)/2),dir=delta>0?1:-1;
-      if(steps){for(var k=0;k<steps;k++)adjustKnob(index,dir);lastY-=dir*steps*2*scale;}
+      if(Math.abs(delta)>.05){adjustKnob(index,delta*.5);lastY=e.clientY;}
     });
     ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){knob.addEventListener(type,function(){active=false;});});
     knob.addEventListener("wheel",function(e){e.preventDefault();e.stopPropagation();if(e.deltaY)adjustKnob(index,e.deltaY<0?1:-1);},{passive:false});

@@ -33,25 +33,25 @@ try:
   wheel('A',120,-1);wheel('B',20,-1);page.wait_for_timeout(120)
   assert page.evaluate('Math.abs(voices[0].src.playbackRate.value-.5)<.001 && voices[1].src.playbackRate.value===1')
   assert page.evaluate('Math.abs(voices[0].volume.gain.value-.8)<.001 && voices[1].volume.gain.value===1')
-  tap('[data-act="fx"]');wheel('A',80);wheel('B',30);page.wait_for_timeout(140)
+  tap('[data-act="fx"]');wheel('A',80);wheel('B',100,-1);wheel('B',30);page.wait_for_timeout(140)
   assert page.evaluate('voices[0].highGain.gain.value>.99 && voices[0].dry.gain.value<.001 && Math.abs(voices[0].high.Q.value-5.2)<.01')
   assert page.evaluate('voices[1].dry.gain.value===1 && Math.abs(voices[1].low.Q.value-.7)<.0001')
   wheel('A',160,-1);page.wait_for_timeout(140)
   assert page.evaluate('voices[0].lowGain.gain.value>.99 && voices[0].highGain.gain.value<.001')
-  wheel('A',80);page.wait_for_timeout(140);assert page.evaluate('voices[0].dry.gain.value>.99')
+  wheel('A',50);page.wait_for_timeout(140);assert page.evaluate('voices[0].dry.gain.value>.99')
   assert page.evaluate('voices.length===2') # live modulation must not restart any active source
   page.wait_for_timeout(1500);assert page.evaluate('!voices[0].ended') # slowed tail survives original 2-second deadline
   # BPM adjusts clock only, never the current source rate.
   down('#bpmMode');wheel('B',5);up();assert page.evaluate('Math.abs(voices[0].src.playbackRate.value-.5)<.001')
-  tap('[data-act="fx"]');wheel('A',10);assert page.evaluate('voices.length===2 && !voices[0].ended && voices[0].args[1]===0')
-  wheel('B',95,-1);page.wait_for_timeout(50);assert page.evaluate('voices[0].ended')
+  tap('[data-act="fx"]');wheel('A',100,-1);wheel('A',10);assert page.evaluate('voices.length===2 && !voices[0].ended && voices[0].args[1]===0')
+  wheel('B',100);wheel('B',95,-1);page.wait_for_timeout(50);assert page.evaluate('voices[0].ended')
   tap('[data-pad="5"]');assert page.evaluate('voices.length===3 && Math.abs(voices[2].args[1]-.2)<.001 && voices[2].args[2]<.1')
   assert page.evaluate('originalPCM.every((x,i)=>x===voices[0].src.buffer.getChannelData(0)[i])')
-  # RECORD overlay supersedes running step lights and reports actual remaining seconds.
+  # RECORD overlay supersedes running step lights and shows blinking record readiness.
   tap('[data-act="write"]');tap('[data-act="play"]');down('[data-act="rec"]');page.wait_for_timeout(100)
   assert page.locator('.pad[data-led-reason^="record-"][data-led-level="bright"]').count()==page.locator('.pad.sampled').count()
   assert page.locator('.pad:not(.sampled)[data-led-level="bright"]').count()==0
-  assert abs(float(page.locator('#lcdNumber').get_attribute('data-value'))-float(page.locator('#mem').text_content().rstrip('s')))<.11
+  assert page.locator('#lcdNumber').get_attribute('data-value')=='rec'
   up();assert page.locator('[data-led-reason="record-slots"]').count()==0;tap('[data-act="play"]');tap('[data-act="write"]')
   down('[data-act="sound"]');value=page.locator('#lcdNumber').get_attribute('data-value');tap('#bpmMode',2);page.wait_for_timeout(100);assert page.locator('#lcdNumber').get_attribute('data-value')==value;up()
   scheduled=browser.new_page(viewport={'width':240,'height':282})
@@ -63,5 +63,5 @@ try:
   assert scheduled.evaluate('liveNotes.length===1 && Math.abs(liveNotes[0].volume.gain.value-.25)<.005 && liveNotes[0].wet.gain.value>.99')
   scheduled.close()
   assert not errors,errors
-  browser.close();print('PASS live slot-only pitch/gain/LP-HP/Q smoothing without restart, slowed-tail deadline, BPM rate isolation, delayed Start/Length truncation, immutable PCM, RECORD sample-map/free-time overlay and removed system menu.')
+  browser.close();print('PASS live slot-only pitch/gain/LP-HP/Q smoothing without restart, slowed-tail deadline, BPM rate isolation, delayed Start/Length truncation, immutable PCM, RECORD sample-map/readiness overlay and removed system menu.')
 finally:server.shutdown();server.server_close()
