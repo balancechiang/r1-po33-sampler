@@ -22,6 +22,12 @@ try:
    for i in [3,2,1]:page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
    page.wait_for_timeout(250)
   page.goto(base+'creation.html');loaded();assert page.url==base+'creation.html';assert page.evaluate('PO33_BUILD')==json.loads((root/'app-release.json').read_text())['version']
+  page.evaluate('testChange()');page.wait_for_timeout(1200)
+  head=page.locator('#rabbitMascot');assert head.get_attribute('role') is None and head.get_attribute('tabindex') is None
+  head.dispatch_event('pointerdown',{'pointerId':91,'button':0,'bubbles':True});page.wait_for_timeout(5200)
+  page.evaluate('window.dispatchEvent(new PointerEvent("pointerup",{pointerId:91,bubbles:true}))')
+  assert page.evaluate('testSnapshot().bpm')==137 and not page.locator('body').get_attribute('data-resetting')
+  print('PASS long-holding mascot has no reset action; receive-menu reset remains available')
   page.evaluate('testChange();localStorage.setItem("unrelated-app","keep");localStorage.setItem("po33.localHub.ip","192.168.1.1")');page.wait_for_timeout(1200)
   page.route('**/app-release.json?*',lambda route:route.abort())
   receive();page.locator('#transferUpdate').click();page.wait_for_function('document.body?.dataset.transfer==="error"');assert page.evaluate('testSnapshot().bpm')==137

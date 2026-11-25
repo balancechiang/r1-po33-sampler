@@ -77,8 +77,7 @@
   var restored = 0; // slots brought back from storage
   var storageWarn = ""; // what the restore had to report
   var storageReady = false;
-  var resetBusy=false,resetFailure=false,resetUntil=0,resetHoldTimer=null,resetPointer=null,resetKey=null;
-  var resetHoldStarted=0;
+  var resetBusy=false,resetFailure=false,resetUntil=0;
 
   for (var sg0 = 0; sg0 < TOTAL_SLOTS; sg0++) { savedSig.push(undefined); patSig.push(undefined); }
 
@@ -2167,7 +2166,7 @@
   function hintText() {
     if(resetBusy)return "RESTORING FACTORY PRESETS";
     if(ac && (seq.playing||rec.on) && window.PO33Runtime.isBlocked(ac))return "TAP TO RESUME AUDIO";
-    if(resetFailure)return "RESET FAILED - HOLD HEAD TO RETRY";
+    if(resetFailure)return "RESET FAILED - RETRY IN RECEIVE MENU";
     if(unsaved)return "SAVE FAILED · "+unsaved+" TAKE IN MEMORY ONLY";
     if(failedSaveKeys.size)return "SAVE FAILED · METADATA IN MEMORY ONLY";
     if (exporting) {
@@ -2997,52 +2996,11 @@
 
   paint();
 
-  // Factory reset is deliberately a continuous five-second gesture on the head.
-  // A stored marker makes an interrupted/failed clear resume on the next load.
-  var resetControl=d.getElementById("factoryReset"),startupRestore=null;
-  function cancelResetHold(){
-    if(resetHoldTimer)clearTimeout(resetHoldTimer);
-    resetHoldTimer=null;resetPointer=null;resetKey=null;
-  }
-  function beginResetHold(pointer,key){
-    if(resetBusy || resetHoldTimer)return;
-    resetPointer=pointer;resetKey=key;resetHoldStarted=performance.now();
-    resetHoldTimer=setTimeout(function check(){
-      var remaining=5000-(performance.now()-resetHoldStarted);
-      if(remaining>0){resetHoldTimer=setTimeout(check,remaining);return;}
-      cancelResetHold();factoryReset(false);
-    },5000);
-  }
-  resetControl.addEventListener("pointerdown",function(e){
-    if(e.button!==0 || resetPointer!==null)return;
-    e.preventDefault();beginResetHold(e.pointerId,null);
-    try{resetControl.setPointerCapture(e.pointerId);}catch(err){}
-  });
-  window.addEventListener("pointermove",function(e){
-    if(e.pointerId!==resetPointer)return;
-    var r=resetControl.getBoundingClientRect();
-    if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom)cancelResetHold();
-  });
-  ["pointerup","pointercancel","lostpointercapture"].forEach(function(type){
-    window.addEventListener(type,function(e){if(e.pointerId===resetPointer)cancelResetHold();});
-  });
-  resetControl.addEventListener("keydown",function(e){
-    if(e.key!=="Enter" && e.key!==" ")return;
-    e.preventDefault();e.stopPropagation();if(!e.repeat)beginResetHold(null,e.key);
-  });
-  resetControl.addEventListener("keyup",function(e){
-    if(e.key!=="Enter" && e.key!==" ")return;
-    e.preventDefault();e.stopPropagation();if(e.key===resetKey)cancelResetHold();
-  });
-  resetControl.addEventListener("blur",cancelResetHold);
-  window.addEventListener("blur",cancelResetHold);
-  d.addEventListener("visibilitychange",function(){if(d.hidden)cancelResetHold();});
-  window.addEventListener("pointerdown",function(e){if(resetPointer!==null && e.pointerId!==resetPointer)cancelResetHold();},true);
+  // Reset is available only in the receive menu. Keep input isolated during clearing.
+  var startupRestore=null;
   ["pointerdown","pointermove","pointerup","keydown","keyup","wheel","sideClick","longPressStart","longPressEnd","scrollUp","scrollDown"].forEach(function(type){
     window.addEventListener(type,function(e){
-      var onHead=e.target && e.target.nodeType && resetControl.contains(e.target);
-      var releasingHold=resetPointer!==null && e.pointerId===resetPointer && (type==="pointerup" || type==="pointermove");
-      if(!resetBusy && (!resetFailure || onHead || releasingHold))return;
+      if(!resetBusy)return;
       if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();
     },{capture:true,passive:false});
   });
@@ -3059,7 +3017,7 @@
   var resetCommitting=false;
   async function factoryReset(recover){
     if(resetBusy)return;
-    resetBusy=true;resetFailure=false;persistPaused=true;cancelResetHold();
+    resetBusy=true;resetFailure=false;persistPaused=true;
     d.body.setAttribute("data-resetting","true");paint();
     try{
       if(!recover && startupRestore)await startupRestore;

@@ -7,7 +7,7 @@
  const screen=document.createElement('div');screen.id='samplerScreen';screen.append(lcd);
  const controls=document.createElement('div');controls.id='samplerControls';controls.append(panel);instrument.append(screen,controls);
  const wrappers={};
- for(const id of ['tapeHead','tapeLeft','tapeRight','factoryReset']){const el=document.getElementById(id),g=document.createElementNS('http://www.w3.org/2000/svg','g');el.before(g);g.append(el);wrappers[id]=g;}
+ for(const id of ['tapeHead','tapeLeft','tapeRight','rabbitMascot']){const el=document.getElementById(id),g=document.createElementNS('http://www.w3.org/2000/svg','g');el.before(g);g.append(el);wrappers[id]=g;}
  let scanFrozen=false;
  window.addEventListener('po33-scan-state',e=>{scanFrozen=e.detail.active;if(!scanFrozen)layout();});
  function layout(){
@@ -31,7 +31,7 @@
   for(const id of ['lcdIn','lcdOut','lcdMeter'])document.getElementById(id).setAttribute('transform','translate(0 '+(rows-(compact?30:42))+')');
   const scale=compact?1:Math.min(3.65,(rows-38)/22)*.69,cy=compact?13:(23+rows-25)/2;
   function place(id,s,x,y,ox,oy){wrappers[id].setAttribute('transform','matrix('+s+' 0 0 '+s+' '+(x-ox*s)+' '+(y-oy*s)+')');}
-  place('tapeHead',scale,120.5,cy,120.5,11);place('factoryReset',scale,120.5,cy,120.5,11);
+  place('tapeHead',scale,120.5,cy,120.5,11);place('rabbitMascot',scale,120.5,cy,120.5,11);
   const gs=compact?1:scale*1.4;
   place('tapeLeft',gs,compact?100.5:72,compact?15.5:cy+6,100.5,13.5);
   place('tapeRight',gs,compact?139.5:168,compact?15.5:cy+6,139.5,13.5);
