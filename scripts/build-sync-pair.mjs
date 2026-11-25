@@ -15,7 +15,8 @@ const input=path.resolve(process.argv[2]),output=path.resolve(process.argv[3]);f
 const info=JSON.parse(fs.readFileSync(path.join(input,'preparation.json'),'utf8')),eighth=30/info.bpm;
 const reports=[],previews=[];
 function pcmWav(a){const b=Buffer.alloc(44+a.length*2);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(44100,24);b.writeUInt32LE(88200,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(a.length*2,40);a.forEach((v,i)=>b.writeInt16LE(Math.round(Math.max(-1,Math.min(1,v))*32767),44+2*i));return b;}
-for(const [role,label] of [['rhythm','01-DRUMS-BASS'],['vocal',info.vocalLabel || '02-VOCAL-CHOPS']]){
+const roles=process.argv.includes('--vocal-only')?[['vocal',info.vocalLabel || '02-VOCAL-CHOPS']]:[['rhythm','01-DRUMS-BASS'],['vocal',info.vocalLabel || '02-VOCAL-CHOPS']];
+for(const [role,label] of roles){
  const bytes=fs.readFileSync(path.join(input,role+'.f32')),pcm=new Float32Array(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
  const native=toNativeRate(pcm,info.rate),model=emptyProject(info.bpm),library=new Map();model.chain=Array.from({length:16},(_,i)=>i+1);model.swing=0;
  for(let kit=0;kit<8;kit++){
@@ -42,6 +43,5 @@ for(const [role,label] of [['rhythm','01-DRUMS-BASS'],['vocal',info.vocalLabel |
  previews.push(preview);fs.writeFileSync(path.join(output,`LISTEN-${label}.wav`),pcmWav(preview));
  reports.push({file,bpm:decoded.meta.bpm,chain:decoded.patternChain,pages,memorySeconds:[...library.values()].reduce((n,a)=>n+a.length,0)/SAMPLE_RATE,patternCount:16,triggers:128,validSlices:128,checksumErrors:0,unresolvedAudioRanges:0,backupSeconds:(wav.byteLength-44)/4/44100,packets:decoded.validation.packetCount});
 }
-const mix=Float32Array.from(previews[0],(v,i)=>v+previews[1][i]);assert(Math.max(...Array.from({length:100},(_,i)=>Math.max(...mix.subarray(i*Math.ceil(mix.length/100),(i+1)*Math.ceil(mix.length/100)).map(Math.abs))))<1);
-fs.writeFileSync(path.join(output,'LISTEN-BOTH-SYNCHRONIZED.wav'),pcmWav(mix));
-fs.writeFileSync(path.join(output,'validation.json'),JSON.stringify({sourceWindow:info,projects:reports},null,2));console.log(JSON.stringify(reports,null,2));
+if(previews.length===2){const mix=Float32Array.from(previews[0],(v,i)=>v+previews[1][i]);assert(Math.max(...Array.from({length:100},(_,i)=>Math.max(...mix.subarray(i*Math.ceil(mix.length/100),(i+1)*Math.ceil(mix.length/100)).map(Math.abs))))<1);fs.writeFileSync(path.join(output,'LISTEN-BOTH-SYNCHRONIZED.wav'),pcmWav(mix));}
+fs.writeFileSync(path.join(output,roles.length===1?`${roles[0][1]}-validation.json`:'validation.json'),JSON.stringify({sourceWindow:info,projects:reports},null,2));console.log(JSON.stringify(reports,null,2));

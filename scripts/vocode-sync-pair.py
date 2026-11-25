@@ -8,16 +8,23 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'t/audio-analysis-tool
 import numpy as np
 from scipy import signal,ndimage
 
-def vocode(x,rate):
+def vocode(x,rate,playful=False):
     # Fixed-pitch synthetic excitation deliberately does not inherit the
     # recording's pitches, chords, bass or percussion waveforms.
     t=np.arange(len(x))/rate;phase=2*np.pi*146.832384*t
+    if playful:
+        eighth=30/132;position=(t/eighth).astype(int)
+        notes=np.array([50,57,62,53,60,65,57,62,50,53,57,60,65,62,57,69])
+        midi=notes[position%len(notes)]
+        freq=440*2**((midi-69)/12)*(1+.008*np.sin(2*np.pi*5.5*t))
+        phase=2*np.pi*np.cumsum(freq)/rate
+        phase+=.35*np.sin(2*phase)
     carrier=np.zeros(len(x))
     for harmonic in range(1,int(6500/146.832384)+1):
         carrier+=np.sin(phase*harmonic)/harmonic**.75
     carrier/=np.sqrt(np.mean(carrier**2))
     noise=np.random.default_rng(132).standard_normal(len(x))
-    edges=np.geomspace(220,6400,19);out=np.zeros(len(x));mod_energy=np.zeros(len(x))
+    edges=np.geomspace(220,6400,19);out=np.zeros(len(x))
     for lo,hi in zip(edges[:-1],edges[1:]):
         sos=signal.butter(2,[lo,hi],btype='bandpass',fs=rate,output='sos')
         analysis=signal.sosfilt(sos,x)
@@ -31,7 +38,10 @@ def vocode(x,rate):
         excitation=carrier if hi<4000 else .8*carrier+.2*noise
         band=signal.sosfilt(sos,excitation)
         rms=np.sqrt(np.mean(band**2))+1e-12
-        out+=band/rms*envelope;mod_energy+=envelope
+        out+=band/rms*envelope
+    if playful:
+        # Rhythmic tremolo gives the synthetic rendition a hopping character.
+        out*=.75+.25*np.sin(2*np.pi*t/(30/132))
     # Zero input -> zero synthesized output. No source samples are mixed in.
     target=min(.115,float(np.sqrt(np.mean(x*x))))
     rms=np.sqrt(np.mean(out*out))
