@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "userNamespace": "po33.install.web-sampler-20261126.",
+  "userKV": [
+    "po33.meta",
+    "po33.slot1..16",
+    "po33.pat1..16"
+  ],
+  "userBinary": "po33-sample-assets-<persistent asset-scope>",
+  "userCheckpoint": "po33-hardware-project-web-sampler-20261126/current",
+  "userPreferences": [
+    "po33.localHub.ip",
+    "po33.micGainDb",
+    "po33.micAutoLevel"
+  ],
+  "identity": [
+    "po33.asset-scope"
+  ],
+  "recoveryMarker": "po33.reset",
+  "application": [
+    "app-release.json",
+    "HTML/JS/CSS/SVG/PNG runtime resources"
+  ],
+  "factory": "presets.js (read-only)",
+  "update": "Save/checkpoint first; fetch release without cache; version runtime URLs; never clear user stores",
+  "factoryReset": "Stop capture/playback; drain writes; clear user KV, sample stores, checkpoint and preferences; verify; reseed bundled factory demo"
+}

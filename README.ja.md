@@ -1,52 +1,13 @@
-[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
-
 # Web Sampler
 
-> **独立した非公式オープンソースプロジェクトです。** Web Sampler は Teenage Engineering と提携しておらず、同社の承認や支援を受けていません。PO-33、K.O! は対応ハードウェアと操作フローの参照を示すためにのみ使用しています。製品名は各権利者に帰属します。
+デスクトップ、スマートフォン、タブレットのブラウザーで使えるサンプラーと16ステップシーケンサーです。録音、スライス、シーケンス、対応する音声プロトコルのプロジェクト交換を扱います。PO-33 の操作フローを参考にしています。
 
-PO-33 の操作フローを参考にした、rabbit r1 用のコンパクトなサンプラー／16 ステップシーケンサーです。音を録音し、2 つのノブで調整して、4×4 のパッドでビートを作れます。
+**独立した非公式オープンソースプロジェクトです。Teenage Engineering との提携、同社の承認や支援はありません。** PO-33、K.O! は互換性の参照にのみ使用し、製品名は各権利者に帰属します。
 
-## 主な機能
+[アプリを開く](https://balancechiang.github.io/web-sampler/) · [English](README.md) · [简体中文](README.zh-CN.md) · [한국어](README.ko.md)
 
-- 240×282 の画面。テキストラベルとローカルの 7 セグメントフォントを使用。
-- 16 のサウンドスロット、16 パターン、合計 40 秒のサンプルメモリー。
-- オリジナルのシンセ音色 4 種、ドラムキット 4 種、パターン 4 種。
-- TONE／FILTER／TRIM、リアルタイムのパンチイン FX、パターンチェーン。
-- r1 のホイールでテンポ調整、サイドボタンで再生／録音、シェイクで FX 操作。
-- サンプルとパターンをローカル保存。ウサギとグローブのアニメーションが拍に同期。
+ローカルでは `python -m http.server 8000` を実行し、`http://localhost:8000/` を開きます。ビルドは `node scripts/build.mjs`、コア検証は `node scripts/check.mjs` です。
 
-## はじめに
+[構成](docs/architecture.md) · [音声形式](docs/audio-backup.md) · [同期](docs/sync.md) · [プリセット](docs/presets.md) · [検証](tests/README.md) · [制限](docs/remaining.md) · [第三者ライセンス](docs/third-party-notices.md)
 
-1. **play** または r1 サイドボタンの短押しで再生／停止します。
-2. **sound** を押しながら **1–16** で音色を選びます。**sound** を離して数字パッドを演奏します。
-3. **pattern** を押しながら **1–4** でプリセットパターンを選びます。
-4. **record** と録音先の数字パッドを同時に押し続けます。どちらかを離すと録音が終了します。
-
-アプリの表示言語は英語です。ドキュメントは英語、簡体字中国語、日本語、韓国語で用意しています。
-
-## Creation カード用テキスト
-
-**タイトル：** Web Sampler
-
-**短い説明：** オリジナルのシンセ音色、ドラムキット、16 ステップシーケンサー。rabbit r1 で録音、音作り、演奏を。
-
-## 実装範囲とクレジット
-
-本アプリは PO-33 を参考にした独立した Web アプリであり、実機のファームウェアではありません。FX は Web Audio による近似実装です。工程 WAV のバックアップ／復元と独立ステレオ転送を実装しました。実機 PO-33／R1 USB での動作確認と外部同期は未完了で、パラメーターロックの再生も完全ではありません。
-
-WRITE + SOUND + RECORD で受信、WRITE + SOUND + PLAY で保存／送信を準備します。一本指では WRITE と SOUND をそれぞれ 500 ms 長押しして離し、最後のキーを押します。[転送の説明と制限](BACKUP-IO.md)をご覧ください。
-
-受信メニューの Scan QR は WAV ダウンロードコードを端末内で読み取ります。HTTPS の直接リンクと CORS 対応が必要です。[テスト用 QR](demo/qr-test/index.html)を別の画面に表示して r1 で読み取れます。
-
-[LAN HUB (:33033)](LAN-HUB.md) は追加 npm 依存なしのローカル HTTPS 管理と WAV／可逆 JSON 同期を提供します。`node scripts/local-hub.mjs` または `npm run hub` で起動します。自己署名証明書を信頼できない WebView では Load File を使ってください。
-
-オリジナルのプログラム合成音色とシーケンスは CC0-1.0 で提供します。このライセンスはアプリ全体やアートワークには自動的に適用されません。DSEG フォントには SIL OFL-1.1 が適用されます。[フォントライセンス](fonts/DSEG-LICENSE.txt)をご覧ください。
-
-[操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)
-
-サンプルは IndexedDB のバイナリ資産と小さな索引で保存し、旧形式も移行できます。QR はダウンロード URL のみです。TRIM で A/B ノブに触れると R1 ホイールが微調整になり、8 秒後に解除されます。[詳細（英語）](STABILITY.md)。
-
-
----
-
-2026-11-26 テスト移行：アプリとリポジトリを **Web Sampler** に改名しました。新しい入口：https://balancechiang.github.io/web-sampler/creation.html。`install/creation-qr.png` の新しいコードを使用してください。許可されたテストデータのリセットにより、初回はプリセットを読み込み、アクセス可能な旧データを削除します。旧 Creation 内で隔離されたデータにはアクセスできません。
+rabbit r1 Creations は任意の実行環境です：[互換アダプターとインストールコード](compat/rabbit-r1/README.md)。

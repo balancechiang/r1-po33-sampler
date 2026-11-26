@@ -2,9 +2,12 @@
   "name": "web-sampler",
   "private": true,
   "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/check.mjs",
     "hub": "node scripts/local-hub.mjs"
   },
   "engines": {
     "node": ">=24.12"
-  }
+  },
+  "version": "0.1.0"
 }

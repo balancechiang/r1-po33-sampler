@@ -1,11 +1,4 @@
-/* Web Sampler — independent browser sampler — steps 1-4
-   step 1: 16 pads, 4x4 grid, synth voices
-   step 2: mic sampling into 16 slots, 40.0 s shared pool, lo-fi output chain
-   step 3: 16-step sequencer with swing, 16 patterns, wheel-driven BPM/TRIM/PITCH
-   step 4: punch-in FX pads 1-8 and a 4-bar WAV export
-   persistence: binary PCM in IndexedDB; small view indexes/pattern metadata
-   in creationStorage, with legacy WAV/Base64 import.
-   Everything not restored is synthesized with the Web Audio API. */
+/* Web Sampler: browser audio engine, sequencer, controls and project persistence. */
 (function () {
   "use strict";
   // Hardware projects can be auditioned without reading or writing saved projects.
@@ -577,20 +570,12 @@
     });
   }
 
-  function repairFactoryTempo(){
-    var f=window.PO33_FACTORY,id=d.documentElement.getAttribute("data-po33-install");
-    if(id!=="flowers-20261120" || factoryTempoRevision>=1)return false;
-    factoryTempoRevision=1;
-    var untouched=f && !factoryMuted.some(Boolean) && f.patterns.every(function(p,i){return JSON.stringify(patterns[i].lanes)===JSON.stringify(p.lanes);}) && f.slots.every(function(a){var s=samples[a.slot-1];return s && s.buffer._po33id==="factory-"+f.revision+"-"+a.slot;});
-    if(untouched && params.bpm===80){params.bpm=factoryTempo();SWING=factorySwing();}
-    return true;
-  }
   function persistDone(meta) {
-    var seeded = seedFactory(meta),tempoRepaired=repairFactoryTempo();
+    var seeded = seedFactory(meta);
     persistPaused = false;
     storageReady = true;
     seeded.forEach(function(n){writePattern(n);});
-    if(tempoRepaired || seeded.length || !meta || !meta.factoryRevision)persistSoon();
+    if(seeded.length || !meta || !meta.factoryRevision)persistSoon();
     // what came back from storage is what is stored for each slot
     for (var n = 1; n <= TOTAL_SLOTS; n++) {
       if (samples[n - 1] && savedSig[n - 1] === undefined) savedSig[n - 1] = slotSig(samples[n - 1]);
@@ -798,7 +783,7 @@
   function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
-      await c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./hardware-tone-worklet.js'):'./hardware-tone-worklet.js?v=flowers-20261120-ui25');
+      await c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./hardware-tone-worklet.js'):'./hardware-tone-worklet.js');
       if(c!==ac)return;
       toneNode=new AudioWorkletNode(c,'po33-hardware-tone',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2]});
       toneNode.onprocessorerror=function(){if(c!==ac)return;hardwareToneReady=false;hardwareToneError='Tone unavailable';applyHardwareTone();};
@@ -1916,7 +1901,7 @@
         if(!c.audioWorklet || !window.AudioWorkletNode)throw Error("AUDIO WORKLET REQUIRED");
         stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
         if(requestGeneration!==micGeneration || !recHeld || d.hidden){stream.getTracks().forEach(function(t){t.stop();});if(syncMode===1 && !recHeld)musicSession("playback");return false;}
-        if(!micModulePromise)micModulePromise=c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./recording-worklet.js'):'./recording-worklet.js?v=flowers-20261120-ui25').catch(function(error){micModulePromise=null;throw error;});
+        if(!micModulePromise)micModulePromise=c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./recording-worklet.js'):'./recording-worklet.js').catch(function(error){micModulePromise=null;throw error;});
         await micModulePromise;
         if(requestGeneration!==micGeneration || !recHeld || d.hidden || resetBusy || resetFailure || (hardwareTransfer && hardwareTransfer.view.active)){stream.getTracks().forEach(function(t){t.stop();});if(syncMode===1 && !recHeld)musicSession("playback");return false;}
         mic.stream=stream;mic.node=c.createMediaStreamSource(stream);
@@ -3156,7 +3141,6 @@
   window.addEventListener("beforeunload", flushOnHide);
 
   async function startRestore() {
-    if(!backupPreview && window.PO33LegacyCleanup)await window.PO33LegacyCleanup.run();
     if (!storageCandidate()) { store = null; storageReady = true; return; }
     store=storageCandidate();
     if(!await ensureAssetScope())throw Error("Storage bridge unavailable");
@@ -3206,9 +3190,9 @@
     if(hardwareTransfer && hardwareTransfer.hasSession)await hardwareTransfer.flush();
     else {flushPersist();var deadline=Date.now()+15000;while(saveRunning || saveQueue.length){if(Date.now()>deadline)throw Error('Save not complete; update cancelled');await new Promise(r=>setTimeout(r,20));}if(failedSaveKeys.size)throw Error('Save failed; update cancelled');}
     var check=await fetch('./app-release.json?t='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(15000)});if(!check.ok)throw Error('Update server unavailable');var release=await check.json();
-    if(!/^flowers-20261120-ui\d+\.html$/.test(release.entry))throw Error('Invalid release');
+    if(release.entry!=='index.html')throw Error('Invalid release');
     var verify=await fetch('./'+release.entry+'?check='+Date.now(),{cache:'no-store'});if(!verify.ok)throw Error('Update download failed');await verify.text();
-    location.assign('./creation.html?refresh='+Date.now());
+    location.assign('./index.html?refresh='+Date.now());
   }
   if(window.PO33TransferFactory){
     hardwareTransfer=window.PO33TransferFactory.create({preview:backupPreview,micGain:()=>({db:sampleMicGainDb,mode:sampleMicAuto?'auto':String(sampleMicGainDb),report:lastMicReport}),setMicGain:setSampleMicGain,update:forceUpdate,factoryReset:()=>factoryReset(false),paint:paint,stop:stopForTransfer,snapshot:snapshotProject,adopt:adoptHardware,restoreSnapshot:applySnapshot,hint:flashHint,toneStatus:toneStatus,setTone:setHardwareTone,syncStatus:()=>({mode:syncMode,gain:syncController?syncController.gain:.7}),setSync:setSyncMode,setSyncGain:(gain)=>{if(syncController){syncController.gain=gain;syncController.config();}}});

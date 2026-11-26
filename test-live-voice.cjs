@@ -1,9 +1,0 @@
-const assert=require('node:assert/strict'),{Speed,protect}=require('./po33-live-voice.js');
-const speed=new Speed(1,1);assert.equal(speed.state(2).position,1);assert.ok(Math.abs(speed.end(4,1)-5)<1e-8);
-speed.target(2,2,.015,2);const expected=1+2-0.015*(1-Math.exp(-1/.015));assert.ok(Math.abs(speed.state(3).position-expected)<1e-10);
-const end=speed.end(4,2);assert.ok(end>3.5 && end<3.52);assert.ok(Math.abs(speed.state(end).position-4)<1e-8);
-speed.prune(3);assert.ok(Math.abs(speed.state(3).position-expected)<1e-10);speed.target(4,.5,.015,3);assert.ok(speed.state(3.5).rate>1.9);speed.target(3.2,1,.015,3.2);assert.ok(Math.abs(speed.state(5).rate-.5)<1e-8);
-const voice={slot:1,start:0,end:1},others=[1,2,3].map((_,i)=>({slot:i+2,start:.1+i*.1,end:10}));others.push({slot:8,start:1.5,end:10});let cuts=[];const cut=(v,t)=>{v.cutAt=t;cuts.push([v.slot,t]);};protect([voice,...others],voice,4,.5,cut);assert.equal(voice.end,1.5);
-const newer={slot:9,start:1,end:2},old=[1,2,3].map((_,i)=>({slot:i+1,start:i*.1,end:8}));old.push({slot:8,start:3,end:8});protect([newer,...old],newer,5,1.5,cut);assert.equal(old[0].end,3);assert.equal(newer.end,5);
-const clone={slot:1,start:0,end:1},future={slot:1,start:2,end:8};protect([clone,future],clone,6,.5,cut);assert.equal(clone.end,2);assert.equal(future.end,8);
-console.log('PASS analytic smoothed-rate position/end, pruning and future lock retention, extended tails preserve four voices/oldest stealing and same-slot cutoff.');

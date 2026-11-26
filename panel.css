@@ -54,7 +54,7 @@ body { align-items: center; justify-content: center; background: #0a0a0a; }
 #panel .knob.dragging { cursor: grabbing; }
 @media (prefers-reduced-motion: reduce) { #panel button::after { transition: none; } }
 
-/* All control faces are static; their base colors are in panel-art.svg. */
+/* All control faces are static; their base colors are in assets/panel-art.svg. */
 #panel button::before, #panel button::after { content: none; }
 #expBtn.armed, body.exporting #expBtn {
   background: #1b1b1b; border-color: #3a3a3a; color: #fff;

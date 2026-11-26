@@ -13,8 +13,8 @@
  * grouping of the bits into labels and the frame start (seen in a browser recording on
  * 2026-11-07).
  */
-import { labelsForBody, phaseIncrements, staggeredPhases } from "../labels.js?v=flowers-20261120-ui40";
-import { decodeLabels } from "../packets.js?v=flowers-20261120-ui40";
+import { labelsForBody, phaseIncrements, staggeredPhases } from "../labels.js?v=web-sampler-0.1.0";
+import { decodeLabels } from "../packets.js?v=web-sampler-0.1.0";
 export const ESTABLISHED_THRESHOLD = 0.0063;
 export const NOMINAL_CARRIER_HZ = 7800;
 const MAX_LEADING_LABELS = 3;

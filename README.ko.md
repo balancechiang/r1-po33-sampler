@@ -1,52 +1,13 @@
-[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
-
 # Web Sampler
 
-> **독립적인 비공식 오픈 소스 프로젝트입니다.** Web Sampler는 Teenage Engineering과 제휴 관계가 없으며 공식 승인이나 후원을 받지 않았습니다. PO-33 및 K.O!는 호환 하드웨어와 작업 방식의 참고 대상을 나타내는 용도로만 사용됩니다. 제품명은 각 권리자에게 귀속됩니다.
+데스크톱, 휴대폰, 태블릿 브라우저를 위한 샘플러와 16스텝 시퀀서입니다. 녹음, 슬라이싱, 시퀀싱과 호환 오디오 프로토콜의 프로젝트 교환을 지원하며 PO-33 작업 방식을 참고합니다.
 
-PO-33의 조작 방식을 참고해 만든 rabbit r1용 소형 샘플러 겸 16스텝 시퀀서입니다. 소리를 녹음하고 두 노브로 다듬은 뒤 4×4 패드로 비트를 만들 수 있습니다.
+**독립적인 비공식 오픈 소스 프로젝트이며 Teenage Engineering과 제휴 관계가 없고 공식 승인이나 후원을 받지 않았습니다.** PO-33 및 K.O!는 호환 대상을 나타내는 용도로만 사용되며 제품명은 각 권리자에게 귀속됩니다.
 
-## 주요 기능
+[웹 앱 열기](https://balancechiang.github.io/web-sampler/) · [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
 
-- 240×282 화면, 텍스트 라벨과 로컬 7세그먼트 글꼴 사용.
-- 사운드 슬롯 16개, 패턴 16개, 총 40초의 공유 샘플 메모리.
-- 오리지널 신시사이저 사운드 4종, 드럼 키트 4종, 패턴 4종.
-- TONE／FILTER／TRIM, 실시간 펀치인 FX, 패턴 체인.
-- r1 휠로 템포 조절, 측면 버튼으로 재생／녹음, 흔들기로 FX 제어.
-- 샘플과 패턴을 로컬에 저장하며 토끼와 글러브 애니메이션이 박자에 맞춰 움직입니다.
+로컬 실행: `python -m http.server 8000` 후 `http://localhost:8000/`에 접속합니다. `node scripts/build.mjs`로 리소스 버전을 갱신하고 `node scripts/check.mjs`로 핵심 검사를 실행합니다.
 
-## 시작하기
+[구조](docs/architecture.md) · [오디오 형식](docs/audio-backup.md) · [동기화](docs/sync.md) · [프리셋](docs/presets.md) · [테스트](tests/README.md) · [제한 사항](docs/remaining.md) · [라이선스](docs/third-party-notices.md)
 
-1. **play**를 누르거나 r1 측면 버튼을 짧게 눌러 재생／정지합니다.
-2. **sound**를 누른 채 **1–16**으로 사운드를 선택합니다. **sound**를 놓고 숫자 패드로 연주합니다.
-3. **pattern**을 누른 채 **1–4**로 프리셋 패턴을 선택합니다.
-4. **record**와 녹음할 숫자 패드를 함께 누르고 있습니다. 둘 중 하나를 놓으면 녹음이 끝납니다.
-
-앱 화면은 영어로 표시됩니다. 문서는 영어, 중국어 간체, 일본어, 한국어로 제공됩니다.
-
-## Creation 카드 문구
-
-**제목:** Web Sampler
-
-**짧은 설명:** 오리지널 신스, 드럼 키트, 16스텝 시퀀서. rabbit r1에서 샘플링하고 소리를 다듬고 연주하세요.
-
-## 구현 범위 및 크레딧
-
-이 앱은 PO-33을 참고한 독립 웹 앱이며 실제 기기의 펌웨어가 아닙니다. FX는 Web Audio로 근사 구현했습니다. 프로젝트 WAV 백업／복원과 독립 스테레오 전송을 구현했습니다. 실제 PO-33／R1 USB에서의 검증과 외부 동기화는 미완료이며 파라미터 잠금 재생도 완전하지 않습니다.
-
-WRITE + SOUND + RECORD는 수신, WRITE + SOUND + PLAY는 저장／송신 준비입니다. 한 손가락으로는 WRITE와 SOUND를 각각 500 ms 길게 누른 뒤 놓고 마지막 키를 누릅니다. [전송 안내와 제한](BACKUP-IO.md)을 확인하세요.
-
-수신 메뉴의 Scan QR는 기기에서 WAV 다운로드 코드를 읽습니다. HTTPS 직접 링크와 CORS 지원이 필요합니다. 다른 화면에서 [테스트 QR](demo/qr-test/index.html)을 열고 r1으로 스캔하세요.
-
-[LAN HUB (:33033)](LAN-HUB.md)는 추가 npm 의존성 없이 로컬 HTTPS 관리와 WAV／무손실 JSON 동기화를 제공합니다. `node scripts/local-hub.mjs` 또는 `npm run hub`로 실행합니다. 자체 서명 인증서를 신뢰하지 않는 WebView에서는 Load File을 사용하세요.
-
-프로그램으로 합성한 오리지널 프리셋 사운드와 시퀀스는 CC0-1.0으로 제공합니다. 이 라이선스가 앱 전체나 아트워크에 자동 적용되는 것은 아닙니다. DSEG 글꼴의 SIL OFL-1.1 라이선스는 유지됩니다. [글꼴 라이선스](fonts/DSEG-LICENSE.txt)를 확인하세요.
-
-[조작 안내](R1-CONTROLS.ko.md) · [프리셋 사운드와 패턴](PRESETS.ko.md) · [배포 안내](DEPLOY.ko.md)
-
-샘플은 IndexedDB 바이너리 자산과 작은 인덱스로 저장하며 이전 형식도 이전합니다. QR은 다운로드 URL 방식만 유지합니다. TRIM에서 A/B 노브를 터치하면 R1 휠로 미세 조정하며 8초 뒤 해제됩니다. [자세한 설명(영어)](STABILITY.md).
-
-
----
-
-2026-11-26 테스트 이전: 앱과 저장소 이름을 **Web Sampler**로 변경했습니다. 새 주소: https://balancechiang.github.io/web-sampler/creation.html. `install/creation-qr.png`의 새 코드를 사용하세요. 승인된 테스트 데이터 초기화로 처음 실행할 때 프리셋을 불러오고 접근 가능한 이전 데이터를 정리합니다. 이전 Creation에 격리된 데이터에는 접근할 수 없습니다.
+rabbit r1 Creations는 선택적인 실행 환경입니다: [호환 어댑터와 설치 코드](compat/rabbit-r1/README.md).

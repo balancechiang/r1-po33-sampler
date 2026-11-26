@@ -2,7 +2,7 @@
   "name": "Web Sampler",
   "short_name": "Web Sampler",
   "id": "./",
-  "start_url": "./creation.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#999999",

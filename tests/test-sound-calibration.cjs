@@ -1,0 +1,12 @@
+process.chdir(require('node:path').resolve(__dirname,'..'));
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const {MELODIC_OFFSETS,trimFrames,filterShape,Latches}=require('../sampling.js');
+const {Tone,quantize}=require('../tone.js');
+assert.deepEqual(MELODIC_OFFSETS,[-5,-4,-2,-1,0,2,3,5,7,8,10,11,12,14,15,17]);assert.equal(2**(MELODIC_OFFSETS[4]/12),1);
+const view={offset:.1,duration:.1};assert.deepEqual(trimFrames(view,{frames:{start:100,end:700}},1000,1000),{start:100,end:700});assert.deepEqual(trimFrames(view,{frames:{start:-50,end:1500}},1000,1000),{start:0,end:1000});assert.deepEqual(trimFrames(view,{frames:{start:800,end:200}},1000,1000),{start:800,end:800});assert.deepEqual(trimFrames(view,{start:0,length:100},1000,1000),{start:100,end:200});
+for(const rate of [44100,48000]){assert.equal(filterShape(0,rate).bypass,true);assert.equal(filterShape(-100,rate).frequency,100);assert.equal(filterShape(100,rate).frequency,8000);assert.equal(filterShape(-50,rate).type,'lowpass');assert.equal(filterShape(50,rate).type,'highpass');
+ const input=Float32Array.from({length:rate},(_,i)=>.3*Math.sin(2*Math.PI*1000*i/rate)),before=input.slice(),whole=new Float32Array(rate),blocked=new Float32Array(rate);new Tone(rate).process(input,whole);const tone=new Tone(rate);for(let i=0;i<rate;i+=128)tone.process(input.subarray(i,i+128),blocked.subarray(i,i+128));assert.deepEqual(whole,blocked);assert.deepEqual(input,before);assert.ok(whole.every(Number.isFinite));assert.ok(whole.some((v,i)=>i&&v===whole[i-1]));assert.ok(whole.some((v,i)=>Math.abs(v-input[i])>.001));
+}
+assert.equal(quantize(0),0);for(const x of [.01,.1,.5,1,2]){assert.equal(quantize(x),-quantize(-x));assert.ok(Math.abs(quantize(x))<=1.000001);}
+const l=new Latches(),base={pitch:0,volume:100,filter:0,resonance:0};l.schedule(1,{pitch:7,volume:30,start:99},1);assert.equal(l.at(1,base,.9).pitch,0);assert.equal(l.at(1,base,1).pitch,7);assert.equal(l.at(1,base,2).volume,30);assert.equal(l.at(1,base,2).start,undefined);l.flush(1.5);l.manual(1,'pitch',2,1.6);assert.equal(l.at(1,base,1.6).pitch,2);l.schedule(1,{pitch:-3},2);assert.equal(l.at(1,base,2).pitch,-3);assert.equal(l.at(1,base,2).volume,30);l.stop(1.9);assert.equal(l.at(1,base,3).pitch,2);assert.equal(l.at(2,base,3).volume,100);l.reset();assert.equal(l.at(1,base,3).pitch,0);
+console.log('PASS exact scale, independent overlapping/clamped frame trims, bypass/LP/HP curve, block-stable 23.4375 kHz mu-law coloration with immutable PCM, and timed/manual/partial latches.');

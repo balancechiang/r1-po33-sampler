@@ -21,5 +21,10 @@ This folder is the canonical source repository for Web Sampler (web-sampler).
 - Preserve icon updates, multilingual documents and third-party license notices.
 - Do not modify existing sample storage keys or erase user data without explicit instructions.
 
-The earliest historical commit was reconstructed from the saved pre-LCD app.js backup;
-its other files represent the repository initialization state, not a complete historical snapshot.
+
+## Layout
+
+- Web-first entry: `index.html`. Keep `creation.html` as the optional host compatibility loader.
+- Runtime sources stay at root; drawings in `assets/`, protocol in `src/codec/` and `decoder/`.
+- Documentation in `docs/`, tests in `tests/`, optional host metadata in `compat/rabbit-r1/`.
+- Build with `node scripts/build.mjs`; do not generate dated application snapshots.

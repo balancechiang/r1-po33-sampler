@@ -1,5 +1,6 @@
 // Original deterministic drum synthesis; no source recording or samples used.
 // Usage: node scripts/build-clean-garage.mjs VOCODER_OUTPUT_DIR OUTPUT_DIR
+// Original drum variations only: node scripts/build-clean-garage.mjs - OUTPUT_DIR --variations --drums-only
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';import {gzipSync,gunzipSync} from 'node:zlib';
 import {emptyProject,compileProject,projectPages} from '../decoder/vendor/so-sample/project.ts';
 import {emptyPattern,writeCell,DEFAULT_PARAMETERS} from '../decoder/vendor/so-sample/pattern.ts';

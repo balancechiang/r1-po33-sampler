@@ -1,52 +1,13 @@
-[English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
-
 # Web Sampler
 
-> **独立开源、非官方项目。** Web Sampler 与 Teenage Engineering 没有任何关联，也未获得其官方背书或赞助。PO-33、K.O! 仅用于说明兼容硬件及操作流程参考，相关产品名称归各自权利人所有。
+面向桌面、手机和平板浏览器的采样器与 16 步音序器，支持录音、切片、编排及兼容音频协议的工程交换。操作流程参考 PO-33。
 
-为 rabbit r1 制作的便携采样器和 16 步音序器，操作方式参考 PO-33。录制声音，用双旋钮调整音色，再通过 4×4 按键编排节奏。
+**独立开源、非官方项目，与 Teenage Engineering 没有任何关联、官方背书或赞助。** PO-33、K.O! 仅用于标识兼容对象，相关产品名称归各自权利人所有。
 
-## 主要功能
+[打开网页](https://balancechiang.github.io/web-sampler/) · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
-- 240×282 界面，采用文本标签和本地七段码字体。
-- 16 个音色槽、16 个模式，共用 40 秒采样内存。
-- 4 个原创合成器音色、4 套鼓组及 4 组原创节奏。
-- TONE、FILTER、TRIM 参数，实时 punch-in FX 和模式链。
-- r1 滚轮调速、侧键播放／录音、晃动切换 FX。
-- 本地保存采样与模式；兔子和拳套动画跟随节拍。
+本地运行：在项目目录执行 `python -m http.server 8000`，打开 `http://localhost:8000/`。使用 `node scripts/build.mjs` 更新资源版本，`node scripts/check.mjs` 运行核心检查。
 
-## 开始演奏
+[架构](docs/architecture.md) · [音频格式](docs/audio-backup.md) · [同步](docs/sync.md) · [预设](docs/presets.md) · [测试](tests/README.md) · [待完善项](docs/remaining.md) · [第三方许可](docs/third-party-notices.md)
 
-1. 按 **play**，或短按 r1 侧键，开始／停止播放。
-2. 按住 **sound**，按 **1–16** 选择音色；松开 **sound** 后用数字键演奏。
-3. 按住 **pattern**，按 **1–4** 选择预置节奏。
-4. 同时按住 **record** 和目标数字键录音，松开任意一个即停止。
-
-应用界面以英语为主，文档另提供简体中文、日语和韩语版本。
-
-## Creation 卡片文案
-
-**名称：** Web Sampler
-
-**简短描述：** 原创合成器、鼓组与 16 步音序器。在 rabbit r1 上采样、塑形并演奏。
-
-## 实现范围与署名
-
-这是参考 PO-33 工作方式制作的独立网页应用，并非原机固件。FX 使用 Web Audio 近似实现。已实现工程 WAV 备份／恢复和独立双声道传输；实体 PO-33／R1 USB 声卡验收及音频线同步尚未完成，音乐播放的参数锁也未完整还原。麦克风权限、震动、晃动灵敏度及音频延迟仍需 r1 真机验证。
-
-WRITE + SOUND + RECORD 接收工程，WRITE + SOUND + PLAY 准备保存或输出工程音频。单指可分别长按 WRITE 和 SOUND 各 500 毫秒后松开，再点第三键。详见[传输操作、显示状态与限制](BACKUP-IO.md)。
-
-接收菜单的“扫码”可通过摄像头识别工程 WAV 下载码，识别在本机完成；下载需 HTTPS 直链及跨域支持。请在另一屏幕打开[原创工程扫码测试](demo/qr-test/index.html)，再用 R1 扫描。
-
-[LAN HUB (:33033)](LAN-HUB.md) 提供零 npm 依赖的本地 HTTPS 文件管理与 WAV／无损 JSON 同步。电脑运行 `node scripts/local-hub.mjs`（或 `npm run hub`），项目和证书均不上传 GitHub。自签名证书信任受设备限制，失败可用 Load File。
-
-原创程序合成预置音色与音序按 CC0-1.0 提供；此许可不自动适用于整个应用或美术素材。本地 DSEG 字体保留 SIL OFL-1.1 许可，详见[字体许可](fonts/DSEG-LICENSE.txt)。
-
-[操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)
-
-普通采样已改为 IndexedDB 二进制资产与轻量索引，兼容迁移旧采样；仅保留单张网址二维码下载。TRIM 页面触碰 A/B 旋钮后，R1 滚轮可逐帧微调与快转加速，8 秒无操作退出。详见 [稳定性说明（英文）](STABILITY.md)。
-
-
----
-
-2026-11-26 测试迁移：项目及仓库统一更名为 **Web Sampler**。新入口：https://balancechiang.github.io/web-sampler/creation.html。请使用 `install/creation-qr.png` 新安装码。本次经授权重置测试数据，首次载入出厂预设，并清理可访问的旧采样器数据；新 Creation 无法访问旧 Creation 内隔离保存的数据。
+rabbit r1 Creations 作为可选运行环境保留：[兼容说明与安装码](compat/rabbit-r1/README.md)。

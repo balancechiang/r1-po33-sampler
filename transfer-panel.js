@@ -202,7 +202,7 @@
       if(context.destination.maxChannelCount<2)throw Error('Stereo output is unavailable');
       context.destination.channelCount=2;context.destination.channelInterpretation='discrete';
       if($('transferOutput').value){if(!context.setSinkId)throw Error('Select audio output in system settings');await context.setSinkId($('transferOutput').value);}
-      await context.audioWorklet.addModule(root.PO33_RESOURCE?root.PO33_RESOURCE('./backup-worklet.js'):'./backup-worklet.js?v=flowers-20261120-ui25');
+      await context.audioWorklet.addModule(root.PO33_RESOURCE?root.PO33_RESOURCE('./backup-worklet.js'):'./backup-worklet.js');
       if(token!==generation){if(context.state!=='closed')await context.close();return false;}
       node=new AudioWorkletNode(context,'po33-backup',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[2],channelCountMode:'max',channelInterpretation:'discrete'});
       node.connect(context.destination);node.port.onmessage=e=>{if(token===generation)onAudio(e);};await context.resume();

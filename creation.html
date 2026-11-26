@@ -1,7 +1,7 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Web Sampler</title><link rel="apple-touch-icon" href="./apple-touch-icon-ui21.png"><link rel="manifest" href="./manifest.webmanifest"></head><body style="background:#0a0a0a;color:white;font:16px system-ui"><p id="loading">Checking Web Sampler version… / 检查版本…</p><button onclick="location.reload()">Retry / 重试</button><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Web Sampler</title><link rel="apple-touch-icon" href="./apple-touch-icon.png"><link rel="manifest" href="./manifest.webmanifest"></head><body style="background:#0a0a0a;color:white;font:16px system-ui"><p id="loading">Checking Web Sampler version… / 检查版本…</p><button onclick="location.reload()">Retry / 重试</button><script>
 (async()=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{
  const response=await fetch('./app-release.json?t='+Date.now(),{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('Version check failed');const release=await response.json();
- if(!/^flowers-20261120-ui\d+\.html$/.test(release.entry))throw Error('Invalid release entry');
+ if(release.entry!=='index.html')throw Error('Invalid release entry');
  const url=new URL('./'+release.entry,location.href);url.searchParams.set('boot','1');url.searchParams.set('v',release.version);if(new URLSearchParams(location.search).has('refresh'))url.searchParams.set('refresh',Date.now());
  location.replace(url.href);
  }catch(error){document.getElementById('loading').textContent='Could not load update / 无法载入更新。请重试；Creation 内仍无法启动时，请退出后重新打开。用户工程未改动。';}finally{clearTimeout(timer);}})();
