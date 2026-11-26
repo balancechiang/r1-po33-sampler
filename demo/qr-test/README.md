@@ -1,7 +1,7 @@
 # Scan-to-import test
 
 The QR in `wav-url-qr.png` contains this WAV download URL:
-https://balancechiang.github.io/r1-po33-sampler/demo/qr-test/po33-backup.wav
+https://balancechiang.github.io/web-sampler/demo/qr-test/po33-backup.wav
 
 In the sampler, hold WRITE + SOUND and tap RECORD, choose **Scan QR**, then
 point the r1 camera at the QR displayed on another screen. Successful download

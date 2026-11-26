@@ -1,6 +1,8 @@
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-# rabbit r1 PO-33 采样器
+# Web Sampler
+
+> **独立开源、非官方项目。** Web Sampler 与 Teenage Engineering 没有任何关联，也未获得其官方背书或赞助。PO-33、K.O! 仅用于说明兼容硬件及操作流程参考，相关产品名称归各自权利人所有。
 
 为 rabbit r1 制作的便携采样器和 16 步音序器，操作方式参考 PO-33。录制声音，用双旋钮调整音色，再通过 4×4 按键编排节奏。
 
@@ -24,7 +26,7 @@
 
 ## Creation 卡片文案
 
-**名称：** PO-33 Sampler
+**名称：** Web Sampler
 
 **简短描述：** 原创合成器、鼓组与 16 步音序器。在 rabbit r1 上采样、塑形并演奏。
 
@@ -43,3 +45,8 @@ WRITE + SOUND + RECORD 接收工程，WRITE + SOUND + PLAY 准备保存或输出
 [操作说明](R1-CONTROLS.zh-CN.md) · [预置音色与节奏](PRESETS.zh-CN.md) · [发布说明](DEPLOY.zh-CN.md)
 
 普通采样已改为 IndexedDB 二进制资产与轻量索引，兼容迁移旧采样；仅保留单张网址二维码下载。TRIM 页面触碰 A/B 旋钮后，R1 滚轮可逐帧微调与快转加速，8 秒无操作退出。详见 [稳定性说明（英文）](STABILITY.md)。
+
+
+---
+
+2026-11-26 测试迁移：项目及仓库统一更名为 **Web Sampler**。新入口：https://balancechiang.github.io/web-sampler/creation.html。请使用 `install/creation-qr.png` 新安装码。本次经授权重置测试数据，首次载入出厂预设，并清理可访问的旧采样器数据；新 Creation 无法访问旧 Creation 内隔离保存的数据。

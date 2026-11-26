@@ -9,7 +9,7 @@ class Quiet(SimpleHTTPRequestHandler):
  def log_message(self,*args):pass
 server=ThreadingHTTPServer(('127.0.0.1',0),partial(Quiet,directory=str(root)))
 Thread(target=server.serve_forever,daemon=True).start()
-url='https://balancechiang.github.io/r1-po33-sampler/demo/garage-16/garage-16.po33.gz'
+url='https://balancechiang.github.io/web-sampler/demo/garage-16/garage-16.po33.gz'
 try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio'])

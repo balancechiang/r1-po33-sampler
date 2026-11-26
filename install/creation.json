@@ -1,7 +1,7 @@
 {
-  "title": "PO-33 K.O!",
-  "url": "https://balancechiang.github.io/r1-po33-sampler/creation.html",
-  "description": "PO-33 sampler. Stable entry, automatic version checks; updates preserve user projects.",
-  "iconUrl": "https://balancechiang.github.io/r1-po33-sampler/icon.png",
+  "title": "Web Sampler",
+  "url": "https://balancechiang.github.io/web-sampler/creation.html",
+  "description": "Independent web sampler and sequencer, inspired by the PO-33 workflow. Supports compatible audio-protocol backup transfer. Not affiliated with Teenage Engineering.",
+  "iconUrl": "https://balancechiang.github.io/web-sampler/icon.png",
   "themeColor": "#fe5000"
 }

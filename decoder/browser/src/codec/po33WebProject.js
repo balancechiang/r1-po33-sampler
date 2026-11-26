@@ -1,11 +1,11 @@
 /** Translate the existing web engine into hardware state, preserving untouched native fields. */
-import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=flowers-20261120-ui39";
-import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=flowers-20261120-ui39";
-import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=flowers-20261120-ui39";
-import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=flowers-20261120-ui39";
-import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=flowers-20261120-ui39";
-import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=flowers-20261120-ui39";
-import { EMPTY_GLOBALS } from "./po33Template.js?v=flowers-20261120-ui39";
+import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=flowers-20261120-ui40";
+import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=flowers-20261120-ui40";
+import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=flowers-20261120-ui40";
+import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=flowers-20261120-ui40";
+import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=flowers-20261120-ui40";
+import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=flowers-20261120-ui40";
+import { EMPTY_GLOBALS } from "./po33Template.js?v=flowers-20261120-ui40";
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, Math.round(x)));
 export function buildHardwareProject(snapshot, native, baseline) {

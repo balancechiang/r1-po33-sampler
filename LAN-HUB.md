@@ -1,7 +1,7 @@
 # Local Hub · 33033
 
 This optional service does not replace GitHub Pages. The Creation remains at
-https://balancechiang.github.io/r1-po33-sampler/. Your local files and private
+https://balancechiang.github.io/web-sampler/. Your local files and private
 certificate key are never committed or uploaded by the hub.
 
 ## Start on the computer

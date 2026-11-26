@@ -1,8 +1,10 @@
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-# PO-33 Sampler for rabbit r1
+# Web Sampler
 
-A compact sampler and 16-step sequencer for rabbit r1, inspired by the PO-33 workflow. Record a sound, shape it with two knobs, and build a beat on a 4×4 grid.
+> **Independent, unofficial software.** Web Sampler is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by Teenage Engineering. PO-33 and K.O! are used only to identify hardware compatibility and workflow references; product names belong to their respective owners.
+
+A compact browser sampler and 16-step sequencer for rabbit r1, phones and tablets, inspired by the PO-33 workflow. Supports compatible audio-protocol backup transfer. Record a sound, shape it with two knobs, and build a beat on a 4×4 grid.
 
 ## Highlights
 
@@ -24,7 +26,7 @@ The interface uses English labels. These documents are available in English, Sim
 
 ## Creation card copy
 
-**Title:** PO-33 Sampler
+**Title:** Web Sampler
 
 **Short description:** Original synths, drum kits and a 16-step sequencer. Sample, shape and perform on rabbit r1.
 
@@ -148,3 +150,8 @@ indexes and metadata, with legacy sample migration. The single download-URL
 QR path is retained; offline animated QR transfer was removed. Screen wake
 locks, guarded music resume, focused frame-level Trim wheel editing and a
 1.5-second hardware-backup lead-in are described in [STABILITY.md](STABILITY.md).
+
+
+---
+
+2026-11-26 test migration: repository and app renamed to **Web Sampler**. New entry: https://balancechiang.github.io/web-sampler/creation.html. Use the new installation QR in `install/creation-qr.png`. This explicitly authorized test reset starts fresh factory data; accessible known legacy sampler data is cleaned once. Data isolated in an old Creation cannot be reached by the new one.

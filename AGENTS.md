@@ -1,6 +1,6 @@
 # Project workflow
 
-This folder is the canonical source repository for the rabbit r1 PO-33 sampler.
+This folder is the canonical source repository for Web Sampler (web-sampler).
 
 ## Required version history
 

@@ -1,6 +1,8 @@
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-# rabbit r1용 PO-33 Sampler
+# Web Sampler
+
+> **독립적인 비공식 오픈 소스 프로젝트입니다.** Web Sampler는 Teenage Engineering과 제휴 관계가 없으며 공식 승인이나 후원을 받지 않았습니다. PO-33 및 K.O!는 호환 하드웨어와 작업 방식의 참고 대상을 나타내는 용도로만 사용됩니다. 제품명은 각 권리자에게 귀속됩니다.
 
 PO-33의 조작 방식을 참고해 만든 rabbit r1용 소형 샘플러 겸 16스텝 시퀀서입니다. 소리를 녹음하고 두 노브로 다듬은 뒤 4×4 패드로 비트를 만들 수 있습니다.
 
@@ -24,7 +26,7 @@ PO-33의 조작 방식을 참고해 만든 rabbit r1용 소형 샘플러 겸 16�
 
 ## Creation 카드 문구
 
-**제목:** PO-33 Sampler
+**제목:** Web Sampler
 
 **짧은 설명:** 오리지널 신스, 드럼 키트, 16스텝 시퀀서. rabbit r1에서 샘플링하고 소리를 다듬고 연주하세요.
 
@@ -43,3 +45,8 @@ WRITE + SOUND + RECORD는 수신, WRITE + SOUND + PLAY는 저장／송신 준비
 [조작 안내](R1-CONTROLS.ko.md) · [프리셋 사운드와 패턴](PRESETS.ko.md) · [배포 안내](DEPLOY.ko.md)
 
 샘플은 IndexedDB 바이너리 자산과 작은 인덱스로 저장하며 이전 형식도 이전합니다. QR은 다운로드 URL 방식만 유지합니다. TRIM에서 A/B 노브를 터치하면 R1 휠로 미세 조정하며 8초 뒤 해제됩니다. [자세한 설명(영어)](STABILITY.md).
+
+
+---
+
+2026-11-26 테스트 이전: 앱과 저장소 이름을 **Web Sampler**로 변경했습니다. 새 주소: https://balancechiang.github.io/web-sampler/creation.html. `install/creation-qr.png`의 새 코드를 사용하세요. 승인된 테스트 데이터 초기화로 처음 실행할 때 프리셋을 불러오고 접근 가능한 이전 데이터를 정리합니다. 이전 Creation에 격리된 데이터에는 접근할 수 없습니다.

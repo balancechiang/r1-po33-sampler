@@ -1,6 +1,8 @@
 [English](README.md) | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
-# rabbit r1 用 PO-33 Sampler
+# Web Sampler
+
+> **独立した非公式オープンソースプロジェクトです。** Web Sampler は Teenage Engineering と提携しておらず、同社の承認や支援を受けていません。PO-33、K.O! は対応ハードウェアと操作フローの参照を示すためにのみ使用しています。製品名は各権利者に帰属します。
 
 PO-33 の操作フローを参考にした、rabbit r1 用のコンパクトなサンプラー／16 ステップシーケンサーです。音を録音し、2 つのノブで調整して、4×4 のパッドでビートを作れます。
 
@@ -24,7 +26,7 @@ PO-33 の操作フローを参考にした、rabbit r1 用のコンパクトな�
 
 ## Creation カード用テキスト
 
-**タイトル：** PO-33 Sampler
+**タイトル：** Web Sampler
 
 **短い説明：** オリジナルのシンセ音色、ドラムキット、16 ステップシーケンサー。rabbit r1 で録音、音作り、演奏を。
 
@@ -43,3 +45,8 @@ WRITE + SOUND + RECORD で受信、WRITE + SOUND + PLAY で保存／送信を準
 [操作ガイド](R1-CONTROLS.ja.md) · [プリセット音色とパターン](PRESETS.ja.md) · [公開手順](DEPLOY.ja.md)
 
 サンプルは IndexedDB のバイナリ資産と小さな索引で保存し、旧形式も移行できます。QR はダウンロード URL のみです。TRIM で A/B ノブに触れると R1 ホイールが微調整になり、8 秒後に解除されます。[詳細（英語）](STABILITY.md)。
+
+
+---
+
+2026-11-26 テスト移行：アプリとリポジトリを **Web Sampler** に改名しました。新しい入口：https://balancechiang.github.io/web-sampler/creation.html。`install/creation-qr.png` の新しいコードを使用してください。許可されたテストデータのリセットにより、初回はプリセットを読み込み、アクセス可能な旧データを削除します。旧 Creation 内で隔離されたデータにはアクセスできません。

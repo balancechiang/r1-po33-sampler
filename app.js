@@ -1,4 +1,4 @@
-/* PO-33 K.O! style micro-sampler — steps 1-4
+/* Web Sampler — independent browser sampler — steps 1-4
    step 1: 16 pads, 4x4 grid, synth voices
    step 2: mic sampling into 16 slots, 40.0 s shared pool, lo-fi output chain
    step 3: 16-step sequencer with swing, 16 patterns, wheel-driven BPM/TRIM/PITCH
@@ -3156,6 +3156,7 @@
   window.addEventListener("beforeunload", flushOnHide);
 
   async function startRestore() {
+    if(!backupPreview && window.PO33LegacyCleanup)await window.PO33LegacyCleanup.run();
     if (!storageCandidate()) { store = null; storageReady = true; return; }
     store=storageCandidate();
     if(!await ensureAssetScope())throw Error("Storage bridge unavailable");

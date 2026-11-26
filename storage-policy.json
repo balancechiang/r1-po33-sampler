@@ -1,12 +1,28 @@
 {
- "schema":1,"userNamespace":"po33.install.flowers-20261120.",
- "userKV":["po33.meta","po33.slot1..16","po33.pat1..16"],
- "userBinary":"po33-sample-assets-<persistent asset-scope>",
- "userCheckpoint":"po33-hardware-project-flowers-20261120/current",
- "userPreferences":["po33.localHub.ip","po33.micGainDb","po33.micAutoLevel"],
- "identity":["po33.asset-scope"],"recoveryMarker":"po33.reset",
- "application":["app-release.json","HTML/JS/CSS/SVG/PNG runtime resources"],
- "factory":"install/presets-flowers-20261120.js (read-only)",
- "update":"Save/checkpoint first; fetch release without cache; version runtime URLs; never clear user stores",
- "factoryReset":"Stop capture/playback; drain writes; clear user KV, sample stores, checkpoint and preferences; verify; reseed bundled factory demo"
+  "schema": 2,
+  "userNamespace": "po33.install.web-sampler-20261126.",
+  "userKV": [
+    "po33.meta",
+    "po33.slot1..16",
+    "po33.pat1..16"
+  ],
+  "userBinary": "po33-sample-assets-<persistent asset-scope>",
+  "userCheckpoint": "po33-hardware-project-web-sampler-20261126/current",
+  "userPreferences": [
+    "po33.localHub.ip",
+    "po33.micGainDb",
+    "po33.micAutoLevel"
+  ],
+  "identity": [
+    "po33.asset-scope"
+  ],
+  "recoveryMarker": "po33.reset",
+  "application": [
+    "app-release.json",
+    "HTML/JS/CSS/SVG/PNG runtime resources"
+  ],
+  "factory": "install/presets-flowers-20261120.js (read-only)",
+  "update": "Save/checkpoint first; fetch release without cache; version runtime URLs; never clear user stores",
+  "factoryReset": "Stop capture/playback; drain writes; clear user KV, sample stores, checkpoint and preferences; verify; reseed bundled factory demo",
+  "testMigration": "2026-11-26: new namespace and bounded one-time cleanup of accessible known legacy sampler keys and referenced databases. Never clears unrelated origin data."
 }
