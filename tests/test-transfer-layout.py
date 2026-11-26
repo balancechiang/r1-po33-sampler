@@ -16,7 +16,9 @@ try:
   for w,h in [(240,282),(390,844),(768,1024),(1024,1366),(1024,768)]:
    context=browser.new_context(viewport={'width':w,'height':h},has_touch=True);page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)));page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_function('document.body.dataset.loading==="false"')
    before=page.locator('#samplerScreen').bounding_box();controls=page.locator('#samplerControls').bounding_box()
-   assert page.locator('#instrument').evaluate('e=>parseFloat(e.style.width)')==min(w,h),(w,h)
+   wide=w>=900 and w>h
+   panelWidth=page.locator('#instrument').evaluate('e=>parseFloat(e.style.width)')
+   assert panelWidth<min(w,h) if wide else panelWidth==min(w,h),(w,h)
    for act,i in [('write',1),('sound',2),('rec',3)]:page.locator('[data-act='+act+']').dispatch_event('pointerdown',{'pointerId':i,'bubbles':True})
    for i in [3,2,1]:page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
    page.wait_for_timeout(220)
@@ -46,7 +48,7 @@ try:
    assert page.locator('#samplerScreen').bounding_box()==before
    assert page.locator('#transferSend').is_visible() and page.locator('#transferSave').is_visible()
    page.locator('#transferClose').click();page.wait_for_timeout(220)
-   assert page.locator('#portraitStage').get_attribute('data-rotated')==str(w>h).lower()
+   assert page.locator('#portraitStage').get_attribute('data-rotated')==str(w>h and not wide).lower()
    assert not errors,errors
    if w==768:page.screenshot(path=str(root/'t/ipad-layout-preview.png'))
    print('PASS keyboard sheet, stable LCD, nested hub, portrait layout',w,h);context.close()

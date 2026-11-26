@@ -10,6 +10,7 @@ Browser checks use Python Playwright with a local Chromium/Edge installation. Th
 
 ```sh
 python tests/test-resource-layout.py
+python tests/test-wide-layout.py
 python tests/test-hold-repress.py
 python tests/test-stable-update.py
 python tests/test-first-tap-audio.py

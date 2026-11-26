@@ -1,0 +1,17 @@
+#workbench {display:flex;align-items:center;justify-content:center;flex:none;max-width:100%;}
+#inputHints,#pageShare,#wideDisclaimer {display:none;}
+body[data-wide="true"] {background:#000;}
+body[data-wide="true"] #workbench {display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:clamp(24px,5vw,80px);width:min(1200px,calc(100vw - 64px));}
+body[data-wide="true"] #portraitStage {box-sizing:border-box;border:1px solid #c4c4c4;border-radius:26px;padding:16px;background:#000;}
+body[data-wide="true"] #inputHints,body[data-wide="true"] #pageShare {display:block;color:#999;font:13px/1.8 Arial,sans-serif;}
+body[data-wide="true"] #inputHints {justify-self:center;width:180px;}
+#inputHints h2 {margin:0 0 16px;color:#f2f2f2;font:600 18px/1.2 Arial,sans-serif;letter-spacing:.04em;}
+#inputHints p {margin:6px 0;}
+.workbench-label {font:10px/1.4 Arial,sans-serif;letter-spacing:.15em;color:#777;}
+#inputHints .workbench-label {margin:0 0 10px;}
+body[data-wide="true"] #pageShare {justify-self:center;text-align:center;width:160px;}
+#pageQRCode {box-sizing:content-box;width:128px;height:128px;padding:16px;background:#fff;color:#222;overflow:hidden;}
+#pageQRCode img,#pageQRCode canvas {width:128px;height:128px;}
+#pageShare .workbench-label {margin:14px 0 0;}
+body[data-wide="true"] #wideDisclaimer {display:block;position:fixed;left:24px;right:24px;bottom:max(20px,env(safe-area-inset-bottom));text-align:center;color:#777;font:11px/1.5 Arial,sans-serif;pointer-events:none;}
+body[data-wide="true"] #workbench [hidden] {display:none;}

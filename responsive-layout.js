@@ -1,9 +1,10 @@
 /* One control surface and one LCD; R1 retains the 240 x 282 geometry. */
 (function(){'use strict';
  const panel=document.getElementById('panel'),lcd=document.getElementById('lcd');
- const instrument=document.createElement('main');instrument.id='instrument';instrument.setAttribute('aria-label','PO-33 sampler');
+ const instrument=document.createElement('main');instrument.id='instrument';instrument.setAttribute('aria-label','Web Sampler');
  panel.before(instrument);
  const stage=document.createElement('div');stage.id='portraitStage';instrument.before(stage);stage.append(instrument);
+ const workbench=window.WebSamplerWorkbench.create(stage);
  const screen=document.createElement('div');screen.id='samplerScreen';screen.append(lcd);
  const controls=document.createElement('div');controls.id='samplerControls';controls.append(panel);instrument.append(screen,controls);
  const wrappers={};
@@ -11,15 +12,18 @@
  let scanFrozen=false;
  window.addEventListener('po33-scan-state',e=>{scanFrozen=e.detail.active;if(!scanFrozen)layout();});
  function layout(){
-  if(scanFrozen){stage.dataset.rotated=String((matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0) && document.documentElement.clientWidth>window.innerHeight);return;}
+  if(scanFrozen){stage.dataset.rotated=String(document.body.dataset.wide!=='true' && (matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0) && document.documentElement.clientWidth>window.innerHeight);return;}
   const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
   const rawWidth=document.documentElement.clientWidth-horizontal,rawHeight=window.innerHeight-vertical;
   const touch=matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0;
-  const rotated=touch && rawWidth>rawHeight;
-  const vw=rotated?rawHeight:rawWidth,vh=rotated?rawWidth:rawHeight;
-  stage.dataset.rotated=String(rotated);stage.style.width=vw+'px';stage.style.height=vh+'px';
+  const wide=rawWidth>=900 && (!touch || (rawWidth>rawHeight && rawHeight>=600));
+  workbench.setWide(wide);
+  const rotated=!wide && touch && rawWidth>rawHeight;
+  const frameHeight=Math.min(740,rawHeight*.72),frameWidth=Math.min(380,frameHeight*.60);
+  const vw=wide?frameWidth-34:rotated?rawHeight:rawWidth,vh=wide?frameHeight-34:rotated?rawWidth:rawHeight;
+  stage.dataset.rotated=String(rotated);stage.style.width=(wide?frameWidth:vw)+'px';stage.style.height=(wide?frameHeight:vh)+'px';
 
-  const compact=vw<320 || vh<480;
+  const compact=!wide && (vw<320 || vh<480);
   const width=compact?Math.min(vw,vh*240/282):(touch || vw<=1100?vw:Math.min(vw,560));
   const unit=width/240,rows=compact?30:Math.max(42,(vh-8)/unit-252);
   instrument.style.width=width+'px';instrument.style.setProperty('--unit',unit+'px');
@@ -37,7 +41,7 @@
   place('tapeRight',gs,compact?139.5:168,compact?15.5:cy+6,139.5,13.5);
   window.dispatchEvent(new Event('po33-layout-change'));
  }
- function lockPortrait(){try{const pending=window.screen.orientation?.lock?.('portrait');pending?.catch(()=>{});}catch{}}
+ function lockPortrait(){if(Math.min(window.screen.width,window.screen.height)>=600 || matchMedia('(pointer:fine)').matches)return;try{const pending=window.screen.orientation?.lock?.('portrait');pending?.catch(()=>{});}catch{}}
  document.addEventListener('pointerdown',lockPortrait,{once:true});
  window.addEventListener('orientationchange',()=>{lockPortrait();layout();});
  window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);

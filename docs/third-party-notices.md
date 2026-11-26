@@ -19,6 +19,6 @@ and font notices continue to apply.
 
 ## QRCode.js
 
-QR-generation browser tests use QRCode.js by davidshimjs (MIT), pinned to
+The wide-screen page-sharing code and QR-generation browser tests use QRCode.js by davidshimjs (MIT), pinned to
 commit `04f46c6a0708418cb7b96fc563eacae0fbf77674`. License and source provenance
 are included under `vendor/qrcodejs/`.
