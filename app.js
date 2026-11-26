@@ -2845,6 +2845,7 @@
   function knobSpec(index) {
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e);
+      if(e.slot>8)return index===0?[patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,"SLICE"]:[0,0,100,"NONE"];
       if(tweakMode!==2){var lock=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {},t=Object.assign({},effectiveTweak(e.slot),lock);return tweakMode===0?(index===0?[t.pitch,-12,12,"PITCH"]:[t.volume,0,100,"VOL"]):(index===0?[t.filter,-100,100,"FILTER"]:[t.resonance,0,100,"RES"]);}
       return index===0 ? [patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,e.slot<=8?"NOTE":"SLICE"] : [e.slot<=8?detail.length:detail.retrigs,1,e.slot<=8?16:8,e.slot<=8?"STEPS":"RETRIG"];
     }
@@ -2879,18 +2880,27 @@
     if(!pickup.caught){var tolerance=.5/KNOB_SWEEP;pickup.caught=Math.abs(after-pickup.target)<=tolerance || (before-pickup.target)*(after-pickup.target)<=0;}
     if(!pickup.caught){paint();return null;}
     var value=spec[1]+after*(spec[2]-spec[1]);
-    if(stepEdit && tweakMode===2 && index===1 && stepEdit.slot>8){var counts=[1,2,3,4,6,8];value=counts[Math.round(after*(counts.length-1))];}
-    else value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
+    value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
     pickup.target=(value-spec[1])/(spec[2]-spec[1]);return {spec:spec,value:value};
   }
   function adjustKnob(index,dir) {
     if(loopHold)advanceLoopShadow(ctx().currentTime);
     consumeChord();
+    if(stepEdit && stepEdit.slot>8 && index===1){
+      if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;stepEdit.used=true;return;
+    }
     var movement=movePhysicalKnob(index,dir);if(!movement)return;
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       e.used=true;
+      if(e.slot>8){
+        lane[e.step]=Math.max(0,Math.min(15,movement.value-1));lastNote=lane[e.step];lastNotes[e.slot-1]=lastNote;lastWasSlice=true;
+        var locks=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {};
+        defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(detail)),lock:JSON.parse(JSON.stringify(locks))};
+        writePattern(e.pattern);showNumber(lastNote+1,"SLICE");
+        if(!seq.playing)voice(e.slot,lastNote,undefined,undefined,undefined,Object.assign({},effectiveTweak(e.slot),locks));paint();return;
+      }
       if(tweakMode!==2){var key=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance'),ex=patternExtras[e.pattern-1],id=(e.slot-1)+":"+e.step;
         if(!ex.locks[id])ex.locks[id]={};ex.locks[id][key]=movement.value;
         writePattern(e.pattern);showNumber(movement.value,before[3]);
