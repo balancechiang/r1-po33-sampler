@@ -2314,6 +2314,7 @@
             if(track!==state.slot-1 && pat.lanes[track][p]>=0){level="low";reason="other-step";break;}
           }
         }
+        if(editing && level==="off" && stepEdit && stepEdit.slot<=8 && stepEdit.lengthPreview && stepEdit.pattern===patternNumber && (p-stepEdit.step+16)%16>0 && (p-stepEdit.step+16)%16<editDetail(stepEdit).length){level="dim";reason="length-preview";}
         if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
         var hit=sounding[p];
         if(hit){var release=Math.min(.035,(hit.end-hit.start)*.2);level=now<hit.end-release?"bright":"off";reason="sound-trigger";pads[p].setAttribute("data-led-onset",String(hit.start));pads[p].setAttribute("data-led-end",String(hit.end));}
@@ -2846,8 +2847,7 @@
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e);
       if(e.slot>8)return index===0?[patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,"SLICE"]:[0,0,100,"NONE"];
-      if(tweakMode!==2){var lock=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {},t=Object.assign({},effectiveTweak(e.slot),lock);return tweakMode===0?(index===0?[t.pitch,-12,12,"PITCH"]:[t.volume,0,100,"VOL"]):(index===0?[t.filter,-100,100,"FILTER"]:[t.resonance,0,100,"RES"]);}
-      return index===0 ? [patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,e.slot<=8?"NOTE":"SLICE"] : [e.slot<=8?detail.length:detail.retrigs,1,e.slot<=8?16:8,e.slot<=8?"STEPS":"RETRIG"];
+      return index===0?[patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,"NOTE"]:[detail.length,1,16,"LENGTH"];
     }
     if(bpmHeld) return index===0 ? [SWING*100,0,50,"SWING"] : [params.bpm,60,240,"BPM"];
     var t=effectiveTweak(state.slot), sl=selectedTweak(state.slot,lastNote);
@@ -2898,20 +2898,15 @@
         lane[e.step]=Math.max(0,Math.min(15,movement.value-1));lastNote=lane[e.step];lastNotes[e.slot-1]=lastNote;lastWasSlice=true;
         var locks=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {};
         defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(detail)),lock:JSON.parse(JSON.stringify(locks))};
-        writePattern(e.pattern);showNumber(lastNote+1,"SLICE");
+        writePattern(e.pattern);showNumber(String(lastNote+1).padStart(3,"0"),"SLICE");
         if(!seq.playing)voice(e.slot,lastNote,undefined,undefined,undefined,Object.assign({},effectiveTweak(e.slot),locks));paint();return;
       }
-      if(tweakMode!==2){var key=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance'),ex=patternExtras[e.pattern-1],id=(e.slot-1)+":"+e.step;
-        if(!ex.locks[id])ex.locks[id]={};ex.locks[id][key]=movement.value;
-        writePattern(e.pattern);showNumber(movement.value,before[3]);
-        if(!seq.playing)voice(e.slot,lane[e.step],undefined,undefined,undefined,Object.assign({},effectiveTweak(e.slot),ex.locks[id]));paint();return;
-      }
-      if(index===0)lane[e.step]=Math.max(0,Math.min(15,movement.value-1));
-      else if(e.slot<=8)detail.length=Math.max(1,Math.min(16,movement.value));
-      else {var counts=[1,2,3,4,6,8],at=counts.indexOf(detail.retrigs);detail.retrigs=movement.value;}
-      var after=knobSpec(index);
-      writePattern(e.pattern);showNumber(index===0?lane[e.step]+1:(e.slot<=8?detail.length:detail.retrigs),knobSpec(index)[3]);
-      if(!seq.playing)voice(e.slot,lane[e.step],undefined,e.slot<=8?detail.length*stepDur():undefined);
+      if(index===0){lane[e.step]=Math.max(0,Math.min(15,movement.value-1));lastNote=lane[e.step];lastNotes[e.slot-1]=lastNote;e.lengthPreview=false;}
+      else {detail.length=Math.max(1,Math.min(16,movement.value));e.lengthPreview=true;}
+      var locks=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {};
+      defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(detail)),lock:JSON.parse(JSON.stringify(locks))};
+      writePattern(e.pattern);showNumber(index===0?String(lane[e.step]+1).padStart(3,"0"):"L"+String(detail.length).padStart(2,"0"),index===0?"NOTE":"LENGTH");
+      if(!seq.playing)voice(e.slot,lane[e.step],undefined,detail.length*stepDur(),undefined,Object.assign({},effectiveTweak(e.slot),locks));
       paint();return;
     }
     if(recHeld && tweakMode!==2) {
