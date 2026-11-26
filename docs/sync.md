@@ -19,7 +19,7 @@ The slave detects hysteretic edges in AudioWorklet and schedules audio with a 40
 
 A background timeline remains independent of FX. Loop/Scratch restore the correct global step and chain position on release. During sync, FX14 retriggers the first step's sounds at the next boundary without resetting chain position; outside sync its structural jump remains available. Clock pulses do not carry pattern-position reset commands.
 
-SY1 selects a playback audio session and primes stereo output before its first clock, to address reported iPhone USB-adapter first-start issues. This is software-tested; specific iPhone/adapter behavior still requires retesting.
+SY1 selects a playback audio session and primes stereo output before its first clock, to address reported iPhone USB-adapter first-start issues. The user confirmed first-start SY1 and synchronization after FX passed in the reported device setup on 2026-11-26. Other interfaces, long-duration playback and the complete FX/device matrix still need coverage.
 
 Software checks cover pulse timing, stereo isolation, capture release, mono rejection, all 15 live FX and saved FX14 under master/simulated slave timing. See [tests](../tests/README.md) and [remaining hardware validation](remaining.md).
 
