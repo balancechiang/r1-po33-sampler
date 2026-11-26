@@ -29,10 +29,15 @@ try:
   before=snap()['tweaks'][0]
   for mode in [0,1,2]:
    page.evaluate('testMode('+str(mode)+')')
-   page.evaluate('testValue(0,16)');assert code()=='016' and snap()['patterns'][0]['lanes'][0][12]==15
+   count=page.evaluate('testVoices')
+   page.evaluate('testValue(0,16)');assert page.evaluate('testVoices')==count+1
+   page.evaluate('testValue(0,16)');assert page.evaluate('testVoices')==count+1
+   assert code()=='016' and snap()['patterns'][0]['lanes'][0][12]==15
    page.evaluate('testValue(0,5)');assert code()=='005'
+   count=page.evaluate('testVoices')
    for length in [1,2,3,4,5,16]:
     page.evaluate('testValue(1,'+str(length)+')');assert code()=='L'+str(length).zfill(2)
+    assert page.evaluate('testVoices')==count,'gate adjustment must be silent'
     for n in range(1,17):
      distance=(n-13)%16
      if n in [1,13]:assert level(n)=='bright'

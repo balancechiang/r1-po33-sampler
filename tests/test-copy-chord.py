@@ -29,6 +29,8 @@ try:
    assert code()=='CPy' and blinking(),(kind,code())
    page.wait_for_timeout(100);assert snap()==before,'copy modified data before paste'
    pad(target);assert code()=='CPy' and not blinking()
+   source=page.locator('[data-pad="1"]');assert source.get_attribute('data-led-reason')=='copy-source'
+   assert source.locator('.led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.6s'
    after=snap()
    if kind=='sound':assert after['slots'][1]==before['slots'][0]
    else:assert after['patterns'][1]==before['patterns'][0] and after['extras'][1]==before['extras'][0]
@@ -41,7 +43,7 @@ try:
   before=snap();down('pattern');down('write',2);assert code()=='CPy' and blinking();up(2);up();assert snap()==before
   # Destination stays selected when the modifier is opened next time.
   down('sound');assert snap()['slot']==3;up()
-  down('pattern');assert snap()['pattern']==3;up()
+  down('pattern');assert snap()['pattern']==3 and code()=='P03';pad(16);assert code()=='P16';up()
   # Drum -> melodic extracts the last played slice, not slice 1.
   down('sound');pad(9);up();pad(5)
   before=snap();down('sound');down('write',2);pad(7)

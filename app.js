@@ -1543,7 +1543,7 @@
 
   function beginCopy(kind) {
     if(copySession)return;
-    copySession={kind:kind,pasted:false,target:0,source:kind==='sound'?copySource():clonePattern(patterns[seq.pattern-1]),extras:kind==='pattern'?JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])):null};
+    copySession={kind:kind,pasted:false,target:0,sourceNumber:kind==='sound'?state.slot:seq.pattern,source:kind==='sound'?copySource():clonePattern(patterns[seq.pattern-1]),extras:kind==='pattern'?JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])):null};
   }
   function endCopy() {if(copySession){modifierUsed.write=true;modifierUsed[copySession.kind]=true;}copySession=null;pendingCopy=null;}
   function pasteCopy(n) {
@@ -2317,6 +2317,7 @@
       }
       if(!recHeld && Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
+      if(copySession && p+1===copySession.sourceNumber){level="bright";reason="copy-source";}
       if(copySession && copySession.pasted && p+1===copySession.target){level="bright";reason="copy-target";}
       pads[p].setAttribute("data-led-level",level);
       pads[p].setAttribute("data-led-reason",reason);
@@ -2769,9 +2770,9 @@
     var number=String(params.bpm);
     if(parameterDisplay){label=["TONE","FILTER","TRIM"][tweakMode];number=["ton","FLt","tri"][tweakMode];}
     if(state.mode==="SOUND"){label=soundChoiceMade && state.slot>8?"SOUND / SLICE":"SOUND";number=soundChoiceMade && state.slot>8?String(state.slot).padStart(2,"0")+String(lastNote+1).padStart(2,"0"):String(state.slot);}
-    if(state.mode==="PATTERN"){label=patternSelection.length>1?"CHAIN "+patternSelection.length:"PATTERN";number=String(patternSelection.length?patternSelection[patternSelection.length-1]:seq.pattern);}
+    if(state.mode==="PATTERN"){label=patternSelection.length>1?"CHAIN "+patternSelection.length:"PATTERN";number="P"+String(patternSelection.length?patternSelection[patternSelection.length-1]:seq.pattern).padStart(2,"0");}
     if(state.mode==="STEP")label="WRITE";
-    if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND")){label=displayValue.label;number=String(displayValue.value);}
+    if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND" && state.mode!=="PATTERN")){label=displayValue.label;number=String(displayValue.value);}
     if(seq.playing && state.mode!=="SOUND" && state.mode!=="PATTERN" && !bpmHeld && !(displayValue && Date.now()<displayUntil)){label="PATTERN";number="P"+String(seq.visualPattern || seq.pattern).padStart(2,"0");}
     if(!startupReady){label="LOADING";number="LoAd";}
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
@@ -2878,6 +2879,11 @@
     value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
     pickup.target=(value-spec[1])/(spec[2]-spec[1]);return {spec:spec,value:value};
   }
+  function previewStepKnob(edit,note,gate,locks){
+    var now=ctx().currentTime;
+    window.PO33Sampling.choke(sampleVoices,edit.slot,now,cutSampleVoice);
+    voice(edit.slot,note,now+.006,gate,undefined,Object.assign({},effectiveTweak(edit.slot),locks));
+  }
   function adjustKnob(index,dir) {
     if(loopHold)advanceLoopShadow(ctx().currentTime);
     consumeChord();
@@ -2887,6 +2893,7 @@
     var movement=movePhysicalKnob(index,dir);if(!movement)return;
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
+      if(index===0 && lane[e.step]===Math.max(0,Math.min(15,movement.value-1))){paint();return;}
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       e.used=true;
       if(e.slot>8){
@@ -2894,14 +2901,14 @@
         var locks=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {};
         defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(detail)),lock:JSON.parse(JSON.stringify(locks))};
         writePattern(e.pattern);showNumber(String(lastNote+1).padStart(3,"0"),"SLICE");
-        if(!seq.playing)voice(e.slot,lastNote,undefined,undefined,undefined,Object.assign({},effectiveTweak(e.slot),locks));paint();return;
+        if(!seq.playing)previewStepKnob(e,lastNote,undefined,locks);paint();return;
       }
       if(index===0){lane[e.step]=Math.max(0,Math.min(15,movement.value-1));lastNote=lane[e.step];lastNotes[e.slot-1]=lastNote;e.lengthPreview=false;}
       else {detail.length=Math.max(1,Math.min(16,movement.value));e.lengthPreview=true;}
       var locks=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {};
       defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(detail)),lock:JSON.parse(JSON.stringify(locks))};
       writePattern(e.pattern);showNumber(index===0?String(lane[e.step]+1).padStart(3,"0"):"L"+String(detail.length).padStart(2,"0"),index===0?"NOTE":"LENGTH");
-      if(!seq.playing)voice(e.slot,lane[e.step],undefined,detail.length*stepDur(),undefined,Object.assign({},effectiveTweak(e.slot),locks));
+      if(!seq.playing && index===0)previewStepKnob(e,lane[e.step],detail.length*stepDur(),locks);
       paint();return;
     }
     if(recHeld && tweakMode!==2) {
