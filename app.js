@@ -644,7 +644,7 @@
   var patternInputTimer=null,PATTERN_INPUT_GAP=1200;
   var lastNote = 0, displayValue = null, displayUntil = 0;
   var lastNotes = Array(16).fill(0), lastWasSlice=false;
-  var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null;
+  var stepEdit=null, stepCopyTimer=null, pendingCopy=null, defaultStep=null, copySession=null;
   var masterVolume = 8, outputMeter = null, outputData = null, inputLevel = 0,inputPeak=0;
   var tweaks = [], patternExtras = [];
   for (var ti = 0; ti < 16; ti++) {
@@ -1541,12 +1541,21 @@
       patternInputTimer=setTimeout(finishPatternInput,PATTERN_INPUT_GAP);
   }
 
-  function copyPatternTo(n) {
-    if (n < 1 || n > PATTERNS) return;
-    patterns[n - 1] = clonePattern(patterns[seq.pattern - 1]);
-    writePattern(n);
-    flashHint("COPY P" + seq.pattern + ">P" + n);
-    paint();
+  function beginCopy(kind) {
+    if(copySession)return;
+    copySession={kind:kind,pasted:false,source:kind==='sound'?copySource():clonePattern(patterns[seq.pattern-1]),extras:kind==='pattern'?JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])):null};
+  }
+  function endCopy() {if(copySession){modifierUsed.write=true;modifierUsed[copySession.kind]=true;}copySession=null;pendingCopy=null;}
+  function pasteCopy(n) {
+    if(!copySession)return;
+    modifierUsed.write=true;modifierUsed[copySession.kind]=true;
+    if(copySession.kind==='sound'){
+      pendingCopy={source:copySession.source,target:n,slice:null};commitSoundCopy(false);
+    }else{
+      patterns[n-1]=clonePattern(copySession.source);
+      patternExtras[n-1]=JSON.parse(JSON.stringify(copySession.extras));writePattern(n);persistSoon();
+    }
+    copySession.pasted=true;paint();
   }
 
   function clearPattern(n) {
@@ -1616,7 +1625,7 @@
   }
   function copySource() {
     var s=samples[state.slot-1];if(!s)return null;
-    if(state.slot>8 && !lastWasSlice) {
+    if(state.slot>8) {
       var views=[];for(var n=0;n<16;n++) {
         var v=rawSlice(s,n),tw=tweaks[state.slot-1].slices[n] || {start:0,length:100};
         views.push(trimView(v,tw));
@@ -1653,7 +1662,7 @@
     }
     samples[n-1]=s;factoryMuted[n-1]=true;
     if(s){savedSig[n-1]=undefined;saveSlot(n);}else removeSlotStored(n);
-    persistSoon();showNumber("CPy","COPIED");paint();
+    persistSoon();paint();
   }
 
   // a new step starts at the slot's take; a step already there keeps its pitch
@@ -2415,16 +2424,12 @@
       modifierUsed.bpm = true; masterVolume = n;
       ctx();mixVolume.gain.value=n/16;showNumber(n,"VOL");persistSoon();paint();return;
     }
-    if (writeHeld && soundHeld) {
-      modifierUsed.write = true;
-      if(!pendingCopy)pendingCopy={source:copySource(),target:n,slice:null};
-      else if(pendingCopy.target>8)pendingCopy.slice=n-1;
-      paint(); return;
+    if (writeHeld && (soundHeld || patternHeld)) {
+      beginCopy(soundHeld?'sound':'pattern');pasteCopy(n);return;
     }
     if (patternHeld) {
       patternUsedPad=true;
-      if (writeHeld) { modifierUsed.write=true; copyPatternTo(n); patternExtras[n-1]=JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])); persistSoon(); }
-      else {
+      {
         clearTimeout(patternInputTimer);patternInputTimer=null;
         if (patternSelection.length<128) patternSelection.push(n);
         if(!latchedKeys.has('pattern') && patternSelection.length===1)selectPattern(n);
@@ -2565,16 +2570,16 @@
     }
     if(act==="rec") { recPointer=pid(e); setRecHeld(true); return; }
     if(act==="play") { togglePlay(); return; }
-    if(act==="write") { writeHeld=true; return; }
+    if(act==="write") { writeHeld=true;if(soundHeld||patternHeld)beginCopy(soundHeld?"sound":"pattern");paint();return; }
     if(act==="fx") { clearFxTimers();transportGeneration++;cancelShakeFx();fxHeld=true;return; }
     if(act==="sound") {
       if(physicalKeys.has("rec")) {recUsedPad=true;return;}
-      soundChoiceMade=false;soundHeld=true; previousMode=state.mode; setMode("SOUND"); return;
+      soundChoiceMade=false;soundHeld=true;if(writeHeld)beginCopy("sound"); previousMode=state.mode; setMode("SOUND"); return;
     }
     if(act==="pattern") {
       if(physicalKeys.has("rec")) {recUsedPad=true;return;}
       clearTimeout(patternInputTimer);patternInputTimer=null;patternHeld=true; patternUsedPad=false; patternSelection=[];
-      previousMode=state.mode; setMode("PATTERN"); return;
+      if(writeHeld)beginCopy("pattern");previousMode=state.mode; setMode("PATTERN"); return;
     }
     paint();
   }
@@ -2601,7 +2606,7 @@
       if(touchChord[act]===pid(e) && e.type!=="pointercancel")return;
       if(e.type==="pointercancel" && touchChord[act]===pid(e)){latchedKeys.delete(act);delete touchChord[act];var key=act==="bpm"?d.getElementById("bpmMode"):ctl.querySelector('[data-act="'+act+'"]');if(key)key.classList.remove('transfer-latched');}
       delete modifierPointers[act];
-      if((act==="sound" || act==="write") && pendingCopy)commitSoundCopy(e.type==="pointercancel");
+      if(copySession && (act==="write" || act===copySession.kind))endCopy();
       if(act==="bpm") {
         if(loopHold)advanceLoopShadow(ctx().currentTime);
         if(!modifierUsed.bpm && (Date.now()-pressedAt.bpm<300 || (pid(e)<0 && pid(e)>-10000)) && e.type!=="pointercancel") {var tempos=[80,120,140],idx=tempos.indexOf(params.bpm);params.bpm=tempos[(idx+1)%3];}
@@ -2767,14 +2772,14 @@
     if(rec.on){label="REC";number=memLeft().toFixed(1);}
     else if(recHeld){label="REC READY";number="rec";}
     if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
-    if(writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
+    if(copySession && writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
     if((fxHeld || shakeFx) && fx.kind){label="FX";number=window.PO33FX.codes[fx.kind];}
     if(recHeld && !rec.on){label='REC READY';number='rec';}
     if(deleteDisplay){if(activeKeys().has('rec') && activeKeys().has(deleteDisplay.target)){label=deleteDisplay.code==='clr'?'CLEAR':'DELETE';number=deleteDisplay.code;}else deleteDisplay=null;}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
     if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
-    target.classList.toggle("record-armed-blink",recHeld && !rec.on && !deleteDisplay && !transferView && !resetBusy);
+    target.classList.toggle("record-armed-blink",!!((recHeld && !rec.on && !deleteDisplay || copySession && !copySession.pasted) && !transferView && !resetBusy));
     if(!transferView && Date.now()<clipUntil)label="CLP";
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");

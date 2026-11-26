@@ -24,3 +24,5 @@ python tests/test-sync-fx.py
 `test-m4a-pwa.py` additionally uses imageio-ffmpeg to generate lossless ALAC fixtures. Sampling analysis utilities use NumPy/SciPy. Private official backup fixtures are not distributed.
 
 Synthetic capture and desktop browser tests validate application logic and payloads; physical hardware, mobile WebViews and audio-interface voltage/latency need device testing. Historical page snapshots are retained in Git history rather than as served pages or fixture copies.
+
+- `python tests/test-copy-chord.py`: sound/pattern copy arming, blink, immediate overwrite, repeated destinations and HOLD.

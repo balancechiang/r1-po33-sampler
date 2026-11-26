@@ -19,3 +19,5 @@ Use `node scripts/build.mjs` after changing the application version in `package.
 ## Hosting
 
 Use HTTPS for microphone/camera access, or localhost during development. Publish the repository root as a static site. User recordings, certificates and local test outputs are excluded from Git. No OS3 model connection or API key is required.
+
+Copy commands capture the selected sound or pattern when WRITE + SOUND / PATTERN is held. CPY blinks until a numbered destination is pasted, then stays steady until the chord is released. Destinations are overwritten immediately; repeated destinations use the same captured source.
