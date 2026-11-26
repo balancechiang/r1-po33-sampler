@@ -92,3 +92,5 @@ The optional third `create()` argument controls static geometry:
 经确认后，再单独决定哪些显示规则应用到网页，并保留当前用户指定的行为差异。
 
 Manual sound/pad audition while stopped does not drive the output meter or OUT marker. Sequencer playback and input monitoring retain their meters; deliberate knob editing retains the relevant parameter indicator.
+
+Tone knobs use neutral midpoints: pitch 0 at 50%, volume unity (100%) at 50% of a 0–200% gain range. Tone editing uses left-to-right 38-cell fill with the center cell retained as a reference. Existing saved sound parameters are preserved. The desktop QR has no caption; its footer only states no affiliation with Teenage Engineering.

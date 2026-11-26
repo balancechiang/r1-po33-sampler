@@ -32,3 +32,5 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `python tests/test-melodic-step.py`: note/gate controls on all pages, padded displays, wraparound gate preview, fill priority and gate-template insertion.
 
 - `python tests/test-preview-meter.py`: manual preview meter suppression with playback and knob parameter indicators retained.
+
+- `python tests/test-tone-neutral.py`: centered factory pitch/unity-gain startup and tone scale endpoints/center.

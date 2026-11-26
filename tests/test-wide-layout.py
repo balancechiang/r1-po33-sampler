@@ -23,6 +23,8 @@ try:
     frame=page.locator('#portraitStage').bounding_box();assert abs(frame['x']+frame['width']/2-width/2)<1
     assert page.locator('#portraitStage').get_attribute('data-rotated')=='false'
     assert page.locator('#inputHints').get_attribute('data-input')==('touch' if touch else 'keyboard')
+    assert page.locator('#pageShare').inner_text()==''
+    assert page.locator('#wideDisclaimer').inner_text()=='Not affiliated with Teenage Engineering.'
     assert page.locator('#wideDisclaimer').is_visible() and 'Teenage Engineering' in page.locator('#wideDisclaimer').text_content()
     left=page.locator('#inputHints').bounding_box();right=page.locator('#pageShare').bounding_box();assert left['x']+left['width']<frame['x'] and right['x']>frame['x']+frame['width']
     assert page.locator('#wideDisclaimer').bounding_box()['y']>frame['y']+frame['height']

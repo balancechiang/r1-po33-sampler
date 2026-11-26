@@ -80,6 +80,7 @@
     } else {
       throw new TypeError('Indicator mode must be "pitch", "trim" or "level".');
     }
+    if(props.centerMark)result[18]=true;
     return result;
   }
 

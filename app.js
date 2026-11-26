@@ -630,7 +630,7 @@
   var KNOB_SWEEP = 270; // total mechanical travel, shared by both knobs
 
   var factoryMuted = [], knobAngles = [0,0],HOLD_DELAY=800,soundPreviewMeter=false;
-  var parameterDisplay=false;
+  var parameterDisplay=false,toneKnob=0;
   var lcdIndicator=null,outputBallistics=new window.PO33Indicator.Meter(),inputBallistics=new window.PO33Indicator.Meter();
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
@@ -2829,7 +2829,7 @@
     if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:effectiveTweak(stepEdit.slot).pitch+(stepEdit.slot<=8?window.PO33Sampling.MELODIC_OFFSETS[patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]]:0)};
     if(!parameterDisplay)return meter;
     if(tweakMode===1)return {mode:"filter",cutoff:effectiveTweak(state.slot).filter};
-    if(tweakMode===0)return {mode:"pitch",pitch:effectiveTweak(state.slot).pitch};
+    if(tweakMode===0){var tone=effectiveTweak(state.slot);return {mode:"level",origin:"left",value:Math.round((toneKnob===0?(tone.pitch+12)/24:tone.volume/200)*38),centerMark:true};}
     if(tweakMode===2) {
       var t=selectedTweak(state.slot,lastNote),sample=samples[state.slot-1];
       if(!sample || (sample.sliceViews && !sample.sliceViews[lastNote]))return {mode:"trim",start:0,length:0};
@@ -2848,7 +2848,7 @@
     }
     if(bpmHeld) return index===0 ? [SWING*100,0,50,"SWING"] : [params.bpm,60,240,"BPM"];
     var t=effectiveTweak(state.slot), sl=selectedTweak(state.slot,lastNote);
-    if(tweakMode===0) return index===0 ? [t.pitch,-12,12,"PITCH"] : [t.volume,0,100,"VOL"];
+    if(tweakMode===0) return index===0 ? [t.pitch,-12,12,"PITCH"] : [t.volume,0,200,"VOL"];
     if(tweakMode===1) return index===0 ? [t.filter,-100,100,"FILTER"] : [t.resonance,0,100,"RES"];
     if(state.slot>8){var view=rawSlice(samples[state.slot-1],lastNote);if(!view)return [0,0,100,index===0?'START':'LENGTH'];var r=window.PO33Sampling.trimFrames(view,sl,view.buffer.length,view.buffer.sampleRate);return index===0?[r.start*100/view.buffer.length,0,100,'START']:[(r.end-r.start)*100/view.buffer.length,0,100,'LENGTH'];}
     return index===0 ? [sl.start,0,100,"START"] : [sl.length,0,100,"LENGTH"];
@@ -2891,7 +2891,7 @@
     if(stepEdit && stepEdit.slot>8 && index===1){
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;stepEdit.used=true;return;
     }
-    var movement=movePhysicalKnob(index,dir);if(!movement)return;soundPreviewMeter=false;
+    var movement=movePhysicalKnob(index,dir);if(!movement)return;soundPreviewMeter=false;toneKnob=index;
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(index===0 && lane[e.step]===Math.max(0,Math.min(15,movement.value-1))){paint();return;}
