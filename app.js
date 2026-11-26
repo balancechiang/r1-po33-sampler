@@ -2472,13 +2472,17 @@
 
   var ctl = d.getElementById("ctl");
   var lastPointer = 0;
-  var touchChord={},touchChordTimers={};
+  var touchChord={},touchChordTimers={},latchPresses={};
   var soundChoiceMade=false,soundBrowseSlot=0,soundBrowseNote=-1;
   var physicalKeys=new Set(),latchedKeys=new Set(),keyPointers=new Map(),pressedAt={},deleteHoldTimer=null,latchSerial=-10000;
   function activeKeys(){return new Set([...physicalKeys,...latchedKeys]);}
   function consumeChord(){
+    Object.keys(latchPresses).forEach(function(id){latchPresses[id].used=true;});
     Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
     physicalKeys.forEach(function(k){if(k.indexOf('pad')!==0)modifierUsed[k]=true;});
+  }
+  function pressLatched(e,act){
+    latchPresses[pid(e)]={act:act,started:performance.now(),used:!!e.po33ChordConsumed};
   }
   function dropLatch(act){
     var pointer=touchChord[act];latchedKeys.delete(act);delete touchChord[act];
@@ -2530,6 +2534,7 @@
     paint();
   }
   function clearTouchChord(){
+    latchPresses={};
     Object.keys(touchChordTimers).forEach(function(k){clearTimeout(touchChordTimers[k]);});touchChordTimers={};
     var held=touchChord;touchChord={};latchedKeys.clear();
     Object.keys(held).forEach(function(act){
@@ -2544,7 +2549,7 @@
     if(!btn) return; e.preventDefault(); lastPointer=Date.now();
     if(hardwareTransfer && hardwareTransfer.view.active)return;
     var act=btn.getAttribute("data-act");
-    if(touchChord[act]!==undefined){dropLatch(act);return;}
+    if(touchChord[act]!==undefined){pressLatched(e,act);return;}
 
     if(act!=='pattern' && latchedKeys.has('pattern') && patternSelection.length)finishPatternInput();
     if(stepEdit && ["sound","pattern","write","fx","rec"].indexOf(act)>=0)endStepEdit(true);
@@ -2575,6 +2580,14 @@
   }
   ctl.addEventListener("pointerdown",onCtlDown);
   function releaseControls(e) {
+    var repeat=latchPresses[pid(e)];
+    if(repeat){
+      delete latchPresses[pid(e)];
+      if(latchedKeys.has(repeat.act)){
+        if(e.type!=="pointercancel" && !repeat.used && performance.now()-repeat.started<HOLD_DELAY)dropLatch(repeat.act);
+        paintHolds();paint();return;
+      }
+    }
     if(deleteDisplay && modifierPointers[deleteDisplay.target]===pid(e) && latchedKeys.has("rec"))dropLatch("rec");
     clearTimeout(touchChordTimers[pid(e)]);delete touchChordTimers[pid(e)];
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
@@ -2904,7 +2917,7 @@
       stepEdit.used=true;detail.retrigs=counts[(counts.indexOf(detail.retrigs)+1)%counts.length];
       showNumber(detail.retrigs,"RETRIG");persistSoon();paint();return;
     }
-    e.preventDefault();if(touchChord.bpm!==undefined){dropLatch("bpm");return;}
+    e.preventDefault();if(touchChord.bpm!==undefined){pressLatched(e,"bpm");return;}
     parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=!!e.po33ChordConsumed;armChord(e,"bpm",this);paint();
   });
   ["knobA","knobB"].forEach(function(id,index){

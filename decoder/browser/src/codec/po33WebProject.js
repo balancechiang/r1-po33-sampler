@@ -1,11 +1,11 @@
 /** Translate the existing web engine into hardware state, preserving untouched native fields. */
-import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=web-sampler-0.1.1";
-import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.1.1";
-import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.1.1";
-import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.1.1";
-import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=web-sampler-0.1.1";
-import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.1.1";
-import { EMPTY_GLOBALS } from "./po33Template.js?v=web-sampler-0.1.1";
+import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=web-sampler-0.1.2";
+import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.1.2";
+import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.1.2";
+import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.1.2";
+import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=web-sampler-0.1.2";
+import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.1.2";
+import { EMPTY_GLOBALS } from "./po33Template.js?v=web-sampler-0.1.2";
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, Math.round(x)));
 export function buildHardwareProject(snapshot, native, baseline) {
