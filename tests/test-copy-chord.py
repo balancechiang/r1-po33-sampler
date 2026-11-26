@@ -37,22 +37,32 @@ try:
    if kind=='sound':assert after['slots'][2]==before['slots'][0]
    else:assert after['patterns'][2]==before['patterns'][0]
    up(2);up();assert code()!='CPy' and not blinking()
-  # Selecting a drum slice still copies the whole selected drum sound.
+  # Either order also arms pattern copy; no destination means no data changes.
+  before=snap();down('pattern');down('write',2);assert code()=='CPy' and blinking();up(2);up();assert snap()==before
+  # Destination stays selected when the modifier is opened next time.
+  down('sound');assert snap()['slot']==3;up()
+  down('pattern');assert snap()['pattern']==3;up()
+  # Drum -> melodic extracts the last played slice, not slice 1.
   down('sound');pad(9);up();pad(5)
-  before=snap();down('write');down('sound',2);pad(10)
-  source=before['slots'][8];copied=snap()['slots'][9]['slices']
-  assert len(copied)==16
-  for i,v in enumerate(copied):
-   assert v['asset']==source['asset'] and abs(v['duration']-source['duration']/16)<.0001
-   assert abs(v['offset']-(source['offset']+i*source['duration']/16))<.0001
+  before=snap();down('sound');down('write',2);pad(7)
+  copied=snap()['slots'][6];source=before['slots'][8]
+  assert abs(copied['offset']-(source['offset']+4*source['duration']/16))<.0001
   up(2);up()
-  # Reverse order and cancel without a destination must leave the project intact.
-  before=snap();down('sound');down('write',2);assert blinking();up(2);up();assert snap()==before
-  # A single-finger WRITE + SOUND HOLD pair still enters copy and can paste.
+  # Official two-stage slice paste: destination sound then destination slice.
+  down('sound');pad(9);up();pad(5)
+  original=snap()['slots'][9];down('write');down('sound',2);pad(10);pad(3)
+  copied=snap()['slots'][9]['slices'][2]
+  assert abs(copied['offset']-(source['offset']+4*source['duration']/16))<.0001
+  untouched=snap()['slots'][9]['slices'][0]
+  assert untouched['asset']==original['asset'] and abs(untouched['offset']-original['offset'])<.0001
+  assert page.locator('[data-pad="10"]').get_attribute('data-led-reason')=='copy-target'
+  assert page.locator('[data-pad="10"] .led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='1.2s'
+  up(2);up()
+  # Single-finger latch still works.
   down('write');page.wait_for_timeout(850);up();down('sound');page.wait_for_timeout(850);up()
   assert held('write') and held('sound') and blinking()
   pad(4);assert not blinking();down('sound');up();down('write');up();assert code()!='CPy'
   assert not errors,errors
-  print('PASS sound/pattern: armed blink, immediate overwrite, frozen multi-target source, release/cancel and latched copy')
+  print('PASS sound/pattern: armed blink, immediate overwrite, selected destination, drum extraction, slice paste and latched copy')
   browser.close()
 finally:server.shutdown();server.server_close()

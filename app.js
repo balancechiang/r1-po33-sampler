@@ -1543,17 +1543,22 @@
 
   function beginCopy(kind) {
     if(copySession)return;
-    copySession={kind:kind,pasted:false,source:kind==='sound'?copySource():clonePattern(patterns[seq.pattern-1]),extras:kind==='pattern'?JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])):null};
+    copySession={kind:kind,pasted:false,target:0,source:kind==='sound'?copySource():clonePattern(patterns[seq.pattern-1]),extras:kind==='pattern'?JSON.parse(JSON.stringify(patternExtras[seq.pattern-1])):null};
   }
   function endCopy() {if(copySession){modifierUsed.write=true;modifierUsed[copySession.kind]=true;}copySession=null;pendingCopy=null;}
   function pasteCopy(n) {
     if(!copySession)return;
     modifierUsed.write=true;modifierUsed[copySession.kind]=true;
     if(copySession.kind==='sound'){
-      pendingCopy={source:copySession.source,target:n,slice:null};commitSoundCopy(false);
+      var slice=copySession.target>8?n-1:null;
+      if(slice===null && n>8)copySession.original={sample:samples[n-1],tweak:JSON.parse(JSON.stringify(tweaks[n-1]))};
+      if(slice!==null && copySession.original){samples[copySession.target-1]=copySession.original.sample;tweaks[copySession.target-1]=copySession.original.tweak;copySession.original=null;}
+      pendingCopy={source:copySession.source,target:slice===null?n:copySession.target,slice:slice};commitSoundCopy(false);
+      if(slice===null)copySession.target=n;
+      state.slot=copySession.target;defaultStep=null;lastNote=slice===null?(state.slot<=8?4:0):slice;lastNotes[state.slot-1]=lastNote;resetSoundBrowse();
     }else{
       patterns[n-1]=clonePattern(copySession.source);
-      patternExtras[n-1]=JSON.parse(JSON.stringify(copySession.extras));writePattern(n);persistSoon();
+      patternExtras[n-1]=JSON.parse(JSON.stringify(copySession.extras));writePattern(n);copySession.target=n;seq.pattern=n;seq.queued=0;persistSoon();
     }
     copySession.pasted=true;paint();
   }
@@ -1602,7 +1607,9 @@
       var e=stepEdit,key=(e.slot-1)+":"+e.step,ex=patternExtras[e.pattern-1];
       lastNote=patterns[e.pattern-1].lanes[e.slot-1][e.step];lastNotes[e.slot-1]=lastNote;
       defaultStep={slot:e.slot,detail:JSON.parse(JSON.stringify(editDetail(e))),lock:JSON.parse(JSON.stringify(ex.locks[key] || effectiveTweak(e.slot)))};
-      lastWasSlice=e.slot>8;e.used=true;persistSoon();showNumber("CPy","STEP COPY");paint();
+      lastWasSlice=e.slot>8;e.used=true;
+      voice(e.slot,lastNote,undefined,e.slot<=8?defaultStep.detail.length*stepDur():undefined,undefined,Object.assign({},effectiveTweak(e.slot),defaultStep.lock));
+      persistSoon();showNumber("CPy","STEP COPY");displayUntil=Date.now()+1000;paint();
     },1000);
     paint();
   }
@@ -1617,7 +1624,7 @@
     paint();
   }
 
-  // Immutable views share audio; trims and target tone settings stay independent.
+  // Copies share immutable PCM; destination trims remain independent.
   function rawSlice(s,n) {
     if(!s)return null;
     if(s.sliceViews)return s.sliceViews[n] ? Object.assign({},s.sliceViews[n]) : null;
@@ -1630,10 +1637,10 @@
         var v=rawSlice(s,n),tw=tweaks[state.slot-1].slices[n] || {start:0,length:100};
         views.push(trimView(v,tw));
       }
-      return {kit:views};
+      return {kit:views,view:views[lastNotes[state.slot-1]],tone:{filter:tweaks[state.slot-1].filter,resonance:tweaks[state.slot-1].resonance}};
     }
     var view=trimView(state.slot>8 ? rawSlice(s,lastNote) : s,state.slot>8 ? (tweaks[state.slot-1].slices[lastNote] || {start:0,length:100}) : tweaks[state.slot-1]);
-    return view ? {view:view} : null;
+    return view ? {view:view,tone:{filter:tweaks[state.slot-1].filter,resonance:tweaks[state.slot-1].resonance}} : null;
   }
   function trimView(v,t) {
     if(!v)return null;
@@ -1646,13 +1653,13 @@
     if(c.slice!==null) {
       s=samples[n-1];var views=[];
       for(var j=0;j<16;j++)views.push(rawSlice(s,j));
-      views[c.slice]=c.source ? (c.source.view || c.source.kit[0]) : null;
+      views[c.slice]=c.source ? c.source.view : null;
       var base=views.filter(Boolean)[0];
       s=base ? Object.assign({},base,{sliceViews:views}) : null;
       delete tweaks[n-1].slices[c.slice];
     } else if(!c.source) s=null;
     else if(n<=8) {
-      var v=c.source.view || c.source.kit[0];s=v ? Object.assign({},v) : null;
+      var v=c.source.view;s=v ? Object.assign({},v) : null;
       tweaks[n-1].start=0;tweaks[n-1].length=100;
     } else {
       var kit=c.source.kit;
@@ -1660,6 +1667,7 @@
       var first=kit.filter(Boolean)[0];s=first ? Object.assign({},first,{sliceViews:kit}) : null;
       tweaks[n-1].start=0;tweaks[n-1].length=100;tweaks[n-1].slices={};
     }
+    if(c.source && c.source.tone && c.slice===null)Object.assign(tweaks[n-1],c.source.tone);
     samples[n-1]=s;factoryMuted[n-1]=true;
     if(s){savedSig[n-1]=undefined;saveSlot(n);}else removeSlotStored(n);
     persistSoon();paint();
@@ -2300,7 +2308,7 @@
       } else if(fxHeld || shakeFx) {
         if(p+1===fx.kind){level="bright";reason="effect";}
       } else if(stepView) {
-        if(editing && lane[p]>=0){level="dim";reason="own-step";}
+        if(editing && lane[p]>=0){level=lane[p]===lastNote?"bright":"dim";reason=lane[p]===lastNote?"selected-note":"other-note";}
         else if(editing) {
           for(var track=0;track<TOTAL_SLOTS;track++) {
             if(track!==state.slot-1 && pat.lanes[track][p]>=0){level="low";reason="other-step";break;}
@@ -2313,6 +2321,7 @@
       }
       if(!recHeld && Date.now()<sliceResultUntil && state.slot===sliceResultSlot && !stepView && !bpmHeld && !soundHeld && !patternHeld && !fxHeld){level=p<sliceResultCount?"bright":"off";reason="slice-result";}
       if(rec.on && p+1===rec.slot){level="bright";reason="recording";}
+      if(copySession && copySession.pasted && p+1===copySession.target){level="bright";reason="copy-target";}
       pads[p].setAttribute("data-led-level",level);
       pads[p].setAttribute("data-led-reason",reason);
       pads[p].setAttribute("data-led-pattern",String(patternNumber));
@@ -2836,6 +2845,7 @@
   function knobSpec(index) {
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e);
+      if(tweakMode!==2){var lock=patternExtras[e.pattern-1].locks[(e.slot-1)+":"+e.step] || {},t=Object.assign({},effectiveTweak(e.slot),lock);return tweakMode===0?(index===0?[t.pitch,-12,12,"PITCH"]:[t.volume,0,100,"VOL"]):(index===0?[t.filter,-100,100,"FILTER"]:[t.resonance,0,100,"RES"]);}
       return index===0 ? [patterns[e.pattern-1].lanes[e.slot-1][e.step]+1,1,16,e.slot<=8?"NOTE":"SLICE"] : [e.slot<=8?detail.length:detail.retrigs,1,e.slot<=8?16:8,e.slot<=8?"STEPS":"RETRIG"];
     }
     if(bpmHeld) return index===0 ? [SWING*100,0,50,"SWING"] : [params.bpm,60,240,"BPM"];
@@ -2869,7 +2879,7 @@
     if(!pickup.caught){var tolerance=.5/KNOB_SWEEP;pickup.caught=Math.abs(after-pickup.target)<=tolerance || (before-pickup.target)*(after-pickup.target)<=0;}
     if(!pickup.caught){paint();return null;}
     var value=spec[1]+after*(spec[2]-spec[1]);
-    if(stepEdit && index===1 && stepEdit.slot>8){var counts=[1,2,3,4,6,8];value=counts[Math.round(after*(counts.length-1))];}
+    if(stepEdit && tweakMode===2 && index===1 && stepEdit.slot>8){var counts=[1,2,3,4,6,8];value=counts[Math.round(after*(counts.length-1))];}
     else value=(!bpmHeld && !stepEdit && tweakMode===0 && index===0)?Math.round(value*10)/10:Math.round(value);
     pickup.target=(value-spec[1])/(spec[2]-spec[1]);return {spec:spec,value:value};
   }
@@ -2881,6 +2891,11 @@
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       e.used=true;
+      if(tweakMode!==2){var key=tweakMode===0?(index===0?'pitch':'volume'):(index===0?'filter':'resonance'),ex=patternExtras[e.pattern-1],id=(e.slot-1)+":"+e.step;
+        if(!ex.locks[id])ex.locks[id]={};ex.locks[id][key]=movement.value;
+        writePattern(e.pattern);showNumber(movement.value,before[3]);
+        if(!seq.playing)voice(e.slot,lane[e.step],undefined,undefined,undefined,Object.assign({},effectiveTweak(e.slot),ex.locks[id]));paint();return;
+      }
       if(index===0)lane[e.step]=Math.max(0,Math.min(15,movement.value-1));
       else if(e.slot<=8)detail.length=Math.max(1,Math.min(16,movement.value));
       else {var counts=[1,2,3,4,6,8],at=counts.indexOf(detail.retrigs);detail.retrigs=movement.value;}
@@ -2920,7 +2935,7 @@
       e.preventDefault();var counts=[1,2,3,4,6,8],detail=editDetail(stepEdit);
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;
       stepEdit.used=true;detail.retrigs=counts[(counts.indexOf(detail.retrigs)+1)%counts.length];
-      showNumber(detail.retrigs,"RETRIG");persistSoon();paint();return;
+      showNumber("tr"+detail.retrigs,"RETRIG");persistSoon();paint();return;
     }
     e.preventDefault();if(touchChord.bpm!==undefined){pressLatched(e,"bpm");return;}
     parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=!!e.po33ChordConsumed;armChord(e,"bpm",this);paint();

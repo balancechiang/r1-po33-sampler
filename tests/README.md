@@ -26,3 +26,5 @@ python tests/test-sync-fx.py
 Synthetic capture and desktop browser tests validate application logic and payloads; physical hardware, mobile WebViews and audio-interface voltage/latency need device testing. Historical page snapshots are retained in Git history rather than as served pages or fixture copies.
 
 - `python tests/test-copy-chord.py`: sound/pattern copy arming, blink, immediate overwrite, repeated destinations and HOLD.
+
+- `python tests/test-step-selection.py`: selected-note LED levels, long-held step audition/template, erase/refill, per-step locks, retrigger cycling and copied filter.
