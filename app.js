@@ -2309,11 +2309,6 @@
         if(p+1===fx.kind){level="bright";reason="effect";}
       } else if(stepView) {
         if(editing && lane[p]>=0){level=lane[p]===lastNote?"bright":"dim";reason=lane[p]===lastNote?"selected-note":"other-note";}
-        else if(editing) {
-          for(var track=0;track<TOTAL_SLOTS;track++) {
-            if(track!==state.slot-1 && pat.lanes[track][p]>=0){level="low";reason="other-step";break;}
-          }
-        }
         if(editing && level==="off" && stepEdit && stepEdit.slot<=8 && stepEdit.lengthPreview && stepEdit.pattern===patternNumber && (p-stepEdit.step+16)%16>0 && (p-stepEdit.step+16)%16<editDetail(stepEdit).length){level="dim";reason="length-preview";}
         if(seq.playing && seq.visualStarted && p===seq.step){level="bright";reason=p===0?"downbeat":"cursor";}
         var hit=sounding[p];
@@ -2455,7 +2450,7 @@
     }
     if (recHeld) {recUsedPad=true; startRec(n); return; }
     if (soundHeld || state.mode==="SOUND") { previewSound(n); return; }
-    if (writeHeld && seq.playing) { modifierUsed.write=true; liveRecord(n-1); return; }
+    if (writeHeld && seq.playing && state.mode!=="STEP") { modifierUsed.write=true; liveRecord(n-1); return; }
     if (state.mode === "STEP") {
       if(patterns[seq.pattern-1].lanes[state.slot-1][n-1]>=0)beginStepEdit(n-1);
       else toggleStep(n - 1);
