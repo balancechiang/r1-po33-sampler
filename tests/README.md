@@ -9,6 +9,7 @@ node scripts/check.mjs
 Browser checks use Python Playwright with a local Chromium/Edge installation. They serve the repository root; private fixtures and outputs remain in ignored `t/`. Relevant checks:
 
 ```sh
+python tests/test-resource-layout.py
 python tests/test-stable-update.py
 python tests/test-first-tap-audio.py
 python tests/test-creation-qr.py

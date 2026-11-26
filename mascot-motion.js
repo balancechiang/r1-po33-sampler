@@ -21,7 +21,7 @@
   document.querySelectorAll('#transportMascot [data-mascot-line]').forEach(p=>{p.setAttribute('stroke-width',width);p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');p.setAttribute('stroke','#000');});
  }
  // Transparent, cropped assets only; the old glove exports contained a whole black panel.
- Promise.all(['head','left','right'].map(async kind=>{const r=await fetch('./mascot-'+kind+'.svg?v=20261122-ui15');if(!r.ok)throw Error('mascot');return [kind,new DOMParser().parseFromString(await r.text(),'image/svg+xml').documentElement];})).then(assets=>{
+ Promise.all(['head','left','right'].map(async kind=>{const r=await fetch(root.PO33_RESOURCE?root.PO33_RESOURCE('./assets/mascot-'+kind+'.svg'):'./assets/mascot-'+kind+'.svg');if(!r.ok)throw Error('mascot');return [kind,new DOMParser().parseFromString(await r.text(),'image/svg+xml').documentElement];})).then(assets=>{
   for(const [kind,source] of assets){const selectors=kind==='head'?['#tapeHead image','#rabbit-head image']:[kind==='left'?'#tapeLeft image':'#tapeRight image'];
    for(const selector of selectors){const image=document.querySelector(selector);if(!image)continue;const svg=document.importNode(source,true);svg.setAttribute('overflow','visible');for(const attr of ['x','y','width','height'])svg.setAttribute(attr,image.getAttribute(attr));image.replaceWith(svg);}}
   const head=document.getElementById('tapeHead').parentElement;head.parentElement.append(head);
