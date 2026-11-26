@@ -90,3 +90,5 @@ The optional third `create()` argument controls static geometry:
 屏幕近拍或视频及观察结果。分段结构使用清晰静态近拍，闪烁和电平响应使用视频；
 涉及电平门限的结论需要已知信号与幅度，不能仅凭听感或单张照片判断。
 经确认后，再单独决定哪些显示规则应用到网页，并保留当前用户指定的行为差异。
+
+Manual sound/pad audition while stopped does not drive the output meter or OUT marker. Sequencer playback and input monitoring retain their meters; deliberate knob editing retains the relevant parameter indicator.

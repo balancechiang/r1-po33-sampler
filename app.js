@@ -1257,6 +1257,7 @@
   }
 
   function trigger(padIndex) {
+    soundPreviewMeter=!seq.playing;
     lastNote = padIndex;
     lastNotes[state.slot-1]=padIndex;lastWasSlice=state.slot>8;
     defaultStep=null;persistSoon();
@@ -2457,7 +2458,7 @@
       else toggleStep(n - 1);
       return;
     }
-    soundPreviewMeter=false;trigger(n - 1);
+    trigger(n - 1);
     flash(n - 1);
   }
 
@@ -2805,7 +2806,7 @@
     if(inputActive)level=inputLevel;
     else if(outputMeter && outputData && ac && ac.state==="running"){outputMeter.getFloatTimeDomainData(outputData);for(var ai=0;ai<outputData.length;ai++){level=Math.max(level,Math.abs(outputData[ai]));rms+=outputData[ai]*outputData[ai];}rms=Math.sqrt(rms/outputData.length);}
     if(!inputActive && level>.003)outputActiveUntil=Date.now()+110;
-    if(!inputActive && (soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))){level=0;outputActiveUntil=0;}
+    if(!inputActive && (!seq.playing || soundHeld || state.mode==="SOUND")){level=0;outputActiveUntil=0;}
     if(transferView){level=transferView.level || 0;inputActive=["listening","receiving"].indexOf(transferView.state)>=0;}
     [["lcdIn",inputActive],["lcdOut",transferView?transferView.state==="sending":!inputActive && Date.now()<outputActiveUntil]].forEach(function(pair){
       var g=d.getElementById(pair[0]);g.setAttribute("data-active",pair[1]?"true":"false");
@@ -2814,13 +2815,13 @@
     });
     if(!lcdIndicator)lcdIndicator=window.PO33Indicator.create(d.getElementById("lcdMeter"),{mode:"level",value:0},{x:19,y:24.25});
     var props=transferView?{mode:"level",origin:"left",value:transferView.progress===null?Math.ceil(Math.min(1,level)*38):Math.floor(Math.min(1,transferView.progress)*38)}:indicatorProps(level,inputActive);
-    if(!transferView && props.mode==="level" && props.origin==="center" && !soundHeld && state.mode!=="SOUND" && !(!seq.playing && soundPreviewMeter)){props=outputBallistics.update(rms,level,performance.now());}
+    if(seq.playing && !transferView && props.mode==="level" && props.origin==="center" && !soundHeld && state.mode!=="SOUND" && !(!seq.playing && soundPreviewMeter)){props=outputBallistics.update(rms,level,performance.now());}
     else outputBallistics.reset();
     if(!transferView && (recHeld||rec.on)){props=inputBallistics.update(inputActive?inputLevel:0,inputActive?inputPeak:0,performance.now(),'left');}else inputBallistics.reset();
     lcdIndicator.setProps(props);
   }
   function indicatorProps(level,inputActive) {
-    var meter={mode:"level",origin:!inputActive?"center":"left",value:Math.ceil(Math.min(1,level*1.5)*38)};
+    var meter={mode:"level",origin:!inputActive?"center":"left",value:seq.playing || inputActive?Math.ceil(Math.min(1,level*1.5)*38):0};
     if(inputActive)return meter;
     if(soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))return {mode:"level",origin:"center",value:0};
     if(fx.kind)return meter;
@@ -2890,7 +2891,7 @@
     if(stepEdit && stepEdit.slot>8 && index===1){
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;stepEdit.used=true;return;
     }
-    var movement=movePhysicalKnob(index,dir);if(!movement)return;
+    var movement=movePhysicalKnob(index,dir);if(!movement)return;soundPreviewMeter=false;
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(index===0 && lane[e.step]===Math.max(0,Math.min(15,movement.value-1))){paint();return;}

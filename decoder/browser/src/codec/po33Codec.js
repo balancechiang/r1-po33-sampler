@@ -1,14 +1,14 @@
 /** Pure TypeScript PO-33 backup decoder. No Node, Web Audio, native or WASM calls.
  * Reference versions, licenses and interpretation limits: ../../decoder/README.md.
  */
-import { decodePilotFrame } from "../../decoder/modem-pll.js?v=web-sampler-0.2.6";
-import { parseWav } from "../../decoder/vendor/so-sample/wav.js?v=web-sampler-0.2.6";
-import { parseFrame } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.2.6";
-import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.2.6";
-import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.2.6";
-import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.2.6";
-import { TAG, decodeFrame } from "../../decoder/vendor/so-sample/packets.js?v=web-sampler-0.2.6";
-export { encodePO33Backup, transferTimeline } from "./po33Encode.js?v=web-sampler-0.2.6";
+import { decodePilotFrame } from "../../decoder/modem-pll.js?v=web-sampler-0.2.7";
+import { parseWav } from "../../decoder/vendor/so-sample/wav.js?v=web-sampler-0.2.7";
+import { parseFrame } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.2.7";
+import { decodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.2.7";
+import { readCell, readEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.2.7";
+import { readChain, readSwing, readTempo } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.2.7";
+import { TAG, decodeFrame } from "../../decoder/vendor/so-sample/packets.js?v=web-sampler-0.2.7";
+export { encodePO33Backup, transferTimeline } from "./po33Encode.js?v=web-sampler-0.2.7";
 /** Reject malformed/truncated RIFF rather than silently padding/truncating audio.
  * 16/24-bit integer PCM and 32-bit integer/float are supported for offline decoding.
  * This does not relax the separate raw PCM16 hardware replay page.

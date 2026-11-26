@@ -30,3 +30,5 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `python tests/test-step-selection.py`: selected-note LED levels, long-held step audition/template, erase/refill, per-step locks, retrigger cycling and copied filter.
 
 - `python tests/test-melodic-step.py`: note/gate controls on all pages, padded displays, wraparound gate preview, fill priority and gate-template insertion.
+
+- `python tests/test-preview-meter.py`: manual preview meter suppression with playback and knob parameter indicators retained.
