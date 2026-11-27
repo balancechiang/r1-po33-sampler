@@ -42,3 +42,9 @@ The third valid recording (not the cancelled take) uses a 60 BPM, 2-second origi
 104 cutoff/resonance settings have recorded magnitude fits at 44.1/48/96 kHz. Actual browser node responses have roughly 0.2 dB median RMS fit error on eligible 60 Hz–7.04 kHz bins. A captured playback of the complete web test measures about 0.17 dB median versus the recorded hardware, compared with about 11.3 dB for the old model on the same bins. Code 1 is low-SNR/deep attenuation and remains around 2.3 dB error; bins below 60 Hz, above 7.04 kHz and near the noise floor are excluded. The first res=1 cell following each large cutoff jump is retained as transient evidence but excluded from steady fits. Interpolation away from the six measured resonance/cutoff anchors is an approximation. Phase, arbitrary signal levels, large-jump transition timing, unmeasured sample rates and physical Safari/R1 performance still require checks.
 
 Raw samples are unchanged. New filter/resonance locks re-export with the same native codes. Re-import native projects saved with the previous audition mapping to receive the corrected near-center mapping. There is no claim of exact firmware/DSP reconstruction.
+
+### Scratch diagnostic v4 (2026-11-27)
+
+- The lowest filter cutoff discrepancy is explicitly deferred by the user pending hardware verification; no additional correction is applied.
+- Generate the next automatic capture project with `node scripts/build-calibration.mjs <output-directory> --scratch-isolated`. It uses original ascending/reversed chirps, ordered tone tags and transient pulses; 16 chained patterns at 60 BPM take 64 seconds. FX11/12 are stored in the backup.
+- Cases separate onset triggering, empty steps with/without a ringing voice, repeated notes, playback direction and drum FX switching. Capture at master volume 12 in SY0, without manual FX or knob changes. Hardware acceptance and Scratch algorithm fitting remain pending.
