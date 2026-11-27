@@ -13,8 +13,13 @@
  window.addEventListener('po33-scan-state',e=>{scanFrozen=e.detail.active;if(!scanFrozen)layout();});
  function layout(){
   if(scanFrozen){stage.dataset.rotated=String(document.body.dataset.wide!=='true' && (matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0) && document.documentElement.clientWidth>window.innerHeight);return;}
+  if(window.visualViewport?.height>0)document.body.style.setProperty("--app-viewport-height",window.visualViewport.height+"px");
   const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
-  const rawWidth=document.documentElement.clientWidth-horizontal,rawHeight=window.innerHeight-vertical;
+  // CSS dvh, safe-area insets and innerHeight can settle on different frames in iOS standalone.
+  // Measure the actual body/visual viewport instead of mixing those coordinate systems.
+  const viewport=window.visualViewport;
+  const rawWidth=Math.max(1,Math.min(document.body.clientWidth,viewport?.width || Infinity)-horizontal);
+  const rawHeight=Math.max(1,Math.min(document.body.clientHeight,viewport?.height || Infinity)-vertical);
   const touch=matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0;
   const wide=rawWidth>=900 && (!touch || (rawWidth>rawHeight && rawHeight>=600));
   workbench.setWide(wide);
@@ -43,7 +48,16 @@
  }
  function lockPortrait(){if(Math.min(window.screen.width,window.screen.height)>=600 || matchMedia('(pointer:fine)').matches)return;try{const pending=window.screen.orientation?.lock?.('portrait');pending?.catch(()=>{});}catch{}}
  document.addEventListener('pointerdown',lockPortrait,{once:true});
- window.addEventListener('orientationchange',()=>{lockPortrait();layout();});
- window.addEventListener('resize',layout);if(window.visualViewport)window.visualViewport.addEventListener('resize',layout);
- layout();
+ let layoutFrame=0,settleTimers=[];
+ function scheduleLayout(){if(!layoutFrame)layoutFrame=requestAnimationFrame(()=>{layoutFrame=0;layout();});}
+ function settleLayout(){scheduleLayout();settleTimers.forEach(clearTimeout);settleTimers=[100,350,800].map(ms=>setTimeout(scheduleLayout,ms));}
+ window.addEventListener('orientationchange',()=>{lockPortrait();settleLayout();});
+ window.addEventListener('resize',scheduleLayout);
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',scheduleLayout);window.visualViewport.addEventListener('scroll',scheduleLayout);}
+ if(window.ResizeObserver)new ResizeObserver(scheduleLayout).observe(document.body);
+ window.addEventListener('pageshow',settleLayout);
+ window.addEventListener('focus',settleLayout);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)settleLayout();});
+ document.fonts?.ready.then(settleLayout);
+ layout();settleLayout();
 })();

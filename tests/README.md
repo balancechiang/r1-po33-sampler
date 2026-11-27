@@ -34,3 +34,5 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `python tests/test-preview-meter.py`: manual preview meter suppression with playback and knob parameter indicators retained.
 
 - `python tests/test-tone-neutral.py`: centered factory pitch/unity-gain startup and tone scale endpoints/center.
+
+- `python tests/test-pwa-safe-area.py`: stale innerHeight, delayed safe-area padding, visual viewport/body size changes and restored PWA layout.
