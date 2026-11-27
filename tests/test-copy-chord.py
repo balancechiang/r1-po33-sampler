@@ -30,7 +30,9 @@ try:
    page.wait_for_timeout(100);assert snap()==before,'copy modified data before paste'
    pad(target);assert code()=='CPy' and not blinking()
    source=page.locator('[data-pad="1"]');assert source.get_attribute('data-led-reason')=='copy-source'
-   assert source.locator('.led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.6s'
+   assert source.locator('.led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.3125s'
+   colors=source.locator('.led').evaluate('''e=>{const a=e.getAnimations()[0];a.pause();return [0,156,157,312].map(t=>{a.currentTime=t;return getComputedStyle(e).backgroundColor;});}''')
+   assert colors[0]==colors[1] and colors[2]==colors[3] and colors[0]!=colors[2],colors
    after=snap()
    if kind=='sound':assert after['slots'][1]==before['slots'][0]
    else:assert after['patterns'][1]==before['patterns'][0] and after['extras'][1]==before['extras'][0]
@@ -58,7 +60,7 @@ try:
   untouched=snap()['slots'][9]['slices'][0]
   assert untouched['asset']==original['asset'] and abs(untouched['offset']-original['offset'])<.0001
   assert page.locator('[data-pad="10"]').get_attribute('data-led-reason')=='copy-target'
-  assert page.locator('[data-pad="10"] .led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='1.2s'
+  assert page.locator('[data-pad="10"] .led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.625s'
   up(2);up()
   # Single-finger latch still works.
   down('write');page.wait_for_timeout(850);up();down('sound');page.wait_for_timeout(850);up()

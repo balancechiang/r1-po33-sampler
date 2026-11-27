@@ -118,7 +118,7 @@ body[data-mode] #panel .pad[data-led-reason="selected"] .led,body[data-mode] #pa
 body[data-mode] #panel .pad[data-led-reason="queued"] .led { animation:step-selection 400ms steps(1,end) infinite; }
 @keyframes step-cursor { from { background:#ff5438; } to { background:#ff3020; } }
 @keyframes step-downbeat { 0%,40% { background:#ff9a70; } 100% { background:#ff3020; } }
-@keyframes step-selection { 0%,49% { background:#ff3020; } 50%,100% { background:#9a2014; } }
+@keyframes step-selection { 0%,49.999% { background:#ff3020; } 50%,100% { background:#9a2014; } }
 @media (prefers-reduced-motion:reduce) {
   body[data-mode] #panel .pad[data-led-reason="cursor"] .led,
   body[data-mode] #panel .pad[data-led-reason="downbeat"] .led { animation:none; }
@@ -127,8 +127,8 @@ body[data-mode] #panel .pad[data-led-reason="queued"] .led { animation:step-sele
 .knob.trim-wheel-focus { outline:1px solid #ff742e; outline-offset:1px; }
 
 /* Context-only indicators: no pressed-button animation. */
-body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:record-selection 600ms steps(1,end) infinite; }
-@keyframes record-selection { 0%,49% { background:#ff3020; } 50%,100% { background:#24100c; } }
+body[data-mode] #panel .pad[data-led-reason="record-selected"] .led { animation:record-selection 312.5ms steps(1,end) infinite; }
+@keyframes record-selection { 0%,49.999% { background:#ff3020; } 50%,100% { background:#24100c; } }
 #panel .cbtn[data-act="play"][data-led-level="off"] .led { background:#24100c; }
 #panel .cbtn[data-act="play"][data-led-level="bright"] .led { background:#ff3020; }
 #panel #bpmMode.transfer-latched { outline:1px solid #fe5000; outline-offset:-3px; }
@@ -172,5 +172,5 @@ html {touch-action:manipulation;}
 @keyframes record-code-blink {0%,49.99%{opacity:1}50%,100%{opacity:0}}
 
 /* Selection blinks at the normal cadence; successful copy is half-speed. */
-body[data-mode] #panel .pad[data-led-reason="selected"] .led,body[data-mode] #panel .pad[data-led-reason="copy-source"] .led { animation:record-selection 600ms steps(1,end) infinite; }
-body[data-mode] #panel .pad[data-led-reason="copy-target"] .led { animation:record-selection 1200ms steps(1,end) infinite; }
+body[data-mode] #panel .pad[data-led-reason="selected"] .led,body[data-mode] #panel .pad[data-led-reason="copy-source"] .led { animation:record-selection 312.5ms steps(1,end) infinite; }
+body[data-mode] #panel .pad[data-led-reason="copy-target"] .led { animation:record-selection 625ms steps(1,end) infinite; }
