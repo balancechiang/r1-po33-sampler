@@ -30,10 +30,21 @@ for(let slot=1;slot<=4;slot++)hit(8,1,slot,5,{timing:15});hit(8,5,9,1);hit(8,9,1
 const pairs=[[1,2],[3,4],[5,6],[7,8],[9,10],[11,12],[13,15],[14]];
 pairs.forEach((pair,i)=>{const p=i+9;for(let st=1;st<=16;st++){hit(p,st,9,(st-1)%4+1);if(st%4===1)hit(p,st,2,[5,8,12,15][Math.floor((st-1)/4)],{timing:4});}
  const fx=Array(16).fill(null);if(pair[0]===14)fx[15]=14;else{for(let j=4;j<8;j++)fx[j]=pair[0];for(let j=8;j<12;j++)fx[j]=pair[1];}writeEffects(model.patterns[p-1],fx);section(p,'FX '+pair.join(' / '),pair[0]===14?'FX14 only at step16; placed last because retrigger can loop this pattern.':'Steps1-4 dry;5-8 FX'+pair[0]+';9-12 FX'+pair[1]+';13-16 dry.');});
+const isolated=process.argv.includes('--fx-isolated');
+if(isolated){
+ const rich=model.melodic[1],chirp=model.melodic[2];model.melodic=Array(8).fill(null);model.melodic[0]=rich;model.melodic[1]=chirp;model.drums=Array(8).fill(null);model.patterns=Array.from({length:16},emptyPattern);sections.length=0;
+ for(const id of [...library.keys()])if(!['harmonics110','chirp'].includes(id))library.delete(id);
+ const order=[null,1,2,3,4,5,6,7,8,9,10,11,12,13,15,14];
+ order.forEach((effect,i)=>{const p=i+1,steady=[5,6,7,8,9,10].includes(effect),slot=effect===15?2:1;
+  const steps=steady?[1]:[1,5,9,13];steps.forEach(st=>hit(p,st,slot,5,{timing:steady?15:4}));
+  const fx=Array(16).fill(null);if(effect===14)fx[15]=14;else if(effect)for(let st=4;st<12;st++)fx[st]=effect;writeEffects(model.patterns[i],fx);
+  section(p,effect?'Isolated FX '+effect:'Dry reference',effect===14?'Final step only; last pattern.':steady?'One sustained source; FX steps5-12, no competing voices.':'One source only; FX steps5-12; dry steps1-4/13-16.');
+ });
+}
 const template={globals:EMPTY_GLOBALS.map(a=>Uint8Array.from(a)),patterns:Array.from({length:16},emptyPattern),sounds:Array(136).fill(null)};
 const state=compileProject(model,id=>library.get(id),template),wav=encodePO33Backup({raw:{state}},44100),decoded=decodePO33Backup(wav);
 assert.equal(decoded.validation.checksumErrors,0);assert.equal(decoded.validation.unresolvedAudioRanges,0);assert.equal(decoded.meta.bpm,120);assert.deepEqual(decoded.patternChain,model.chain);
 const expected=model.patterns.map(readEffects);assert.deepEqual(state.patterns.map(readEffects),expected);assert.deepEqual(decoded.raw.state.patterns.map(readEffects),expected);
 assert.deepEqual([...new Set(expected.flat().filter(Boolean))].sort((a,b)=>a-b),Array.from({length:15},(_,i)=>i+1));
-const file='Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
+const file=isolated?'Web-Sampler-Calibration-FX-v2-120BPM.po33.wav':'Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
 const report={file,bpm:120,chain:model.chain,firstPassSeconds:32,recommendedRecordingSeconds:40,sampleSeconds:[...library.values()].reduce((n,v)=>n+v.length,0)/SAMPLE_RATE,backupSeconds:(wav.byteLength-44)/4/44100,checksumErrors:0,unresolvedAudioRanges:0,sections,nativeFX:expected};fs.writeFileSync(path.join(out,'calibration-map.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({file:path.join(out,file),bytes:wav.byteLength,sampleSeconds:report.sampleSeconds,backupSeconds:report.backupSeconds,checks:'checksum, slice references, tempo, chain and all 15 stored FX passed'},null,2));

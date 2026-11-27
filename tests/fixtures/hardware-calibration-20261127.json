@@ -1,0 +1,63 @@
+{
+  "sourceFile": "hardware-vol12-20261127-120513.wav",
+  "nativeKeySemitones": [
+    7,
+    8,
+    10,
+    11,
+    0,
+    2,
+    3,
+    5,
+    -5,
+    -4,
+    -2,
+    -1,
+    -12,
+    -10,
+    -9,
+    -7
+  ],
+  "volumeCodes": [
+    1,
+    9,
+    18,
+    27,
+    36,
+    45,
+    54,
+    63
+  ],
+  "relativeGains": [
+    0.15753291902323824,
+    0.21094984583189919,
+    0.36893777824618823,
+    0.6319397699908069,
+    1.0,
+    1.4781298394717814,
+    2.06844442398639,
+    2.749448806390892
+  ],
+  "fittedCodeSquareOffset": 239.1434885992419,
+  "notes": "Original generated calibration source; user hardware line-out, master volume 12; one measured unit/interface. Relative gains normalized at native code 36. Audio recordings remain outside Git.",
+  "gainErrorDBBefore": [
+    -14.95,
+    1.62,
+    2.73,
+    1.52,
+    0,
+    -3.38,
+    -6.31,
+    -8.78
+  ],
+  "gainErrorDBAfter": [
+    -0.035,
+    -0.081,
+    -0.041,
+    -0.015,
+    0,
+    -0.021,
+    -0.058,
+    -0.029
+  ]
+}

@@ -29,11 +29,17 @@ try:
   page.locator('#transferFileInput').set_input_files(sys.argv[1])
   page.wait_for_function('document.body.dataset.transfer==="success" || document.body.dataset.transfer==="error"',timeout=90000)
   assert page.locator('body').get_attribute('data-transfer')=='success',page.locator('#transferHint').text_content()
-  data=snap();assert data['bpm']==120 and data['chain']==list(range(1,17)),(data['bpm'],data['chain'])
+  data=snap();assert data['nativePCM'] is True
+  assert page.locator('#transferTone').text_content().endswith('OFF')
+  assert data['bpm']==120 and data['chain']==list(range(1,17)),(data['bpm'],data['chain'])
+  exported=page.evaluate('''async()=>{const m=await import("./decoder/browser/src/codec/po33WebProject.js"),p=await import("./decoder/browser/decoder/vendor/so-sample/pattern.js");const state=m.buildHardwareProject(testSnapshot()).raw.state;return Array.from({length:8},(_,i)=>p.readCell(state.patterns[2],i*2+1,1).volume);}''')
+  assert exported==[1,9,18,27,36,45,54,63],exported
   fx={n for e in data['extras'] for n in e['effects'] if n};assert fx==set(range(1,16)),fx
   page.wait_for_timeout(3200);down('play');up();page.wait_for_timeout(300)
   assert page.locator('#lcdNumber').get_attribute('data-value')=='P01'
   down('play');up()
+  page.evaluate('PO33Transfer.flush()');page.reload();page.wait_for_function('document.body.dataset.loading==="false"')
+  assert snap()['nativePCM'] is True
   assert not errors,errors
   print('PASS actual frontend import/play: 120BPM, 16-pattern chain, all 15 FX preserved')
   browser.close()

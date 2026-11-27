@@ -51,7 +51,8 @@
   }
   voices.push(incoming);
  }
- const MELODIC_OFFSETS=Object.freeze([-5,-4,-2,-1,0,2,3,5,7,8,10,11,12,14,15,17]);
+ // Physical key order measured from the 220 Hz calibration source on hardware.
+ const MELODIC_OFFSETS=Object.freeze([7,8,10,11,0,2,3,5,-5,-4,-2,-1,-12,-10,-9,-7]);
  function trimFrames(view,tweak,total,rate){
   if(!view)return null;tweak=tweak || {};var bounded=v=>Math.max(0,Math.min(total,Math.round(Number.isFinite(v)?v:0)));
   var start,end;
@@ -65,6 +66,10 @@
   if(Math.abs(value)<=4)return {bypass:true,type:'lowpass',frequency:top};
   return value<0?{bypass:false,type:'lowpass',frequency:100*Math.pow(top/100,(value+100)/96)}:{bypass:false,type:'highpass',frequency:20*Math.pow(400,(value-4)/96)};
  }
+ // Keep unity at the knob midpoint while covering the measured native maximum gain.
+ const MAX_VOLUME_GAIN=(63*63+240)/1536;
+ function volumeGain(value){value=Math.max(0,Math.min(200,value));return value<=100?value/100:1+(value-100)/100*(MAX_VOLUME_GAIN-1);}
+ function gainVolume(gain){return gain<=1?gain*100:100+(gain-1)/(MAX_VOLUME_GAIN-1)*100;}
  const LOCK_KEYS=['pitch','volume','filter','resonance'];
  class Latches {
   constructor(){this.reset();}
@@ -75,6 +80,6 @@
   manual(slot,key,value,now){this.flush(now);this.held[slot-1][key]=value;}
   stop(now){this.flush(now);this.events=[];}
  }
- var api={AUTO_SLICE_DEFAULTS:AUTO_SLICE_DEFAULTS,MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
+ var api={volumeGain:volumeGain,gainVolume:gainVolume,MAX_VOLUME_GAIN:MAX_VOLUME_GAIN,AUTO_SLICE_DEFAULTS:AUTO_SLICE_DEFAULTS,MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
  if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

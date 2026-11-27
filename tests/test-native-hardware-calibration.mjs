@@ -1,0 +1,14 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {createRequire} from 'node:module';
+import {buildHardwareProject} from '../src/codec/po33WebProject.ts';import {readCell} from '../decoder/vendor/so-sample/pattern.ts';
+const require=createRequire(import.meta.url),{adapt}=require('../project-preview-adapter.js'),{MELODIC_OFFSETS,volumeGain}=require('../sampling.js');
+const data=JSON.parse(fs.readFileSync(new URL('./fixtures/hardware-calibration-20261127.json',import.meta.url)));
+assert.deepEqual(MELODIC_OFFSETS,data.nativeKeySemitones);
+const project={pools:[],validation:{checksumErrors:0},slots:Array.from({length:16},(_,i)=>({id:i+1,slices:[]})),patterns:Array.from({length:16},()=>({steps:Array.from({length:16},(_,i)=>({stepIndex:i,fx:0,triggers:[]}))})),meta:{bpm:120,swingRaw:0},patternChain:[1]};
+data.volumeCodes.forEach((code,i)=>project.patterns[0].steps[i].triggers.push({slotId:1,sliceOrNote:4,lengthSteps:1,retriggers:1,paramLocks:{volumeCode:code}}));
+const view=adapt(project,{});
+data.volumeCodes.forEach((code,i)=>{const gain=volumeGain(view.extras[0].locks['0:'+i].volume),db=20*Math.log10(gain/data.relativeGains[i]);assert(Math.abs(db)<.1,code+': '+db);});
+assert.equal(view.extras[0].locks['0:7'].volume,200);assert(volumeGain(200)>2,'native high gain must not be truncated');
+const snapshot={...view,assets:[],slots:Array(16).fill(null),pattern:1};
+const built=buildHardwareProject(snapshot);
+data.volumeCodes.forEach((code,i)=>assert.equal(readCell(built.raw.state.patterns[0],i+1,1).volume,code));
+console.log('PASS measured hardware key map; nonlinear gain within 0.1 dB; all calibrated volume codes export unchanged');

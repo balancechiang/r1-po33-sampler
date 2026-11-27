@@ -687,7 +687,7 @@
   var bus = null;
   var mixVolume = null;
   var dryGain = null;
-  var hardwareToneEnabled=true,hardwareToneReady=false,hardwareToneError="",toneDry=null,toneWet=null,toneNode=null;
+  var nativeAudition=false,hardwareToneEnabled=true,hardwareToneReady=false,hardwareToneError="",toneDry=null,toneWet=null,toneNode=null;
   var outTrim = null;
   var noiseBuf = null;
   var musicGraphStale=false;
@@ -777,10 +777,10 @@
     var future=syncClock.point(syncClock.position+2,patternChain);seq.pattern=future.pattern;chainPosition=future.chain;seq.schedStep=future.step;seq.nextTime=future.time;
   }
 
-  function toneStatus(){return {enabled:hardwareToneEnabled,ready:hardwareToneReady,error:hardwareToneError};}
+  function toneStatus(){return {enabled:hardwareToneEnabled && !nativeAudition,nativePCM:nativeAudition,ready:hardwareToneReady,error:hardwareToneError};}
   function announceTone(){window.dispatchEvent(new Event('po33-tone-state'));}
-  function applyHardwareTone(){if(toneDry){var now=ac.currentTime;rampGain(toneDry,hardwareToneEnabled&&hardwareToneReady?0:1,now);rampGain(toneWet,hardwareToneEnabled&&hardwareToneReady?1:0,now);}announceTone();}
-  function setHardwareTone(enabled,save){hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
+  function applyHardwareTone(){if(toneDry){var now=ac.currentTime;rampGain(toneDry,hardwareToneEnabled&&hardwareToneReady&&!nativeAudition?0:1,now);rampGain(toneWet,hardwareToneEnabled&&hardwareToneReady&&!nativeAudition?1:0,now);}announceTone();}
+  function setHardwareTone(enabled,save){if(save!==false)nativeAudition=false;hardwareToneEnabled=!!enabled;applyHardwareTone();if(save!==false)persistSoon();}
   async function installHardwareTone(c){
     try{if(!c.audioWorklet || !window.AudioWorkletNode)throw Error('AudioWorklet unavailable');
       await c.audioWorklet.addModule(window.PO33_RESOURCE?window.PO33_RESOURCE('./hardware-tone-worklet.js'):'./hardware-tone-worklet.js');
@@ -1028,7 +1028,7 @@
   function setVoiceControls(controls,values,time,initial){
     var c=ctx(),shape=window.PO33Sampling.filterShape(values.filter,c.sampleRate);
     function set(param,value,tau){if(initial){param.value=value;param.setValueAtTime(value,time);}else smoothParameter(param,value,time,tau);}
-    set(controls.volume.gain,values.volume/100,.01);
+    set(controls.volume.gain,window.PO33Sampling.volumeGain(values.volume),.01);
     set(controls.low.frequency,shape.type==='lowpass'?shape.frequency:Math.min(20000,c.sampleRate*.45),.015);
     set(controls.high.frequency,shape.type==='highpass'?shape.frequency:20,.015);
     set(controls.low.Q,.7+values.resonance/100*15,.015);set(controls.high.Q,.7+values.resonance/100*15,.015);
@@ -3144,6 +3144,7 @@
       // Rebuild the baseline unconditionally, never seed around old in-memory lanes.
       samples=Array(16).fill(null);patterns=Array.from({length:16},emptyPattern);
       patternExtras=Array.from({length:16},function(){return {effects:[],locks:{}};});
+      nativeAudition=false;applyHardwareTone();
       tweaks=Array.from({length:16},function(){return {pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};});
       lastNotes=Array(16).fill(0);lastNote=0;state.slot=1;seq.pattern=1;seq.queued=0;masterVolume=8;state.mode="PLAY";
       physicalKeys.clear();keyPointers.clear();clearTimeout(deleteHoldTimer);
@@ -3209,9 +3210,10 @@
       if(!ids[b._po33id]){assets.push({id:b._po33id,rate:b.sampleRate,data:b.getChannelData(0).slice()});ids[b._po33id]=true;}
       return {asset:b._po33id,offset:s.offset || 0,duration:s.duration};}
     var slots=samples.map(function(s){if(!s)return null;var v=view(s);if(s.sliceViews)v.slices=s.sliceViews.map(view);return v;});
-    return {assets:assets,slots:slots,patterns:JSON.parse(JSON.stringify(patterns)),extras:JSON.parse(JSON.stringify(patternExtras)),tweaks:JSON.parse(JSON.stringify(tweaks)),bpm:params.bpm,swing:SWING,chain:patternChain.slice(),pattern:seq.pattern,slot:state.slot,masterVolume:masterVolume,lastNotes:lastNotes.slice()};
+    return {nativePCM:nativeAudition,assets:assets,slots:slots,patterns:JSON.parse(JSON.stringify(patterns)),extras:JSON.parse(JSON.stringify(patternExtras)),tweaks:JSON.parse(JSON.stringify(tweaks)),bpm:params.bpm,swing:SWING,chain:patternChain.slice(),pattern:seq.pattern,slot:state.slot,masterVolume:masterVolume,lastNotes:lastNotes.slice()};
   }
   function applySnapshot(snapshot){
+    nativeAudition=!!snapshot.nativePCM;applyHardwareTone();
     var c=ctx(),buffers={};snapshot.assets.forEach(function(a){var b=c.createBuffer(1,a.data.length,a.rate);b.copyToChannel(a.data,0);b._po33id=a.id;buffers[a.id]=b;});
     function view(v){if(!v)return null;return {buffer:buffers[v.asset],offset:v.offset,duration:v.duration,trim:0,pitch:0};}
     stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=snapshot.slots.map(function(s){if(!s)return null;var v=view(s);if(s.slices)v.sliceViews=s.slices.map(view);return v;});
@@ -3221,6 +3223,7 @@
     masterVolume=snapshot.masterVolume===undefined?8:snapshot.masterVolume;if(mixVolume)mixVolume.gain.value=masterVolume/16;paint();
   }
   function adoptHardware(project){
+    nativeAudition=true;applyHardwareTone();
     var imported=window.PO33PreviewAdapter.adapt(project,ctx());
     stopForTransfer();parameterLatches.reset();resetSoundBrowse();samples=imported.samples;patterns=imported.patterns;patternExtras=imported.extras;tweaks=imported.tweaks;
     params.bpm=imported.bpm;SWING=imported.swing;patternChain=imported.chain;chainPosition=0;seq.pattern=patternChain[0] || 1;seq.queued=0;

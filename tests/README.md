@@ -40,3 +40,8 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `node scripts/build-calibration.mjs <output-dir>` generates original automatic comparison material; validates native backup checksums, slice references, tempo, chain and all 15 stored FX. Generated WAV is a hardware backup signal, not an audition recording.
 
 - `python tests/test-calibration-import.py <generated-backup.wav>` checks the actual frontend import, chain, all FX and initial playback.
+
+- `node tests/test-native-hardware-calibration.mjs`: recorded melodic key mapping, nonlinear native level fit and inverse volume-code export.
+- `node scripts/build-calibration.mjs <output-dir> --fx-isolated`: automatic single-source FX diagnostic project (all 15 FX, no competing sounds).
+
+Native PCM import/restore bypasses additional master coloration by default; the optional tone switch may explicitly enable it. The calibration import browser test also checks that this state survives reload and that the browser-built edited export preserves volume codes.

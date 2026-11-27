@@ -1,11 +1,11 @@
 /** Translate the existing web engine into hardware state, preserving untouched native fields. */
-import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=web-sampler-0.2.12";
-import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.2.12";
-import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.2.12";
-import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.2.12";
-import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=web-sampler-0.2.12";
-import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.2.12";
-import { EMPTY_GLOBALS } from "./po33Template.js?v=web-sampler-0.2.12";
+import { compileProject, emptyProject } from "../../decoder/vendor/so-sample/project.js?v=web-sampler-0.2.13";
+import { cloneState } from "../../decoder/vendor/so-sample/state.js?v=web-sampler-0.2.13";
+import { emptyPattern, writeCell, readCell, writeEffects } from "../../decoder/vendor/so-sample/pattern.js?v=web-sampler-0.2.13";
+import { encodeMulaw, SAMPLE_RATE } from "../../decoder/vendor/so-sample/mulaw.js?v=web-sampler-0.2.13";
+import { toNativeRate } from "../../decoder/vendor/so-sample/resample.js?v=web-sampler-0.2.13";
+import { writeTempo, writeSwing, writeChain } from "../../decoder/vendor/so-sample/globals.js?v=web-sampler-0.2.13";
+import { EMPTY_GLOBALS } from "./po33Template.js?v=web-sampler-0.2.13";
 const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, Math.round(x)));
 export function buildHardwareProject(snapshot, native, baseline) {
@@ -60,7 +60,8 @@ export function buildHardwareProject(snapshot, native, baseline) {
                         return clip(slot.slices ? slot.slices[k] : { asset: slot.asset, offset: slot.offset + slot.duration * k / 16, duration: slot.duration / 16 }, trim.start, trim.length, trim.frames);
                     }) };
         });
-    const params = (t) => ({ pitch: clamp((t.pitch || 0) + 13, 1, 25), volume: clamp((t.volume ?? 100) * .36, 1, 63), filter: t.filter ? clamp(t.filter < 0 ? 32 + t.filter * .31 : 31 + t.filter * .31, 1, 62) : 63, resonance: clamp((t.resonance || 0) * .62 + 1, 1, 63) });
+    const volumeGain = (v) => v <= 100 ? v / 100 : 1 + (v - 100) / 100 * ((63 * 63 + 240) / 1536 - 1);
+    const params = (t) => ({ pitch: clamp((t.pitch || 0) + 13, 1, 25), volume: clamp(Math.sqrt(Math.max(0, volumeGain(t.volume ?? 100) * 1536 - 240)), 1, 63), filter: t.filter ? clamp(t.filter < 0 ? 32 + t.filter * .31 : 31 + t.filter * .31, 1, 62) : 63, resonance: clamp((t.resonance || 0) * .62 + 1, 1, 63) });
     model.patterns = snapshot.patterns.map((p, index) => {
         const raw = native ? native.patterns[index].raw.slice() : emptyPattern();
         const extra = snapshot.extras[index], prev = baseline?.extras[index];
@@ -112,7 +113,7 @@ export function buildHardwareProject(snapshot, native, baseline) {
             warnings.push('Sample edits rebuilt pool layout. Unavailable source slices cannot be recreated. Original source frame remains available in the saved checkpoint.');
     }
     if (!native || !baseline || !equal(snapshot.tweaks, baseline.tweaks) || !equal(snapshot.extras.map(e => e.locks), baseline.extras.map(e => e.locks)))
-        warnings.push('New web parameter locks use approximate hardware code mappings; filter/level/resonance are not hardware calibrated.');
+        warnings.push('New web parameter locks use approximate hardware code mappings; filter/resonance are not hardware calibrated; volume uses the recorded relative-gain fit.');
     if (snapshot.tweaks.some(t => !Number.isInteger(t.pitch)) || snapshot.extras.some(e => Object.values(e.locks).some(t => t.pitch !== undefined && !Number.isInteger(t.pitch))))
         warnings.push('Continuous audition pitch is rounded to the native step-code grid on export.');
     return { raw: { state }, warnings };
