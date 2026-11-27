@@ -25,3 +25,6 @@ console.log('PASS measured Scratch cursor periods, ringing-source continuity and
 assert.ok(Math.abs(scratchCursor(.125,.25,.25,4,false,11,true)-.125)<1e-9);
 assert.equal(scratchCursor(.25,.25,.25,4,false,11,true),0);
 console.log('PASS reverse-phase Scratch reaches the source origin at the measured boundary');}
+
+{const v=new Speed(0,1);v.octave(1,1,2,0);assert.equal(v.state(1).rate,1);assert.ok(Math.abs(v.state(1.13).rate-Math.sqrt(2))<.016);assert.equal(v.state(1.27).rate,2);v.target(1.1,1,0,1.1);assert.equal(v.state(1.5).rate,1);
+const next=new Speed(0,1);next.target(1.1,.8,0,0);next.octave(1,1,2,0);assert.equal(next.state(1.5).rate,.8);console.log('PASS octave glide duration and exponential pitch progression; manual/future locks cancel pending ramp');}

@@ -128,3 +128,9 @@ The longer 60BPM capture resolves high partials across four note keys, four nati
 At a saved step containing simultaneous sound slots, hardware P14/P15 retains the first addressed sound as its four-layer group; the app previously ended up with the last. `fireStep` now gives the first sound priority for FX5/6; a later step can still replace it through normal four-voice stealing. No pattern data is rewritten. Multi-source live FX entry has not been proven by this saved-automation capture.
 
 Relative beating phase, window-dependent RMS, exact start offsets, gain under arbitrary signal levels and live multi-source switching remain incomplete. In particular, equal-pitch sections at different pattern positions do not have identical recorded short-window RMS, so a per-note gain patch or invented random detune is not used.
+
+## Octave and6/8 v7 refinement
+
+A held source's octave effect ramps through semitones over about260ms, resetting to base speed when7↔8 changes and returning to base when released. The source cursor is retained. `Speed.octave` schedules4ms constant-rate pieces and integrates their consumed PCM length, so source endings follow the same trajectory as audio. Pending pieces are removed by manual/future parameter changes. This is a measured approximation, not a claim of exact firmware tick timing.
+
+FX13 selects the first three steps of each four-step beat and spreads them at thirds: twelve hits per bar. The fourth note is suppressed instead of overwriting the third at a shared rounded timestamp. The global sixteen-step song and sync clocks still advance normally. Loop1–4's detailed native capture/recapture behavior remains pending and should not be described as hardware-calibrated.

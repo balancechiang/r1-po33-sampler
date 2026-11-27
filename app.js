@@ -739,6 +739,7 @@
   function fireSyncStep(step,time,effect){
     var retrigger=(effect===14 && !fxHeld && !shakeFx) || (syncRetriggerAt!==null && time>=syncRetriggerAt-.00001);
     if(syncRetriggerAt!==null && time>=syncRetriggerAt-.00001)syncRetriggerAt=null;
+    if(effect===13)time+=(window.PO33FX.quantizeStep(step)-step)*stepDur();
     fireStep(retrigger?0:step,time,effect);
   }
   function restoreSyncCursor(now){
@@ -754,6 +755,7 @@
       for(var index=next.index;index<=syncClock.position+1;index++){
         var point=syncClock.point(index,patternChain);seq.pattern=point.pattern;chainPosition=point.chain;
         var effect=effectAt(point.step);if(effect===16)effect=0;var audible=point.time+(point.step%2?stepDur()*SWING:0);
+        if(effect===13)audible=point.time;
         fireSyncStep(point.step,audible,effect);visQueue.push({t:audible,s:point.step,pattern:point.pattern,chain:point.chain});
       }
     }
@@ -772,6 +774,7 @@
       var point=syncClock.point(syncClock.position+k,patternChain),step=point.step,at=when+(k?period*.5*(1+SWING):0);
       seq.pattern=point.pattern;chainPosition=point.chain;if(point.step===0 && seq.queued===point.pattern)seq.queued=0;
       var effect=effectAt(step);if(effect===16)effect=0;
+      if(effect===13)at=when+k*period*.5;
       if(at>=ac.currentTime+.002){fireSyncStep(step,at,effect);visQueue.push({t:at,s:step,pattern:point.pattern,chain:point.chain});}
     }
     var future=syncClock.point(syncClock.position+2,patternChain);seq.pattern=future.pattern;chainPosition=future.chain;seq.schedStep=future.step;seq.nextTime=future.time;
@@ -852,11 +855,11 @@
     var stream=[9,10].indexOf(kind)>=0;fx.engine.engage(stream?kind:0,stepDur());
     rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
     if(previous===15 && kind!==15)refreshVoices(kind,true);
-    if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern);
+    if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern,boundary);
     if(loopHold && !(kind>=1 && kind<=4))releaseLoop();
     if(previous===11 || previous===12 || kind===11 || kind===12)retuneScratch(kind,fromPattern,boundary);
     if(previous===5 || previous===6 || kind===5 || kind===6)retuneUnison(kind===5||kind===6?kind:0,fromPattern);
-    if(kind===7 || kind===8)glideOctave(kind,fromPattern);
+    if(kind===7 || kind===8)glideOctave(kind,fromPattern,boundary);
     if(kind>=1 && kind<=4 && seq.playing)holdLoop(kind,!!fromPattern);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
     if(!fromPattern && kind===15)refreshVoices(15,true);
@@ -868,7 +871,7 @@
     var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
     if(previous===11 || previous===12)retuneScratch(0,fromPattern,boundary);
     if(previous===5 || previous===6)retuneUnison(0,fromPattern);
-    if(previous===7 || previous===8)glideOctave(0,fromPattern);
+    if(previous===7 || previous===8)glideOctave(0,fromPattern,boundary);
     if(loopHold)releaseLoop();
     if(previous===15 && !fromPattern)refreshVoices(0,false);
   }
@@ -924,9 +927,9 @@
       voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume});
     });
   }
-  function glideOctave(kind,fromPattern){
+  function glideOctave(kind,fromPattern,boundary){
     var now=ctx().currentTime;
-    sampleVoices.slice().forEach(function(v){if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at),base=Math.pow(2,(v.semitones+values.pitch)/12);v.effect=kind;v.speed.target(at,base*(kind===7?2:kind===8?.5:1),.035,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);});
+    sampleVoices.slice().forEach(function(v){if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at),base=Math.pow(2,(v.semitones+values.pitch)/12);v.effect=kind;if(kind===7 || kind===8)v.speed.octave(Number.isFinite(boundary)?boundary:at,base,kind===7?2:.5,now);else v.speed.target(at,base,0,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);});
   }
   function audibleStepAt(now){
     var current={step:seq.step,pattern:seq.visualPattern || seq.pattern,start:seq.visualStepTime || now,chain:seq.visualChainPosition || 0};
@@ -1219,7 +1222,7 @@
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);
     if (avail<=0)return;
     var speed=new window.PO33LiveVoice.Speed(t,rate);
-    if(voiceEffect===7 || voiceEffect===8)speed.target(t,rate*(voiceEffect===7?2:.5),.035,t);
+    if(voiceEffect===7 || voiceEffect===8)speed.octave(t,rate,voiceEffect===7?2:.5,t);
     var scratch=null,scratchKind=voiceEffect===11||voiceEffect===12;
     if(scratchKind){
       scratch=window.PO33LiveVoice.scratchLoop(c,s.buffer,s.sourceStart,s.fullSpan,s.resume || 0,rate*stepDur()/(voiceEffect===11?1:2),!performance.scratchContinuation,voiceEffect,performance.scratchNegative===undefined?scratchNegative(voiceEffect,t):performance.scratchNegative);
@@ -1321,7 +1324,7 @@
       var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
       // A queued Loop takes ownership at its audible onset; do not double-trigger it.
-      if (v >= 0 && !(!loopEvent && effect>=1 && effect<=4)) {
+      if (v >= 0 && !(effect===13 && step%4===3) && !(!loopEvent && effect>=1 && effect<=4)) {
         // Saved Unison allocates all four voices to the first simultaneous slot.
         if((effect===5 || effect===6) && unisonTriggered)continue;
         if(effect===5 || effect===6)unisonTriggered=true;
@@ -1358,7 +1361,7 @@
       var s = seq.schedStep;
       var effect=effectAt(s);if(effect===16)effect=0;
       if(effect===14 && !syncMode && !fxHeld && !shakeFx){s=0;seq.schedStep=0;}
-      var at = effect===13 ? t+(window.PO33FX.quantizeStep(s)-s)*stepDur() : ((s % 2 === 1) ? t + stepDur() * SWING : t);
+      var at = effect===13 ? (syncMode?t:t+(window.PO33FX.quantizeStep(s)-s)*stepDur()) : ((s % 2 === 1) ? t + stepDur() * SWING : t);
       if(syncMode)fireSyncStep(s,at,effect);else fireStep(s,at,effect);
       visQueue.push({ t: at, s: s, pattern: seq.pattern,chain:chainPosition });
       seq.schedStep++;

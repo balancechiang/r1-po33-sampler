@@ -9,7 +9,14 @@
    advance(time-last);return {position:pos,rate:r,target,tau};
   }
   prune(now){if(now<this.base)return;const s=this.state(now),future=this.events.filter(e=>e.time>now);this.base=now;this.position=s.position;this.rate=s.rate;this.events=[{time:now,target:s.target,tau:s.tau},...future];}
-  target(time,rate,tau,now){this.prune(now);time=Math.max(this.base,time);this.events=this.events.filter(e=>e.time!==time);this.events.push({time,target:Math.max(.001,rate),tau});this.events.sort((a,b)=>a.time-b.time);}
+  target(time,rate,tau,now){this.prune(now);time=Math.max(this.base,time);this.events=this.events.filter(e=>e.time!==time && !(e.octave && e.time>=time));this.events.push({time,target:Math.max(.001,rate),tau});this.events.sort((a,b)=>a.time-b.time);}
+  octave(time,base,ratio,now){
+   this.prune(now);time=Math.max(time,this.base);this.events=this.events.filter(e=>!e.octave);
+   // Measured near-linear semitone ramp, approximated at 4ms intervals.
+   const stop=Math.min(Infinity,...this.events.filter(e=>e.time>time && !e.octave).map(e=>e.time));
+   for(let i=0;i<=65;i++){const at=time+i*.004;if(at>=stop)break;this.events=this.events.filter(e=>e.time!==at);this.events.push({time:at,target:base*Math.pow(ratio,i/65),tau:0,octave:true});}
+   this.events.sort((a,b)=>a.time-b.time);
+  }
   end(span,now){let lo=Math.max(this.base,now);if(this.state(lo).position>=span)return lo;const min=Math.min(this.rate,...this.events.map(e=>e.target));let hi=lo+(span-this.state(lo).position)/Math.max(.001,min)+.1;for(let i=0;i<42;i++){const mid=(lo+hi)/2;if(this.state(mid).position<span)lo=mid;else hi=mid;}return hi;}
   apply(param,now){const t=Math.max(now,this.base),s=this.state(t);if(param.cancelAndHoldAtTime)param.cancelAndHoldAtTime(t);else param.cancelScheduledValues(t);param.setValueAtTime(s.rate,t);if(s.tau>0)param.setTargetAtTime(s.target,t,s.tau);for(const e of this.events)if(e.time>t){if(e.tau>0)param.setTargetAtTime(e.target,e.time,e.tau);else param.setValueAtTime(e.target,e.time);}}
  }

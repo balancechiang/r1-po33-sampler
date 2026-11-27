@@ -21,6 +21,15 @@ export function buildFxProfile(c){
   note(12,1,1,9,{timing:15});const a=Array(16).fill(null);for(let i=4;i<8;i++)a[i]=5;for(let i=8;i<12;i++)a[i]=6;writeEffects(model.patterns[11],a);section(12,'Held note switch5→6→off','Single key9 note; tests reader continuity and gain on switch.');
   for(let p=13;p<=15;p++){for(let slot=1;slot<=4;slot++)note(p,1,slot,5,{timing:15,pitch:[13,16,18,21][slot-1]});note(p,9,5,5,{timing:15,pitch:24});if(p>13)fx(p,p===14?5:6,1,16);section(p,'Voice stealing '+(p===13?'dry':'FX'+(p===14?5:6)),'Four separately addressed slots with pitch codes13/16/18/21 start together; fifth slot with pitch24 joins at2s. Shared original PCM keeps the backup short. Identifies allocation/stealing without manually operating FX.');}
   keys.forEach((key,i)=>note(16,1+i*4,1,key));section(16,'Dry end reference','Identical to P01.');allowedFX=[5,6];
+ }else if(profile==='loops'){
+  const slices=Array.from({length:16},(_,i)=>{const f=220+55*i;return sound('loop-marker-'+i,.16,t=>.22*Math.sin(2*Math.PI*f*t)*Math.exp(-t/.035)+.055*Math.sin(2*Math.PI*f*2.7*t)*Math.exp(-t/.009));});
+  model.drums[0]={slices};
+  function grid(p,holes=false){for(let i=0;i<16;i++)if(!holes || i%2===0)note(p,i+1,9,i+1);}
+  grid(1);section(1,'Unique marker dry','Sixteen different slice tones220–1045Hz; every step has a unique identity.');
+  for(let kind=1;kind<=4;kind++){grid(kind+1);fx(kind+1,kind,5,12);section(kind+1,'Loop'+kind+' / even-index entry','FX5–12. Tests whether normal steps continue, repeat window and recapture boundaries.');grid(kind+5);fx(kind+5,kind,6,13);section(kind+5,'Loop'+kind+' / odd-index entry','FX6–13. Distinguishes global clock phase from effect-relative phase.');}
+  grid(10,true);section(10,'Alternating silence dry','Only odd numbered steps contain unique tone markers.');
+  for(let kind=1;kind<=4;kind++){grid(kind+10,true);fx(kind+10,kind,5,12);section(kind+10,'Loop'+kind+' / alternating silence','FX5–12, empty even steps; checks which source is captured and whether silence clears it.');}
+  grid(15);writeEffects(model.patterns[14],Array.from({length:16},(_,i)=>1+Math.floor(i/4)));section(15,'Loop1→2→3→4','Unique markers, four steps per effect.');grid(16);section(16,'Unique marker end reference','Identical to P01.');allowedFX=[1,2,3,4];
  }else{
   model.melodic[0]=rich('fx-harmonics',110);model.melodic[1]=sound('fx-chirp',4,t=>.2*(.4+.6*t/4)*Math.sin(2*Math.PI*220/(Math.log(16)/4)*(Math.exp(Math.log(16)/4*t)-1)));
   const slices=Array.from({length:4},(_,i)=>sound('fx-pulse-'+i,.4,t=>.22*Math.sin(2*Math.PI*(330+110*i)*t)*Math.exp(-t/.025)+.07*Math.sin(2*Math.PI*(1300+i*170)*t)*Math.exp(-t/.006)));
@@ -35,6 +44,6 @@ export function buildFxProfile(c){
   for(const [p,a,b] of [[13,7,8],[14,9,10]]){note(p,1,1,5,{timing:15});const e=Array(16).fill(null);for(let i=4;i<8;i++)e[i]=a;for(let i=8;i<12;i++)e[i]=b;writeEffects(model.patterns[p-1],e);section(p,'Held switch'+a+'→'+b+'→off','No new note at effect changes; compare release continuity.');}
   grid(15);fx(15,13,1,16);section(15,'6/8 quantize / whole pattern','Dense markers; tests chain handoff into dry P16.');grid(16);section(16,'Dry end reference','Identical to P01.');allowedFX=[1,2,3,4,7,8,9,10,13,15];
  }
- const manifest={profile:profile==='unison'?'unison-v6':'other-fx-v7',bpm:60,allowedFX,cells,notes:'Original synthesized sources; hardware capture pending. FX14 requires a separate sync test.'};
+ const manifest={profile:profile==='unison'?'unison-v6':profile==='loops'?'loops-v8':'other-fx-v7',bpm:60,allowedFX,cells,notes:'Original synthesized sources; hardware capture pending. FX14 requires a separate sync test.'};
  fs.writeFileSync(path.join(out,'fx-source.json'),JSON.stringify(manifest,null,2));return manifest;
 }

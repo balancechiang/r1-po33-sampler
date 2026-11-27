@@ -19,7 +19,7 @@ try:
   page.add_init_script("window.fxVoices=[];const alloc=()=>{if(!window.PO33Sampling)return setTimeout(alloc,5);const a=PO33Sampling.allocate;PO33Sampling.allocate=(vs,v,c,n)=>{fxVoices.push(v);return a(vs,v,c,n);};};alloc();const wav="+json.dumps(wav)+";if(!localStorage.getItem('step-fx')){localStorage.setItem('step-fx','1');localStorage.setItem('po33.install.web-sampler-20261126.po33.slot1',btoa(JSON.stringify(wav)));localStorage.setItem('po33.install.web-sampler-20261126.po33.meta',btoa(JSON.stringify({factoryRevision:1,bpm:120,swing:0,hardwareTone:false,chain:[1]})));}")
   base=f'http://127.0.0.1:{server.server_port}/'
   page.goto(base+'index.html');page.wait_for_function('document.body.dataset.loading==="false"')
-  page.add_init_script("const a=JSON.parse(localStorage.getItem('step-fx-config')||'null');if(a){const lanes=Array.from({length:16},()=>Array(16).fill(-1));for(const i of a.notes)lanes[0][i]=4;localStorage.setItem('po33.install.web-sampler-20261126.po33.pat1',btoa(JSON.stringify(lanes)));const m=JSON.parse(atob(localStorage.getItem('po33.install.web-sampler-20261126.po33.meta')));m.pattern=1;m.chain=[1];m.extras=Array.from({length:16},()=>({effects:Array(16).fill(a.kind),locks:{}}));localStorage.setItem('po33.install.web-sampler-20261126.po33.meta',btoa(JSON.stringify(m)));}")
+  page.add_init_script("const a=JSON.parse(localStorage.getItem('step-fx-config')||'null');if(a){const lanes=Array.from({length:16},()=>Array(16).fill(-1));for(const i of a.notes)lanes[0][i]=a.kind===13?i:4;localStorage.setItem('po33.install.web-sampler-20261126.po33.pat1',btoa(JSON.stringify(lanes)));const m=JSON.parse(atob(localStorage.getItem('po33.install.web-sampler-20261126.po33.meta')));m.pattern=1;m.chain=[1];m.extras=Array.from({length:16},()=>({effects:Array(16).fill(a.kind),locks:{}}));localStorage.setItem('po33.install.web-sampler-20261126.po33.meta',btoa(JSON.stringify(m)));}")
   def configure(kind,notes):
    page.evaluate("a=>localStorage.setItem('step-fx-config',JSON.stringify(a))",{'kind':kind,'notes':list(notes)});page.reload();page.wait_for_function('document.body.dataset.loading==="false"')
   def down(act,i=1):page.locator('[data-act="'+act+'"]').dispatch_event('pointerdown',{'pointerId':i,'pointerType':'touch','button':0,'bubbles':True})
@@ -36,8 +36,8 @@ try:
    play();print('PASS native per-note retriggers every',.125/count,'seconds with original PCM and no mixed-audio loop')
   configure(0,[]);pad(5);up(2);play();page.evaluate('window.originalVoice=fxVoices.at(-1)');down('fx');pad(7);page.wait_for_timeout(25)
   mid=page.evaluate('originalVoice.src.playbackRate.value');assert 1<mid<2,mid
-  page.wait_for_timeout(180);assert page.evaluate('originalVoice.src.playbackRate.value')>1.98
-  pad(8,3);page.wait_for_timeout(180);assert .49<page.evaluate('originalVoice.src.playbackRate.value')<.52
+  page.wait_for_timeout(300);assert page.evaluate('originalVoice.src.playbackRate.value')>1.98
+  pad(8,3);page.wait_for_timeout(300);assert .49<page.evaluate('originalVoice.src.playbackRate.value')<.52
   up(3);up(2);up(1);play();print('PASS octave glides on the same live source, no restart')
   configure(0,[0]);play();page.wait_for_timeout(30);down('fx');pad(11);page.wait_for_timeout(330)
   slow=page.evaluate('fxVoices.filter(v=>v.scratch).map(v=>({time:v.start,half:v.scratch.half,loop:v.src.loop,end:v.end}))')
@@ -54,6 +54,11 @@ try:
   assert page.evaluate('fxVoices.length')==0
   up(2);up(1);play();assert not errors,errors
   print('PASS Scratch transforms a ringing source, Fast doubles oscillation rate, transport continues, release resumes position, true silence stays silent')
+  configure(13,range(16));play();page.wait_for_timeout(1950)
+  quant=page.evaluate('(()=>{const all=fxVoices.filter(v=>v.effect===13&&v.end>v.start),origin=all[0].start;return all.filter(v=>v.start-origin<1.99).map(v=>({note:v.note,time:v.start-origin}));})()')
+  assert [v['note'] for v in quant]==[0,1,2,4,5,6,8,9,10,12,13,14],quant
+  assert all(abs(v['time']-i/6)<.002 for i,v in enumerate(quant)),quant
+  play();print('PASS measured 6/8 source order: skip every fourth note, twelve evenly spaced hits per bar')
   geometry=page.evaluate('''async()=>{const doc=new DOMParser().parseFromString(await (await fetch('./assets/panel-art.svg')).text(),'image/svg+xml');return ['fx','write'].every(key=>{const circle=doc.querySelector('[data-control="'+key+'"] circle');return circle.getAttribute('r')===doc.querySelector('[data-control="play"] circle').getAttribute('r')&&!circle.hasAttribute('stroke');})&&doc.querySelector('#stripes').getAttribute('patternTransform')==='rotate(45)';}''')
   assert geometry
   print('PASS FX/WRITE share normal backdrop radius, no rim stroke, 45-degree hatching')

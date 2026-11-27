@@ -68,3 +68,11 @@ assert.equal(unisonLayers(5).length,4);assert(unisonLayers(6).some(r=>r>.99));as
 assert(unisonGains(5).every(v=>v>0&&v<=.5));
 
 {const e=new Engine(rate);e.engage(9,.125);run(e,new Float32Array(500).fill(.5));const phase=e.pos/e.stepSamples;e.setStepDuration(.25);assert(Math.abs(e.pos/e.stepSamples-phase)<1e-12);}
+
+{const native=require('./fixtures/other-fx-v7-calibration-20261127.json');
+ const hits=native.hardwarePulses['15'];assert.equal(hits.length,12);
+ const selected=Array.from({length:16},(_,i)=>i).filter(i=>i%4!==3);
+ assert.deepEqual(selected.map(i=>i%4+1),hits.map(h=>h.slice));
+ selected.forEach((step,index)=>assert(Math.abs((hits[index].time-hits[0].time)-quantizeStep(step)*.25)<.006));
+ assert(native.glideFits.every(row=>Math.abs(row.durationSeconds-.260)<.02));
+ console.log('PASS hardware 6/8 slice order and onset grid; measured octave glide duration');}

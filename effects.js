@@ -97,7 +97,7 @@
     // Retry once per block; do not allocate in the inner sample loop.
     if(this.pending && blockPeak>1e-7)this.capture();
   };
-  function quantizeStep(step){return Math.round(step*12/16)*16/12;}
+  function quantizeStep(step){return Math.floor(step/4)*4+Math.min(step%4,2)*4/3;}
   var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st8","st6","scr","scf","6-8","rtr","rev","non"];
   function stepRepeats(kind){return ({3:2,4:3})[kind] || 0;}
   function loopCell(pcm,offset,available,rate,period,playbackRate){
