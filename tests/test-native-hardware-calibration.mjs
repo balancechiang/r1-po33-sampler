@@ -12,3 +12,14 @@ const snapshot={...view,assets:[],slots:Array(16).fill(null),pattern:1};
 const built=buildHardwareProject(snapshot);
 data.volumeCodes.forEach((code,i)=>assert.equal(readCell(built.raw.state.patterns[0],i+1,1).volume,code));
 console.log('PASS measured hardware key map; nonlinear gain within 0.1 dB; all calibrated volume codes export unchanged');
+
+// Keep both adjacent-to-bypass native filter codes distinct and export all codes intact.
+const filterProject=structuredClone(project);filterProject.patterns.forEach(p=>p.steps.forEach(s=>s.triggers=[]));
+for(let code=1;code<=63;code++)filterProject.patterns[Math.floor((code-1)/16)].steps[(code-1)%16].triggers.push({slotId:1,sliceOrNote:4,lengthSteps:1,retriggers:1,paramLocks:{filterCode:code,resonanceCode:63}});
+const filtered=adapt(filterProject,{}),filterBuilt=buildHardwareProject({...filtered,assets:[],slots:Array(16).fill(null),pattern:1});
+for(let code=1;code<=63;code++){
+ const p=Math.floor((code-1)/16),step=(code-1)%16,out=readCell(filterBuilt.raw.state.patterns[p],step+1,1);
+ assert.equal(out.filter,code);assert.equal(out.resonance,63);
+ if(code===31||code===32)assert(Math.abs(filtered.extras[p].locks['0:'+step].filter)>4);
+}
+console.log('PASS native filter 1-63 and resonance re-export; 31/32 remain outside bypass dead zone');

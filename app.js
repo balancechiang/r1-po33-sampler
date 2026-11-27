@@ -1027,12 +1027,12 @@
   var slotNumForVoice = 1,voiceNote=0,voiceGate,voiceTweak;
   function smoothParameter(param,value,time,tau){param.setTargetAtTime(value,time,tau);}
   function setVoiceControls(controls,values,time,initial){
-    var c=ctx(),shape=window.PO33Sampling.filterShape(values.filter,c.sampleRate);
+    var c=ctx(),shape=window.PO33Sampling.filterShape(values.filter,c.sampleRate,values.resonance);
     function set(param,value,tau){if(initial){param.value=value;param.setValueAtTime(value,time);}else smoothParameter(param,value,time,tau);}
-    set(controls.volume.gain,window.PO33Sampling.volumeGain(values.volume),.01);
+    set(controls.volume.gain,window.PO33Sampling.volumeGain(values.volume)*shape.gain,.01);
     set(controls.low.frequency,shape.type==='lowpass'?shape.frequency:Math.min(20000,c.sampleRate*.45),.015);
     set(controls.high.frequency,shape.type==='highpass'?shape.frequency:20,.015);
-    set(controls.low.Q,.7+values.resonance/100*15,.015);set(controls.high.Q,.7+values.resonance/100*15,.015);
+    set(controls.low.Q,20*Math.log10(shape.q),.015);set(controls.high.Q,20*Math.log10(shape.q),.015);
     set(controls.dry.gain,shape.bypass?1:0,.01);
     set(controls.lowGain.gain,!shape.bypass && shape.type==='lowpass'?1:0,.01);
     set(controls.highGain.gain,!shape.bypass && shape.type==='highpass'?1:0,.01);

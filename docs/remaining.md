@@ -34,3 +34,11 @@ Private recordings and captured PCM remain outside Git. Regression measurements 
 The second, single-source FX recording on 2026-11-27 calibrates Unison 5/6 source-layer spectra and Shutter 9/10 gating. The earlier root-clamping Unison model and repeated-buffer shutter model were removed. Isolated wet/dry RMS matches within about 0.3 dB for these four cases, but exact phase, arbitrary-note behavior, Scratch and filter/resonance remain unverified/incomplete.
 
 During this FX calibration, the SY1 all-live-FX clock-grid regression passed. The simulated external-slave test still intermittently failed its strict grid/saved-FX14 assertions; a baseline run serving pre-change app/effects/sampling/voice files reproduced a failure. No slave-clock correction is claimed in this change; physical slave timing and Unison on non-root notes remain follow-up checks.
+
+## Filter/resonance magnitude calibration — 2026-11-27
+
+The third valid recording (not the cancelled take) uses a 60 BPM, 2-second original multisine and 128 parameter cells, master volume 12. Native codes 31/32 no longer fall into the no-filter dead zone. The low/high-pass Web Audio Q parameter is now correctly supplied in dB, converted from the fitted linear Q.
+
+104 cutoff/resonance settings have recorded magnitude fits at 44.1/48/96 kHz. Actual browser node responses have roughly 0.2 dB median RMS fit error on eligible 60 Hz–7.04 kHz bins. A captured playback of the complete web test measures about 0.17 dB median versus the recorded hardware, compared with about 11.3 dB for the old model on the same bins. Code 1 is low-SNR/deep attenuation and remains around 2.3 dB error; bins below 60 Hz, above 7.04 kHz and near the noise floor are excluded. The first res=1 cell following each large cutoff jump is retained as transient evidence but excluded from steady fits. Interpolation away from the six measured resonance/cutoff anchors is an approximation. Phase, arbitrary signal levels, large-jump transition timing, unmeasured sample rates and physical Safari/R1 performance still require checks.
+
+Raw samples are unchanged. New filter/resonance locks re-export with the same native codes. Re-import native projects saved with the previous audition mapping to receive the corrected near-center mapping. There is no claim of exact firmware/DSP reconstruction.

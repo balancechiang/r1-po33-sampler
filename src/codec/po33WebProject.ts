@@ -56,7 +56,7 @@ export function buildHardwareProject(snapshot: WebSnapshot, native?: PO33Project
         })};
     });
     const volumeGain=(v:number)=>v<=100?v/100:1+(v-100)/100*((63*63+240)/1536-1);
-    const params=(t:Partial<Tweak>)=>({pitch:clamp((t.pitch||0)+13,1,25),volume:clamp(Math.sqrt(Math.max(0,volumeGain(t.volume??100)*1536-240)),1,63),filter:t.filter?clamp(t.filter<0?32+t.filter*.31:31+t.filter*.31,1,62):63,resonance:clamp((t.resonance||0)*.62+1,1,63)});
+    const params=(t:Partial<Tweak>)=>({pitch:clamp((t.pitch||0)+13,1,25),volume:clamp(Math.sqrt(Math.max(0,volumeGain(t.volume??100)*1536-240)),1,63),filter:Math.abs(t.filter||0)<=4?63:clamp((t.filter||0)<0?1+((t.filter||0)+100)*30/95:32+((t.filter||0)-5)*30/95,1,62),resonance:clamp((t.resonance||0)*.62+1,1,63)});
     model.patterns=snapshot.patterns.map((p,index)=>{
         const raw=native?native.patterns[index].raw.slice():emptyPattern();
         const extra=snapshot.extras[index],prev=baseline?.extras[index];
@@ -90,7 +90,7 @@ export function buildHardwareProject(snapshot: WebSnapshot, native?: PO33Project
         state=compileProject(model,resolve,template);
         if(native)warnings.push('Sample edits rebuilt pool layout. Unavailable source slices cannot be recreated. Original source frame remains available in the saved checkpoint.');
     }
-    if(!native || !baseline || !equal(snapshot.tweaks,baseline.tweaks) || !equal(snapshot.extras.map(e=>e.locks),baseline.extras.map(e=>e.locks)))warnings.push('New web parameter locks use approximate hardware code mappings; filter/resonance are not hardware calibrated; volume uses the recorded relative-gain fit.');
+    if(!native || !baseline || !equal(snapshot.tweaks,baseline.tweaks) || !equal(snapshot.extras.map(e=>e.locks),baseline.extras.map(e=>e.locks)))warnings.push('New web parameter locks use approximate hardware code mappings; filter/resonance use a recorded magnitude-response fit; volume uses the recorded relative-gain fit.');
     if(snapshot.tweaks.some(t=>!Number.isInteger(t.pitch)) || snapshot.extras.some(e=>Object.values(e.locks).some(t=>t.pitch!==undefined && !Number.isInteger(t.pitch))))warnings.push('Continuous audition pitch is rounded to the native step-code grid on export.');
     return {raw:{state},warnings};
 }

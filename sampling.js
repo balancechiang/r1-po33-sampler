@@ -1,5 +1,6 @@
 /* Behavioral approximation; PO-33 transient thresholds/voice arbitration are not public. */
 (function(root){'use strict';
+ const filterCalibration=root.PO33FilterCalibration || (typeof require==='function'?require('./filter-calibration.js'):null);
  // Calibration defaults, not verified PO-33 firmware constants.
  const AUTO_SLICE_DEFAULTS=Object.freeze({maxSlices:16,minDistanceMs:55,snapBackMs:2,fastMs:3,slowMs:45,relativeThreshold:.015});
  function transientSlices(data,rate,options){
@@ -61,11 +62,8 @@
    start=bounded((offset+span*fraction)*rate);end=bounded((offset+span*(fraction+(1-fraction)*(tweak.length===undefined?100:tweak.length)/100))*rate);}
   return {start:start,end:Math.max(start,end)};
  }
- function filterShape(value,rate){
-  value=Math.max(-100,Math.min(100,value || 0));var top=Math.min(20000,rate*.45);
-  if(Math.abs(value)<=4)return {bypass:true,type:'lowpass',frequency:top};
-  return value<0?{bypass:false,type:'lowpass',frequency:100*Math.pow(top/100,(value+100)/96)}:{bypass:false,type:'highpass',frequency:20*Math.pow(400,(value-4)/96)};
- }
+ function filterShape(value,rate,resonance){return filterCalibration.shape(value,rate,resonance);}
+
  // Keep unity at the knob midpoint while covering the measured native maximum gain.
  const MAX_VOLUME_GAIN=(63*63+240)/1536;
  function volumeGain(value){value=Math.max(0,Math.min(200,value));return value<=100?value/100:1+(value-100)/100*(MAX_VOLUME_GAIN-1);}

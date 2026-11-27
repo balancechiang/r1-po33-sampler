@@ -62,7 +62,7 @@
     } else if (props.mode === "filter") {
       const value=clamp(props.cutoff || 0,-100,100);
       if(Math.abs(value)<=4)result[18]=true;
-      else {const count=Math.round((1-Math.abs(value)/100)*SEGMENT_COUNT);for(let i=0;i<count;i++)result[value<0?i:SEGMENT_COUNT-1-i]=true;}
+      else {const count=Math.min(SEGMENT_COUNT,Math.round((100-Math.abs(value))/95*SEGMENT_COUNT));for(let i=0;i<count;i++)result[value<0?i:SEGMENT_COUNT-1-i]=true;}
     } else if (props.mode === "trim") {
       const start = clamp(props.start === undefined ? 0 : props.start, 0, 100);
       const length = clamp(props.length === undefined ? 100 : props.length, 0, 100 - start);

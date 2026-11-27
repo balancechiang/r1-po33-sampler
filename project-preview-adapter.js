@@ -22,7 +22,7 @@
       if(codes.pitchCode)out.pitch=codes.pitchCode-13;
       // Relative gain fitted to the 2026-11-27 native line-out recording; code 36 is unity.
       if(codes.volumeCode)out.volume=root.PO33Sampling.gainVolume((codes.volumeCode*codes.volumeCode+240)/1536);
-      if(codes.filterCode)out.filter=codes.filterCode===63?0:codes.filterCode<=31?(codes.filterCode-32)/31*100:(codes.filterCode-31)/31*100;
+      if(codes.filterCode)out.filter=codes.filterCode===63?0:codes.filterCode<=31?-100+(codes.filterCode-1)*95/30:5+(codes.filterCode-32)*95/30;
       if(codes.resonanceCode)out.resonance=(codes.resonanceCode-1)/62*100;
       return out;
     }

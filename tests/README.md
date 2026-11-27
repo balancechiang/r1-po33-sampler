@@ -50,3 +50,6 @@ Native PCM import/restore bypasses additional master coloration by default; the 
 
 - `node scripts/build-calibration.mjs <output-dir> --filter-isolated`: original 5 Hz–10.5 kHz multisine; 60 BPM, 64-second automatic filter/resonance sweep, 128 verified native cells and no FX.
 - `python tests/test-calibration-import.py <filter-backup.wav> --filter`: actual browser import/reload/play and exact filter/resonance code re-export.
+
+- `python tests/test-filter-response.py`: actual browser biquad magnitude error against recorded fixtures, Q dB units, filter gain and 31/32 mapping.
+- `python scripts/fit-filter-calibration.py`: regenerate fitted filter tables (offline numpy/scipy required).

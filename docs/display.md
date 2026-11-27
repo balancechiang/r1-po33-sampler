@@ -100,3 +100,5 @@ Copy/selection LED cadence calibrated from user video IMG_3199.mov (2026-11-27):
 The same copy video shows waiting CPY LCD cycles at approximately 0.63 s (visible transitions roughly 1.93/2.57 s off and 2.17/2.80 s on, affected by LCD persistence), then steady CPY after paste. Seven-segment blinking prompts use a 625 ms cycle; the step-copy confirmation remains steady for one second. The video directly validates CPY timing; other prompts share the cadence as a UI convention.
 
 iOS home-screen layout uses measured body/visual viewport height, subtracts current safe-area padding, and reschedules after ResizeObserver, pageshow, visibility/focus and delayed startup settling. This avoids mixing stale innerHeight with CSS dvh during standalone launch. Browser tests simulate delayed insets and stale heights; physical iOS standalone validation is still required.
+
+The active filter ruler normalizes the -100…-5 and +5…+100 ranges: native near-center cutoff codes 31/32 fill the complete 38 cells, extremes reach zero cells, and the no-filter dead zone retains one center cell.

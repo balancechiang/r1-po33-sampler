@@ -28,4 +28,6 @@ for(let value=0;value<=38;value++){
 assert.throws(()=>segments({mode:'unknown'}), TypeError);
 console.log('PASS: 38 states; signed centered pitch across complete -12/+12 half-ranges; neutral and saturation; trim intervals, clipping and empty ranges; proportional level and invalid mode.');
 
-assert.deepEqual(lit({mode:'filter',cutoff:0}),[18]);assert.equal(lit({mode:'filter',cutoff:-100}).length,0);assert.equal(lit({mode:'filter',cutoff:100}).length,0);assert.deepEqual(lit({mode:'filter',cutoff:-50}),Array.from({length:19},(_,i)=>i));assert.deepEqual(lit({mode:'filter',cutoff:50}),Array.from({length:19},(_,i)=>19+i));
+assert.deepEqual(lit({mode:'filter',cutoff:0}),[18]);assert.equal(lit({mode:'filter',cutoff:-100}).length,0);assert.equal(lit({mode:'filter',cutoff:100}).length,0);assert.deepEqual(lit({mode:'filter',cutoff:-50}),Array.from({length:20},(_,i)=>i));assert.deepEqual(lit({mode:'filter',cutoff:50}),Array.from({length:20},(_,i)=>18+i));
+
+assert.equal(lit({mode:'filter',cutoff:-5}).length,38);assert.equal(lit({mode:'filter',cutoff:5}).length,38);
