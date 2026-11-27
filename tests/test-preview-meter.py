@@ -34,7 +34,7 @@ try:
   page.evaluate('testMelodic()')
   page.locator('[data-pad="13"]').dispatch_event('pointerdown',{'pointerId':3,'pointerType':'touch','bubbles':True})
   page.evaluate('testValue(0,16)');page.wait_for_timeout(100)
-  assert page.locator('#lcdMeter').get_attribute('data-indicator-mode')=='pitch'
+  assert page.locator('#lcdMeter').get_attribute('data-indicator-mode')=='level'
   up(3)
   assert not errors,errors
   print('PASS manual pad/SOUND previews blank, playback meter retained, parameter indicator retained')

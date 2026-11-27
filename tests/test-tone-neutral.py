@@ -13,7 +13,7 @@ try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',headless=True,args=['--mute-audio','--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream'])
   page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.route('**/app.js*',lambda route:route.fulfill(body=(root/'app.js').read_text().replace('  function applySnapshot(snapshot){','  window.testSnapshot=snapshotProject;window.testSeed=function(){state.slot=9;lastNote=0;lastNotes[8]=0;state.mode="STEP";patterns[seq.pattern-1].lanes.forEach(function(l){l.fill(-1);});patterns[seq.pattern-1].lanes[8]=[0,1,0,1,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];tweaks[8].filter=35;tweaks[8].resonance=42;paint();};window.testMelodic=function(){state.slot=1;lastNote=4;lastNotes[0]=4;state.mode="STEP";patterns[seq.pattern-1].lanes.forEach(function(l){l.fill(-1);});patterns[seq.pattern-1].lanes[0][12]=4;patterns[seq.pattern-1].lanes[0][0]=4;patterns[seq.pattern-1].lanes[0][14]=6;paint();};window.testValue=function(i,v){var spec=knobSpec(i);window.testAdjust(i,(v-spec[0])*100/(spec[2]-spec[1]));};window.testTone=function(i,v){stepEdit=null;state.mode="PLAY";soundPreviewMeter=false;parameterDisplay=true;tweakMode=0;var spec=knobSpec(i);window.testAdjust(i,(v-spec[0])*100/(spec[2]-spec[1]));};window.testMode=function(m){tweakMode=m;};window.testAdjust=function(i,dir){syncKnobTarget(i);knobAngles[i]=knobPickup[i].target*KNOB_SWEEP;knobPickup[i].caught=true;adjustKnob(i,dir);};window.testVoices=0;var realVoice=voice;voice=function(){window.testVoices++;return realVoice.apply(null,arguments);};\n  function applySnapshot(snapshot){'),content_type='application/javascript'))
+  page.route('**/app.js*',lambda route:route.fulfill(body=(root/'app.js').read_text().replace('  function applySnapshot(snapshot){','  window.testSnapshot=snapshotProject;window.testSeed=function(){state.slot=9;lastNote=0;lastNotes[8]=0;state.mode="STEP";patterns[seq.pattern-1].lanes.forEach(function(l){l.fill(-1);});patterns[seq.pattern-1].lanes[8]=[0,1,0,1,2,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];tweaks[8].filter=35;tweaks[8].resonance=42;paint();};window.testMelodic=function(){state.slot=1;lastNote=4;lastNotes[0]=4;state.mode="STEP";patterns[seq.pattern-1].lanes.forEach(function(l){l.fill(-1);});patterns[seq.pattern-1].lanes[0][12]=4;patterns[seq.pattern-1].lanes[0][0]=4;patterns[seq.pattern-1].lanes[0][14]=6;paint();};window.testValue=function(i,v){var spec=knobSpec(i);window.testAdjust(i,(v-spec[0])*100/(spec[2]-spec[1]));};window.testRange=function(mode,i,v){stepEdit=null;state.mode="PLAY";soundPreviewMeter=false;parameterDisplay=true;tweakMode=mode;bpmHeld=mode===3;var spec=knobSpec(i);window.testAdjust(i,(v-spec[0])*100/(spec[2]-spec[1]));};window.testTone=function(i,v){stepEdit=null;state.mode="PLAY";soundPreviewMeter=false;parameterDisplay=true;tweakMode=0;var spec=knobSpec(i);window.testAdjust(i,(v-spec[0])*100/(spec[2]-spec[1]));};window.testMode=function(m){tweakMode=m;};window.testAdjust=function(i,dir){syncKnobTarget(i);knobAngles[i]=knobPickup[i].target*KNOB_SWEEP;knobPickup[i].caught=true;adjustKnob(i,dir);};window.testVoices=0;var realVoice=voice;voice=function(){window.testVoices++;return realVoice.apply(null,arguments);};\n  function applySnapshot(snapshot){'),content_type='application/javascript'))
   page.goto(f'http://127.0.0.1:{server.server_port}/');page.wait_for_function('document.body.dataset.loading==="false"')
   def button(key):return page.locator('#bpmMode' if key=='bpm' else '[data-act="'+key+'"]')
   def down(key,i=1,kind='touch'):button(key).dispatch_event('pointerdown',{'pointerId':i,'pointerType':kind,'button':0,'bubbles':True})
@@ -30,10 +30,15 @@ try:
    counts=[]
    for value in values:
     page.evaluate('testTone('+str(index)+','+str(value)+')');page.wait_for_timeout(100)
-    assert page.locator('#lcdMeter').get_attribute('data-indicator-origin')=='left'
-    assert page.locator('#lcdMeter [data-segment="18"]').get_attribute('data-active')=='true'
+    assert page.locator('#lcdMeter').get_attribute('data-indicator-mode')==('pitch' if index==0 else 'level')
+    if index==1 or value==0:assert page.locator('#lcdMeter [data-segment="18"]').get_attribute('data-active')=='true'
     counts.append(page.locator('#lcdMeter [data-active="true"]').count())
-   assert counts==[1,19,38],counts
+   assert counts==([19,1,19] if index==0 else [1,19,38]),counts
+  for mode,index,lo,hi in [(1,1,0,100),(3,0,0,50),(3,1,60,240)]:
+   for value,expected in [(lo,0),(hi,38)]:
+    page.evaluate('testRange('+','.join(map(str,[mode,index,value]))+')');page.wait_for_timeout(100)
+    assert page.locator('#lcdMeter [data-active="true"]').count()==expected,(mode,index,value,expected,page.locator('#lcdMeter').get_attribute('aria-label'))
+    assert page.locator('#'+('knobA' if index==0 else 'knobB')).evaluate('(e)=>e.style.getPropertyValue("--knob-angle")')==('0deg' if value==lo else '270deg')
   assert not errors,errors
   print('PASS centered neutral startup, unity gain midpoint and left-to-right tone scale with center marker')
   browser.close()

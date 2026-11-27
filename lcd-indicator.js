@@ -14,7 +14,7 @@
    * @property {number} [peak=0] Symmetric peak extent (0–38), meter mode only.
    * @property {number[]} [trail] Per-cell fading persistence (0–1), meter mode only.
    * @property {number} [cutoff=0] Signed filter position (-100 to 100).
-   * @property {number} [pitch=0] Semitone offset; 2 squares per semitone.
+   * @property {number} [pitch=0] Semitone offset; -12 to +12 maps to the complete left/right half.
    * @property {number} [start=0] Trim start, in percent (0–100).
    * @property {number} [length=100] Trim length, in percent (0–100).
    * @property {number} [value=0] Level/FX count (0–38).
@@ -54,10 +54,10 @@
     const result = Array(SEGMENT_COUNT).fill(false);
     if (props.mode === "pitch") {
       const value = Number(props.pitch);
-      const pitch = Number.isFinite(value) ? clamp(value, -8, 8) : 0;
-      const count = Math.round(Math.abs(pitch) * 2);
-      // The center is between 18 and 19; neutral shows these two squares.
-      if (count === 0) result[18] = result[19] = true;
+      const pitch = Number.isFinite(value) ? clamp(value, -12, 12) : 0;
+      const count = Math.round(Math.abs(pitch) * 19 / 12);
+      // Neutral is one existing square; each end reaches the physical bar edge.
+      if (count === 0) result[18] = true;
       for (let i = 0; i < count; i++) result[pitch < 0 ? 18 - i : 19 + i] = true;
     } else if (props.mode === "filter") {
       const value=clamp(props.cutoff || 0,-100,100);

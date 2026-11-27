@@ -630,7 +630,7 @@
   var KNOB_SWEEP = 270; // total mechanical travel, shared by both knobs
 
   var factoryMuted = [], knobAngles = [0,0],HOLD_DELAY=800,soundPreviewMeter=false;
-  var parameterDisplay=false,toneKnob=0;
+  var parameterDisplay=false,toneKnob=0,knobIndicatorContext=null;
   var lcdIndicator=null,outputBallistics=new window.PO33Indicator.Meter(),inputBallistics=new window.PO33Indicator.Meter();
   var sideRecArmed=false, sideRecHeld=false, sideClickIgnoreUntil=0;
   var shakeFx=0, lastShakeFx=0, outputActiveUntil=0;
@@ -2428,7 +2428,7 @@
     heldPad = n;
 
     if (bpmHeld) {
-      modifierUsed.bpm = true; masterVolume = n;
+      modifierUsed.bpm = true;knobIndicatorContext=null; masterVolume = n;
       ctx();mixVolume.gain.value=n/16;showNumber(n,"VOL");persistSoon();paint();return;
     }
     if (writeHeld && (soundHeld || patternHeld)) {
@@ -2818,18 +2818,18 @@
     if(seq.playing && !transferView && props.mode==="level" && props.origin==="center" && !soundHeld && state.mode!=="SOUND" && !(!seq.playing && soundPreviewMeter)){props=outputBallistics.update(rms,level,performance.now());}
     else outputBallistics.reset();
     if(!transferView && (recHeld||rec.on)){props=inputBallistics.update(inputActive?inputLevel:0,inputActive?inputPeak:0,performance.now(),'left');}else inputBallistics.reset();
-    lcdIndicator.setProps(props);
+    lcdIndicator.setProps(Object.assign({centerMark:false},props));
   }
   function indicatorProps(level,inputActive) {
     var meter={mode:"level",origin:!inputActive?"center":"left",value:seq.playing || inputActive?Math.ceil(Math.min(1,level*1.5)*38):0};
     if(inputActive)return meter;
     if(soundHeld || state.mode==="SOUND" || (!seq.playing && soundPreviewMeter))return {mode:"level",origin:"center",value:0};
     if(fx.kind)return meter;
-    if(bpmHeld)return {mode:"level",origin:"left",value:Math.round(masterVolume*38/16)};
-    if(stepEdit && stepEdit.used)return {mode:"pitch",pitch:effectiveTweak(stepEdit.slot).pitch+(stepEdit.slot<=8?window.PO33Sampling.MELODIC_OFFSETS[patterns[stepEdit.pattern-1].lanes[stepEdit.slot-1][stepEdit.step]]:0)};
+    if(bpmHeld){if(knobIndicatorContext==="bpm"){var spec=knobSpec(toneKnob);return {mode:"level",origin:"left",value:Math.round((spec[0]-spec[1])/(spec[2]-spec[1])*38)};}return {mode:"level",origin:"left",value:Math.round(masterVolume*38/16)};}
+    if(stepEdit && stepEdit.used){var spec=knobSpec(toneKnob);return {mode:"level",origin:"left",value:Math.round((spec[0]-spec[1])/(spec[2]-spec[1])*38)};}
     if(!parameterDisplay)return meter;
-    if(tweakMode===1)return {mode:"filter",cutoff:effectiveTweak(state.slot).filter};
-    if(tweakMode===0){var tone=effectiveTweak(state.slot);return {mode:"level",origin:"left",value:Math.round((toneKnob===0?(tone.pitch+12)/24:tone.volume/200)*38),centerMark:true};}
+    if(tweakMode===1)return toneKnob===1?{mode:"level",origin:"left",value:Math.round(effectiveTweak(state.slot).resonance*38/100)}:{mode:"filter",cutoff:effectiveTweak(state.slot).filter};
+    if(tweakMode===0){var tone=effectiveTweak(state.slot);return toneKnob===0?{mode:"pitch",pitch:tone.pitch}:{mode:"level",origin:"left",value:Math.round(tone.volume/200*38),centerMark:true};}
     if(tweakMode===2) {
       var t=selectedTweak(state.slot,lastNote),sample=samples[state.slot-1];
       if(!sample || (sample.sliceViews && !sample.sliceViews[lastNote]))return {mode:"trim",start:0,length:0};
@@ -2891,7 +2891,7 @@
     if(stepEdit && stepEdit.slot>8 && index===1){
       if(stepCopyTimer)clearTimeout(stepCopyTimer);stepCopyTimer=null;stepEdit.used=true;return;
     }
-    var movement=movePhysicalKnob(index,dir);if(!movement)return;soundPreviewMeter=false;toneKnob=index;
+    var movement=movePhysicalKnob(index,dir);if(!movement)return;soundPreviewMeter=false;toneKnob=index;knobIndicatorContext=bpmHeld?"bpm":"sound";
     if(stepEdit) {
       var e=stepEdit,detail=editDetail(e),lane=patterns[e.pattern-1].lanes[e.slot-1],before=knobSpec(index);
       if(index===0 && lane[e.step]===Math.max(0,Math.min(15,movement.value-1))){paint();return;}
@@ -2946,7 +2946,7 @@
       showNumber("tr"+detail.retrigs,"RETRIG");persistSoon();paint();return;
     }
     e.preventDefault();if(touchChord.bpm!==undefined){pressLatched(e,"bpm");return;}
-    parameterDisplay=false;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=!!e.po33ChordConsumed;armChord(e,"bpm",this);paint();
+    parameterDisplay=false;knobIndicatorContext=null;bpmHeld=true;modifierPointers.bpm=pid(e);modifierUsed.bpm=!!e.po33ChordConsumed;armChord(e,"bpm",this);paint();
   });
   ["knobA","knobB"].forEach(function(id,index){
     var knob=d.getElementById(id), active=false,lastY=0;
