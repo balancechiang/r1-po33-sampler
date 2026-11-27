@@ -934,7 +934,12 @@
   }
   function voicePosition(v,time){
     var elapsed=v.speed.state(time).position;
-    return v.scratch?window.PO33LiveVoice.scratchCursor(elapsed+(v.scratchPhase || 0),v.scratch.half,v.scratch.anchor,v.scratch.span,v.scratch.fresh,v.scratch.kind):(v.anchor-v.sourceStart)+elapsed;
+    return v.scratch?window.PO33LiveVoice.scratchCursor(elapsed+(v.scratchPhase || 0),v.scratch.half,v.scratch.anchor,v.scratch.span,v.scratch.fresh,v.scratch.kind,v.scratch.negative):(v.anchor-v.sourceStart)+elapsed;
+  }
+  function scratchNegative(kind,time){
+    var point=audibleStepAt(time),fraction=point.step+Math.max(0,(time-point.start)/stepDur());
+    var phase=kind===11?fraction%2:(fraction*2)%2;
+    return phase>=1-.00001;
   }
   function retuneScratch(kind,fromPattern,boundary){
     var now=ctx().currentTime;boundary=Number.isFinite(boundary)?boundary:now;
@@ -943,7 +948,9 @@
       var at=Math.max(now+.003,v.start),resume=v.start>now?0:voicePosition(v,Math.max(v.start,boundary-(v.scratch?1/ctx().sampleRate:0)));
       var gate=v.scratch?v.scratchGate:(v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at));
       cancelVoice(v,now);
-      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,scratchContinuation:true,scratchAgeSeconds:Math.max(0,at-boundary)});
+      // A reverse leg arriving at sample zero has ended; disabling FX cannot revive it.
+      if(v.scratch && kind!==11 && kind!==12 && resume<.001)return;
+      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,sourcePad:v.sourcePad,scratchContinuation:true,scratchNegative:scratchNegative(kind,boundary),scratchAgeSeconds:Math.max(0,at-boundary)});
     });
   }
   function advanceLoopShadow(now){
@@ -1215,9 +1222,11 @@
     if(voiceEffect===7 || voiceEffect===8)speed.target(t,rate*(voiceEffect===7?2:.5),.035,t);
     var scratch=null,scratchKind=voiceEffect===11||voiceEffect===12;
     if(scratchKind){
-      scratch=window.PO33LiveVoice.scratchLoop(c,s.buffer,s.sourceStart,s.fullSpan,s.resume || 0,rate*stepDur()/(voiceEffect===11?1:2),!performance.scratchContinuation,voiceEffect);
+      scratch=window.PO33LiveVoice.scratchLoop(c,s.buffer,s.sourceStart,s.fullSpan,s.resume || 0,rate*stepDur()/(voiceEffect===11?1:2),!performance.scratchContinuation,voiceEffect,performance.scratchNegative===undefined?scratchNegative(voiceEffect,t):performance.scratchNegative);
     }
-    var dur = scratch?86400:Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
+    var scratchLimit=scratch && scratch.negative && performance.scratchContinuation && scratch.anchor<=scratch.half?Math.max(0,scratch.anchor/rate-(performance.scratchAgeSeconds || 0)):86400;
+    if(scratch && scratchLimit<=.00001)return;
+    var dur = scratch?scratchLimit:Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
     var src = c.createBufferSource();
     var playbackBuffer = voiceEffect===15 || performance.reverse?reverseBuffer(s.buffer):s.buffer;
     if(voiceEffect===15 || performance.reverse)off=Math.max(0,s.buffer.duration-off-avail);
@@ -1232,7 +1241,7 @@
     src.connect(controls.input);
     if(scratch)src.start(t,(rate*(performance.scratchAgeSeconds || 0))%scratch.buffer.duration);else src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,sourcePad:s.sourcePad,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1247,13 +1256,15 @@
     window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice,performance && performance.unisonGroup);
     var sample=samples[slotNum-1];if(!sample)return;
     var tw=override || effectiveTweak(slotNum,at);voiceTweak=tw;
-    var view=slotNum>8?rawSlice(sample,padIndex):sample;if(!view)return;
-    var trim=slotNum>8?(tw.slices[padIndex] || {start:0,length:100}):tw;
+    // Recorded hardware Scratch ignores drum note selection and reads slice one.
+    var sourcePad=performance && Number.isInteger(performance.sourcePad)?performance.sourcePad:slotNum>8 && (kind===11 || kind===12)?0:padIndex;
+    var view=slotNum>8?rawSlice(sample,sourcePad):sample;if(!view)return;
+    var trim=slotNum>8?(tw.slices[sourcePad] || {start:0,length:100}):tw;
     var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
     var sourceStart=region.start/view.buffer.sampleRate;
     var fullSpan=(region.end-region.start)/view.buffer.sampleRate;
     if(performance && performance.resumeSeconds)region.start=Math.min(region.end,region.start+Math.round(performance.resumeSeconds*view.buffer.sampleRate));
-    var s={buffer:view.buffer,fullSpan:fullSpan,resume:performance && performance.resumeSeconds || 0,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
+    var s={buffer:view.buffer,sourcePad:sourcePad,fullSpan:fullSpan,resume:performance && performance.resumeSeconds || 0,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
     playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 

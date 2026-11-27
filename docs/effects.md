@@ -114,3 +114,9 @@ On the isolated test's analysis windows, wet/dry RMS differences versus hardware
 The v4 original-chirp recording at 60 BPM / master 12 contradicts the earlier per-step retrigger model. Fresh FX11 notes expose a reverse leg from the opposite sample boundary; ongoing non-boundary voices follow a continuous forward/backward window. FX12 has half the cycle length. The implementation models this distinction, with interpolated sample reads.
 
 `scripts/analyze-scratch-calibration.py` compares private hardware WAV and actual browser Float32 captures; only numerical results enter Git. Its eight effect-interior chirp windows separate missing audio from dominant-frequency error: actual browser captures have full audible coverage and roughly 2–17 cents median error per section after correction. It excludes reversals, effect release, drum behavior and phase from accuracy claims. Hardware release transients, short drum slices, tempo/pitch changes while holding Scratch and arbitrary trim boundaries remain pending. The earlier isolated filter-magnitude calibration is documented separately.
+
+### Scratch boundary refinement
+
+The v5 shared-versus-independent allocation comparison shows the same drum behavior: native saved FX11/12 reads the first drum slice regardless of the current note's slice number. A temporary source-pad override models this without rewriting pattern notes. Reader continuation retains the source actually being played. FX11's starting direction follows the transport's sixteenth phase; an ongoing reverse reader reaching its origin terminates. Turning off Scratch at that terminated origin does not start the sample again.
+
+The v5 recording validates these specific saved-automation cases at60BPM/base pitch, not arbitrary live gestures. Four drum chirp windows now have roughly2–4 cents median error (previously899–903); the two erroneous long tails are gone. Reversal clicks and edge-phase identity are not fitted.

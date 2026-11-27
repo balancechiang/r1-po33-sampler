@@ -19,7 +19,7 @@ try:
   page.add_init_script("window.fxVoices=[];const alloc=()=>{if(!window.PO33Sampling)return setTimeout(alloc,5);const a=PO33Sampling.allocate;PO33Sampling.allocate=(vs,v,c,n)=>{fxVoices.push(v);return a(vs,v,c,n);};};alloc();const wav="+json.dumps(wav)+";if(!localStorage.getItem('step-fx')){localStorage.setItem('step-fx','1');for(const slot of [1,2,3,4,5,9])localStorage.setItem('po33.install.web-sampler-20261126.po33.slot'+slot,btoa(JSON.stringify(wav)));localStorage.setItem('po33.install.web-sampler-20261126.po33.meta',btoa(JSON.stringify({factoryRevision:1,bpm:120,swing:0,hardwareTone:false,chain:[1]})));}")
   base=f'http://127.0.0.1:{server.server_port}/'
   def instrument(route):
-   r=route.fetch();code=r.text().rsplit('})();',1)[0]+"window.uniTest={fire:(slot,pad,effect)=>voice(slot,pad,undefined,undefined,effect),on:n=>fxEngage(n),off:()=>fxRelease(),slotPitch:()=>{tweaks[0].pitch=3;manualParameter(1,'pitch',3)},routing:()=>({engine:fx.engine.kind,dry:dryGain.gain.value,wet:fx.wet.gain.value})};})();";route.fulfill(response=r,body=code)
+   r=route.fetch();code=r.text().rsplit('})();',1)[0]+"window.uniTest={fire:(slot,pad,effect,performance)=>voice(slot,pad,undefined,undefined,effect,undefined,performance),offAt:t=>fxRelease(true,t),stop:()=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));fx.kind=0;},on:n=>fxEngage(n),off:()=>fxRelease(),slotPitch:()=>{tweaks[0].pitch=3;manualParameter(1,'pitch',3)},routing:()=>({engine:fx.engine.kind,dry:dryGain.gain.value,wet:fx.wet.gain.value})};})();";route.fulfill(response=r,body=code)
   page.route('**/app.js?*',instrument)
   page.goto(base+'index.html');page.wait_for_function('document.body.dataset.loading==="false"')
   page.add_init_script("const a=JSON.parse(localStorage.getItem('step-fx-config')||'null');if(a){const lanes=Array.from({length:16},()=>Array(16).fill(-1));for(const i of a.notes)lanes[0][i]=4;localStorage.setItem('po33.install.web-sampler-20261126.po33.pat1',btoa(JSON.stringify(lanes)));const m=JSON.parse(atob(localStorage.getItem('po33.install.web-sampler-20261126.po33.meta')));m.pattern=1;m.chain=[1];m.extras=Array.from({length:16},()=>({effects:Array(16).fill(a.kind),locks:{}}));localStorage.setItem('po33.install.web-sampler-20261126.po33.meta',btoa(JSON.stringify(m)));}")
@@ -42,6 +42,20 @@ try:
   page.evaluate('uniTest.off()');page.wait_for_timeout(30);voices=active();assert len(voices)==1 and abs(voices[0]['rate']-2**(3/12))<1e-5
   page.evaluate('uniTest.fire(3,4,5)');page.wait_for_timeout(20);voices=active();assert len(voices)==4 and all(v['slot']==3 for v in voices)
   page.evaluate('uniTest.fire(9,8,6)');page.wait_for_timeout(20);voices=active();assert len(voices)==4 and all(v['slot']==9 and v['note']==8 for v in voices)
+  page.evaluate('uniTest.fire(9,8,11);uniTest.on(11)');page.wait_for_timeout(20)
+  v=page.evaluate('fxVoices.at(-1) && ({note:fxVoices.at(-1).note,sourcePad:fxVoices.at(-1).sourcePad,scratch:!!fxVoices.at(-1).scratch})')
+  assert v=={'note':8,'sourcePad':0,'scratch':True},v
+  page.evaluate('uniTest.off()');page.wait_for_timeout(20)
+  assert page.evaluate('fxVoices.at(-1).sourcePad')==0
+  page.evaluate('uniTest.fire(9,8,0)');assert page.evaluate('fxVoices.at(-1).sourcePad')==8
+  page.evaluate('uniTest.fire(9,5,12)');assert page.evaluate('fxVoices.at(-1).sourcePad')==0
+  print('PASS recorded Scratch drum slice-one selection, continuation source and unchanged dry drum selection')
+  page.evaluate('uniTest.stop();uniTest.on(12);uniTest.fire(1,4,12);window.boundaryVoice=fxVoices.at(-1)');page.wait_for_timeout(160)
+  page.evaluate('uniTest.offAt(boundaryVoice.start+boundaryVoice.scratch.half*2/boundaryVoice.speed.rate)');page.wait_for_timeout(15)
+  assert not [v for v in active() if v['slot']==1]
+  page.evaluate('uniTest.stop();uniTest.fire(1,4,11,{resumeSeconds:.04,scratchContinuation:true,scratchNegative:true});window.reverseVoice=fxVoices.at(-1)');page.wait_for_timeout(100)
+  assert page.evaluate('reverseVoice.end<=reverseVoice.src.context.currentTime')
+  print('PASS Scratch release at the origin stays silent; reverse-phase continuation terminates at the source boundary')
   assert not errors,errors
   print('PASS measured four-layer Unison/Low, live enter/switch/release, shared choke group, drum index and global four-voice stealing')
   b.close()

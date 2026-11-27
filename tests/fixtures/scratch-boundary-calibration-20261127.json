@@ -1,0 +1,180 @@
+{
+  "profile": "scratch-boundaries-v5",
+  "hardwareOnsetSeconds": 16.08081613388886,
+  "bpm": 60,
+  "notes": "Frequency comparisons exclude reversal/step boundaries and silence. Occupancy compares selected windows to each recording dry reference. Not an exact phase/transient fit.",
+  "results": {
+    "before": {
+      "webOnsetSeconds": 0.011904505371953755,
+      "patterns": [
+        {
+          "pattern": 2,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 0.7798098693024539
+        },
+        {
+          "pattern": 3,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07111784455695,
+          "webRelativeDb": -240.0
+        },
+        {
+          "pattern": 4,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07050927645577,
+          "webRelativeDb": 2.529732969537851
+        },
+        {
+          "pattern": 5,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07294406069242,
+          "webRelativeDb": 2.915036991369953
+        },
+        {
+          "pattern": 6,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 8.294143129112141
+        },
+        {
+          "pattern": 8,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 899.3874079229383
+        },
+        {
+          "pattern": 9,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 901.7393085378772
+        },
+        {
+          "pattern": 11,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 900.8357151162652
+        },
+        {
+          "pattern": 12,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 903.4108105802989
+        },
+        {
+          "pattern": 14,
+          "kind": "chirp",
+          "samples": 8,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 12.504410522945019
+        },
+        {
+          "pattern": 15,
+          "kind": "chirp",
+          "samples": 8,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 5.270870875440821
+        },
+        {
+          "pattern": 16,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 3.7101391054730852
+        }
+      ]
+    },
+    "after": {
+      "webOnsetSeconds": 0.011904505371953755,
+      "patterns": [
+        {
+          "pattern": 2,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 0.7798098693024539
+        },
+        {
+          "pattern": 3,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07111784455695,
+          "webRelativeDb": -240.0
+        },
+        {
+          "pattern": 4,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07050927645577,
+          "webRelativeDb": -240.0
+        },
+        {
+          "pattern": 5,
+          "kind": "silent-tail",
+          "hardwareRelativeDb": -66.07294406069242,
+          "webRelativeDb": -240.0
+        },
+        {
+          "pattern": 6,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 8.294143129112141
+        },
+        {
+          "pattern": 8,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 3.103792507635355
+        },
+        {
+          "pattern": 9,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 2.1152510954118657
+        },
+        {
+          "pattern": 11,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 3.8890832683754333
+        },
+        {
+          "pattern": 12,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 3.088785051434095
+        },
+        {
+          "pattern": 14,
+          "kind": "chirp",
+          "samples": 8,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 12.504410522945019
+        },
+        {
+          "pattern": 15,
+          "kind": "chirp",
+          "samples": 8,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 5.270870875440821
+        },
+        {
+          "pattern": 16,
+          "kind": "chirp",
+          "samples": 46,
+          "audibleFraction": 1.0,
+          "medianPitchErrorCents": 5.188110485118275
+        }
+      ]
+    }
+  }
+}

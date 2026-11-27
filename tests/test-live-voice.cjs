@@ -20,3 +20,8 @@ for(const [kind,half] of [[11,.25],[12,.125]]){
 // The fresh FX11 capture reads the opposite end on its reverse leg.
 assert.ok(Math.abs(scratchCursor(.375,.25,0,2,true,11)-1.875)<1e-9);
 console.log('PASS measured Scratch cursor periods, ringing-source continuity and initial reverse boundary');}
+
+{const {scratchCursor}=require('../voice.js');
+assert.ok(Math.abs(scratchCursor(.125,.25,.25,4,false,11,true)-.125)<1e-9);
+assert.equal(scratchCursor(.25,.25,.25,4,false,11,true),0);
+console.log('PASS reverse-phase Scratch reaches the source origin at the measured boundary');}
