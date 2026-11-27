@@ -36,3 +36,7 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `python tests/test-tone-neutral.py`: centered factory pitch/unity-gain startup and tone scale endpoints/center.
 
 - `python tests/test-pwa-safe-area.py`: stale innerHeight, delayed safe-area padding, visual viewport/body size changes and restored PWA layout.
+
+- `node scripts/build-calibration.mjs <output-dir>` generates original automatic comparison material; validates native backup checksums, slice references, tempo, chain and all 15 stored FX. Generated WAV is a hardware backup signal, not an audition recording.
+
+- `python tests/test-calibration-import.py <generated-backup.wav>` checks the actual frontend import, chain, all FX and initial playback.
