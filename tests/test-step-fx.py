@@ -39,17 +39,21 @@ try:
   page.wait_for_timeout(180);assert page.evaluate('originalVoice.src.playbackRate.value')>1.98
   pad(8,3);page.wait_for_timeout(180);assert .49<page.evaluate('originalVoice.src.playbackRate.value')<.52
   up(3);up(2);up(1);play();print('PASS octave glides on the same live source, no restart')
-  configure(0,[0]);play();down('fx');pad(11);page.wait_for_timeout(330)
-  slow=page.evaluate('fxVoices.filter(v=>v.performance.scratch).map(v=>({time:v.start,reverse:v.performance.reverse}))');assert len(slow)>=5,slow
-  assert page.locator('[data-pad="1"]').evaluate('e=>e.classList.contains("cur")')
-  assert page.evaluate('(()=>{const base=fxVoices.find(v=>v.performance.scratch&&!v.performance.reverse).src.buffer;return fxVoices.filter(v=>v.performance.scratch).every(v=>v.speed.events.length>=2 && (v.performance.reverse ? v.src.buffer.getChannelData(0)[123]===base.getChannelData(0)[base.length-124] : v.src.buffer===base));})()')
-  assert all(slow[i]['reverse']!=slow[i-1]['reverse'] and abs(slow[i]['time']-slow[i-1]['time']-.0625)<.002 for i in range(1,len(slow))),slow
+  configure(0,[0]);play();page.wait_for_timeout(30);down('fx');pad(11);page.wait_for_timeout(330)
+  slow=page.evaluate('fxVoices.filter(v=>v.scratch).map(v=>({time:v.start,half:v.scratch.half,loop:v.src.loop,end:v.end}))')
+  assert len(slow)==1 and slow[0]['loop'] and abs(slow[0]['half']-.125)<.0001,slow
+  # The transport continues across empty steps while the existing sample oscillates.
+  assert not page.locator('[data-pad="1"]').evaluate('e=>e.classList.contains("cur")')
   page.evaluate('fxVoices=[]');pad(12,3);page.wait_for_timeout(180)
-  fast=page.evaluate('fxVoices.filter(v=>v.performance.scratch).map(v=>v.start)');assert len(fast)>=5 and all(abs(fast[i]-fast[i-1]-.03125)<.002 for i in range(1,len(fast))),fast
-  up(3);up(2);up(1);page.wait_for_function('document.getElementById("grid").children[1].classList.contains("cur")')
-  down('fx');page.evaluate('fxVoices=[]');pad(11);page.wait_for_timeout(300);assert page.evaluate('fxVoices.length')==0
+  fast=page.evaluate('fxVoices.filter(v=>v.scratch).map(v=>({half:v.scratch.half,anchor:v.scratch.anchor,loop:v.src.loop}))')
+  assert len(fast)==1 and fast[0]['loop'] and abs(fast[0]['half']-.0625)<.0001,fast
+  up(3);up(2);up(1);page.wait_for_timeout(40)
+  assert page.evaluate('fxVoices.some(v=>!v.scratch && v.performance.scratchContinuation)'),errors
+  play()
+  configure(0,[]);play();down('fx');page.evaluate('fxVoices=[]');pad(11);page.wait_for_timeout(300)
+  assert page.evaluate('fxVoices.length')==0
   up(2);up(1);play();assert not errors,errors
-  print('PASS Scratch freezes current note or silence, alternates direction, Fast doubles hit rate, release resumes next step')
+  print('PASS Scratch transforms a ringing source, Fast doubles oscillation rate, transport continues, release resumes position, true silence stays silent')
   geometry=page.evaluate('''async()=>{const doc=new DOMParser().parseFromString(await (await fetch('./assets/panel-art.svg')).text(),'image/svg+xml');return ['fx','write'].every(key=>{const circle=doc.querySelector('[data-control="'+key+'"] circle');return circle.getAttribute('r')===doc.querySelector('[data-control="play"] circle').getAttribute('r')&&!circle.hasAttribute('stroke');})&&doc.querySelector('#stripes').getAttribute('patternTransform')==='rotate(45)';}''')
   assert geometry
   print('PASS FX/WRITE share normal backdrop radius, no rim stroke, 45-degree hatching')

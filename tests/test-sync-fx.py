@@ -49,7 +49,7 @@ try:
     page.wait_for_timeout(1150 if kind in [1,2,3,4,11,12,14] else 250)
     page.evaluate('window.resumeIndex=fxVoices.length')
     up(2);up(1);page.wait_for_timeout(420)
-    data=page.evaluate('fxVoices.slice(resumeIndex).filter(v=>v.end>v.start&&!v.performance.loop&&!v.performance.scratch).map(v=>({slot:v.slot,note:v.note,t:v.start,origin:window.origin}))')
+    data=page.evaluate('fxVoices.slice(resumeIndex).filter(v=>v.end>v.start&&!v.performance.loop&&!v.scratch&&!v.performance.scratchContinuation).map(v=>({slot:v.slot,note:v.note,t:v.start,origin:window.origin}))')
     # Ignore a release-time transient and examine the next several stable ticks.
     assert data,(mode,kind,'no restored notes')
     tail=data[-3:]

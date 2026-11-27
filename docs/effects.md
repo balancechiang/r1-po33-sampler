@@ -87,11 +87,15 @@ clock; tempo changes advance it with the old tempo before accepting the new valu
 Recorded Loop automation uses the shadow position to detect the end of its effect span,
 so a foreground hold does not trap the song permanently in an automated effect.
 
-Live Scratch cancels unheard lookahead, freezes the audible pattern/step, preserves
-its silence if empty, and alternates real forward/reversed sample buffers. Each hit
-has an upward then downward rate envelope. Switching 11/12 keeps the same captured
-step; releasing resumes at its successor. Saved Scratch automation applies the same
-subdivision/direction/envelope within each saved step, allowing the song to progress.
+Scratch now processes individual ringing sample sources rather than freezing the
+transport and retriggering the current step. A short forward/reverse source buffer
+loops on the audio clock: at 60 BPM FX11 has a 0.5-second cycle and FX12 a 0.25-second
+cycle. An empty step retains an existing tail; an empty step without a voice remains
+silent. Saved automation and live gestures use the same reader. Effect transitions
+preserve the sample cursor and resume normal reading on release; same-slot choke and
+four-voice allocation still apply. No synthetic pitch ramp or master-bus audio capture
+is used. The original sample buffer and backup bytes are unchanged.
+
 Octave glides also use the source-rate trajectory used for live knob changes, keeping
 trim deadlines, choke and four-voice limits in sync.
 
@@ -104,3 +108,9 @@ A trigger's layers share a choke group, so they coexist but the next hit in the 
 FX9/10 are live amplitude gates, not recorded fragment loops. At 120 BPM the measured families are approximately 8/6 Hz with near 50% on time; the app uses a 1 ms edge. Source-layer and gate changes use the same paths for live and recorded FX.
 
 On the isolated test's analysis windows, wet/dry RMS differences versus hardware are about +0.19 dB (FX5), +0.18 dB (FX6), -0.30 dB (FX9), +0.14 dB (FX10). This is not a claim of waveform/phase identity or full calibration on arbitrary material. Scratch, filters and other FX still require further modeling.
+
+## Isolated Scratch capture (2026-11-27)
+
+The v4 original-chirp recording at 60 BPM / master 12 contradicts the earlier per-step retrigger model. Fresh FX11 notes expose a reverse leg from the opposite sample boundary; ongoing non-boundary voices follow a continuous forward/backward window. FX12 has half the cycle length. The implementation models this distinction, with interpolated sample reads.
+
+`scripts/analyze-scratch-calibration.py` compares private hardware WAV and actual browser Float32 captures; only numerical results enter Git. Its eight effect-interior chirp windows separate missing audio from dominant-frequency error: actual browser captures have full audible coverage and roughly 2–17 cents median error per section after correction. It excludes reversals, effect release, drum behavior and phase from accuracy claims. Hardware release transients, short drum slices, tempo/pitch changes while holding Scratch and arbitrary trim boundaries remain pending. The earlier isolated filter-magnitude calibration is documented separately.

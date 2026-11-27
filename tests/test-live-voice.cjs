@@ -10,3 +10,13 @@ const clone={slot:1,start:0,end:1},future={slot:1,start:2,end:8};protect([clone,
 console.log('PASS analytic smoothed-rate position/end, pruning and future lock retention, extended tails preserve four voices/oldest stealing and same-slot cutoff.');
 
 {const group=Array.from({length:4},()=>({slot:1,group:7,start:0,end:2}));let cutCount=0;protect(group,group[0],3,.5,()=>cutCount++);assert.equal(cutCount,0);assert.equal(group[0].end,3);}
+
+// A measured non-boundary chirp follows the same source interval forwards/backwards.
+{const {scratchCursor}=require('../voice.js');
+for(const [kind,half] of [[11,.25],[12,.125]]){
+ for(const [phase,expected] of [[0,1],[half/2,1+half/2],[half,1+half],[1.5*half,1+half/2],[2*half,1]])
+ assert.ok(Math.abs(scratchCursor(phase,half,1,2,false,kind)-expected)<1e-9);
+}
+// The fresh FX11 capture reads the opposite end on its reverse leg.
+assert.ok(Math.abs(scratchCursor(.375,.25,0,2,true,11)-1.875)<1e-9);
+console.log('PASS measured Scratch cursor periods, ringing-source continuity and initial reverse boundary');}

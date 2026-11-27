@@ -767,7 +767,7 @@
     var when=event.time+.04;
     syncClock.pulse(when,period);
     // Background position advances on every pulse, even when FX owns the sound.
-    if(loopHold || scratchHold)return;
+    if(loopHold)return;
     for(var k=0;k<2;k++){
       var point=syncClock.point(syncClock.position+k,patternChain),step=point.step,at=when+(k?period*.5*(1+SWING):0);
       seq.pattern=point.pattern;chainPosition=point.chain;if(point.step===0 && seq.queued===point.pattern)seq.queued=0;
@@ -818,7 +818,7 @@
   var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
   var fxTimers=[], transportGeneration=0, scheduledEffect=0;
   var sampleVoices=[], reversedBuffers=new WeakMap();
-  var voiceEffect=0,scratchHold=null,loopHold=null,unisonSerial=0;
+  var voiceEffect=0,loopHold=null,unisonSerial=0;
 
   function fxInstall() {
     if(fx.installed)return;
@@ -840,12 +840,12 @@
     var id=setTimeout(function(){
       var index=fxTimers.indexOf(id);if(index>=0)fxTimers.splice(index,1);
       if(generation!==transportGeneration || !seq.playing || fxHeld || shakeFx || !r1Focused || d.hidden)return;
-      if(effect)fxEngage(effect,true);else fxRelease(true);paintStepLeds();updateLCD();
+      if(effect)fxEngage(effect,true,at);else fxRelease(true,at);paintStepLeds();updateLCD();
     },Math.max(0,(at-ctx().currentTime)*1000));
     fxTimers.push(id);
   }
-  function fxEngage(kind,fromPattern) {
-    if(kind===16){fxRelease();return;}
+  function fxEngage(kind,fromPattern,boundary) {
+    if(kind===16){fxRelease(fromPattern,boundary);return;}
     if(kind<1||kind>15)return;
     var c=ctx(),now=c.currentTime;fxInstall();
     var previous=fx.kind;fx.kind=kind;
@@ -854,8 +854,7 @@
     if(previous===15 && kind!==15)refreshVoices(kind,true);
     if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern);
     if(loopHold && !(kind>=1 && kind<=4))releaseLoop();
-    if(scratchHold && kind!==11 && kind!==12)releaseScratch();
-    if(!fromPattern && (kind===11 || kind===12) && seq.playing)holdScratch(kind);
+    if(previous===11 || previous===12 || kind===11 || kind===12)retuneScratch(kind,fromPattern,boundary);
     if(previous===5 || previous===6 || kind===5 || kind===6)retuneUnison(kind===5||kind===6?kind:0,fromPattern);
     if(kind===7 || kind===8)glideOctave(kind,fromPattern);
     if(kind>=1 && kind<=4 && seq.playing)holdLoop(kind,!!fromPattern);
@@ -863,11 +862,11 @@
     if(!fromPattern && kind===15)refreshVoices(15,true);
 
   }
-  function fxRelease(fromPattern) {
+  function fxRelease(fromPattern,boundary) {
     if(!fx.kind)return;
     var previous=fx.kind;fx.kind=0;if(fx.engine)fx.engine.release();
     var now=ctx().currentTime;rampGain(dryGain,1,now);if(fx.wet)rampGain(fx.wet,0,now);
-    if(scratchHold)releaseScratch();
+    if(previous===11 || previous===12)retuneScratch(0,fromPattern,boundary);
     if(previous===5 || previous===6)retuneUnison(0,fromPattern);
     if(previous===7 || previous===8)glideOctave(0,fromPattern);
     if(loopHold)releaseLoop();
@@ -929,34 +928,23 @@
     var now=ctx().currentTime;
     sampleVoices.slice().forEach(function(v){if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at),base=Math.pow(2,(v.semitones+values.pitch)/12);v.effect=kind;v.speed.target(at,base*(kind===7?2:kind===8?.5:1),.035,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);});
   }
-  function resetStepCursor(step,pattern,time){
-    seq.pattern=pattern;seq.schedStep=step;seq.nextTime=time;seq.queued=0;
-    if(patternChain.length && patternChain[chainPosition]!==pattern){var prior=(chainPosition+patternChain.length-1)%patternChain.length;chainPosition=patternChain[prior]===pattern?prior:Math.max(0,patternChain.indexOf(pattern));}
-  }
   function audibleStepAt(now){
     var current={step:seq.step,pattern:seq.visualPattern || seq.pattern,start:seq.visualStepTime || now,chain:seq.visualChainPosition || 0};
     visQueue.forEach(function(e){if(e.t<=now)current={step:e.s,pattern:e.pattern,start:e.t,chain:e.chain};});return current;
   }
-  function holdScratch(kind){
-    var now=ctx().currentTime,old=scratchHold,audible=audibleStepAt(now),pattern=old?old.pattern:audible.pattern,step=old?old.step:audible.step;
-    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
-    parameterLatches.stop(now);scratchHold={pattern:pattern,step:step,chain:old?old.chain:audible.chain,next:syncMode?(syncNext(kind===11?2:4)||now+.004):now+.004,hit:0,kind:kind};
-    seq.step=step;seq.visualPattern=pattern;seq.visualChainPosition=scratchHold.chain;seq.visualStepTime=now;seq.visualStarted=true;paintChase();scheduledEffect=kind;clearFxTimers();transportGeneration++;
-    scheduler();
+  function voicePosition(v,time){
+    var elapsed=v.speed.state(time).position;
+    return v.scratch?window.PO33LiveVoice.scratchCursor(elapsed+(v.scratchPhase || 0),v.scratch.half,v.scratch.anchor,v.scratch.span,v.scratch.fresh,v.scratch.kind):(v.anchor-v.sourceStart)+elapsed;
   }
-  function scheduleScratch(now){
-    var hold=scratchHold,period=stepDur()/(hold.kind===11?2:4);
-    if(hold.next<now)hold.next=syncMode?(syncNext(hold.kind===11?2:4)||now+.004):now+.004;
-    while(hold.next<now+.12){var pat=patterns[hold.pattern-1];for(var i=0;i<16;i++){var note=pat.lanes[i][hold.step];if(note>=0)voice(i+1,note,hold.next,period,hold.kind,undefined,{scratch:true,reverse:!!(hold.hit%2)});}hold.hit++;hold.next+=period;}
-  }
-  function releaseScratch(){
-    if(!scratchHold)return;var hold=scratchHold,now=ctx().currentTime;scratchHold=null;
-    sampleVoices.slice().forEach(function(v){cancelVoice(v,now);});visQueue=[];
-    if(restoreSyncCursor(now)){scheduledEffect=-1;return;}
-    // Finish the held step and resume its successor, including the pattern boundary.
-    chainPosition=hold.chain;resetStepCursor(hold.step,hold.pattern,now+.008);seq.schedStep=hold.step+1;
-    if(seq.schedStep>=16){seq.schedStep=0;if(patternChain.length>1){chainPosition=(chainPosition+1)%patternChain.length;seq.pattern=patternChain[chainPosition];}}
-    scheduledEffect=-1;
+  function retuneScratch(kind,fromPattern,boundary){
+    var now=ctx().currentTime;boundary=Number.isFinite(boundary)?boundary:now;
+    sampleVoices.slice().forEach(function(v){
+      if(v.end<=now || !v.speed || v.effect===kind || (fromPattern && v.start>now+.002))return;
+      var at=Math.max(now+.003,v.start),resume=v.start>now?0:voicePosition(v,Math.max(v.start,boundary-(v.scratch?1/ctx().sampleRate:0)));
+      var gate=v.scratch?v.scratchGate:(v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at));
+      cancelVoice(v,now);
+      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,scratchContinuation:true,scratchAgeSeconds:Math.max(0,at-boundary)});
+    });
   }
   function advanceLoopShadow(now){
     if(!loopHold)return;var h=loopHold.shadow;
@@ -1048,7 +1036,7 @@
     setVoiceControls(controls,voiceTweak,when===undefined?c.currentTime:when,true);return controls;
   }
   function replanVoice(v){
-    var now=ctx().currentTime,desired=Math.min(v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
+    var now=ctx().currentTime,desired=Math.min(v.scratch?v.end:v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
     if(desired<=now){v.end=now;cutSampleVoice(v,now);return;}
     window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
     var end=v.end,gain=v.gain.gain,time=Math.max(now,v.start),release=Math.min(.003,Math.max(0,end-time)*.3);
@@ -1225,13 +1213,16 @@
     if (avail<=0)return;
     var speed=new window.PO33LiveVoice.Speed(t,rate);
     if(voiceEffect===7 || voiceEffect===8)speed.target(t,rate*(voiceEffect===7?2:.5),.035,t);
-    if(performance.scratch){speed=new window.PO33LiveVoice.Speed(t,rate*.8);speed.target(t,rate*1.4,.008,t);speed.target(t+(s.gateSeconds || .06)*.45,rate*.5,.012,t);}
-    var dur = Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
+    var scratch=null,scratchKind=voiceEffect===11||voiceEffect===12;
+    if(scratchKind){
+      scratch=window.PO33LiveVoice.scratchLoop(c,s.buffer,s.sourceStart,s.fullSpan,s.resume || 0,rate*stepDur()/(voiceEffect===11?1:2),!performance.scratchContinuation,voiceEffect);
+    }
+    var dur = scratch?86400:Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
     var src = c.createBufferSource();
     var playbackBuffer = voiceEffect===15 || performance.reverse?reverseBuffer(s.buffer):s.buffer;
     if(voiceEffect===15 || performance.reverse)off=Math.max(0,s.buffer.duration-off-avail);
     src.playbackRate.value = speed.rate;
-    src.buffer=playbackBuffer;speed.apply(src.playbackRate,t);
+    src.buffer=scratch?scratch.buffer:playbackBuffer;src.loop=!!scratch;if(scratch)src.loopEnd=scratch.buffer.duration;speed.apply(src.playbackRate,t);
     var g = c.createGain();
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(0.95, t + attack);
@@ -1239,9 +1230,9 @@
     g.gain.linearRampToValueAtTime(0, t + dur);
     var controls=connectVoice(g,slotNumForVoice,when);controls.input.gain.value=performance.unisonGain===undefined?1:performance.unisonGain;
     src.connect(controls.input);
-    src.start(t,off,avail);
+    if(scratch)src.start(t,(rate*(performance.scratchAgeSeconds || 0))%scratch.buffer.duration);else src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1260,8 +1251,9 @@
     var trim=slotNum>8?(tw.slices[padIndex] || {start:0,length:100}):tw;
     var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
     var sourceStart=region.start/view.buffer.sampleRate;
+    var fullSpan=(region.end-region.start)/view.buffer.sampleRate;
     if(performance && performance.resumeSeconds)region.start=Math.min(region.end,region.start+Math.round(performance.resumeSeconds*view.buffer.sampleRate));
-    var s={buffer:view.buffer,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
+    var s={buffer:view.buffer,fullSpan:fullSpan,resume:performance && performance.resumeSeconds || 0,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
     playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 
@@ -1323,7 +1315,6 @@
         var repeats=window.PO33FX.stepRepeats(effect);
         if(loopEvent)voice(i+1,v,when,loopEvent.kind>=3?loopEvent.period:(i<8 && detail && detail.length?detail.length*stepDur():undefined),effect,undefined,loopEvent);
         else if(repeats){for(var roll=0;roll<repeats;roll++)voice(i+1,v,when+roll*stepDur()/repeats,stepDur()/repeats,effect,undefined,{loop:true,kind:effect,step:step,period:stepDur()/repeats});}
-        else if(effect===11 || effect===12){var count=effect===11?2:4;for(var sh=0;sh<count;sh++)voice(i+1,v,when+sh*stepDur()/count,stepDur()/count,effect,undefined,{scratch:true,reverse:!!(sh%2)});}
         else {var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
           for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);}
 
@@ -1341,7 +1332,6 @@
     var now = ac.currentTime;
     if(fx.engine)fx.engine.setStepDuration(stepDur());
     if(loopHold){scheduleLoop(now);return;}
-    if(scratchHold){scheduleScratch(now);return;}
     if(syncMode>=2)return;
     if (seq.nextTime < now-stepDur()) {if(syncMode===1)restoreSyncCursor(now);else seq.nextTime = now + 0.02;}
     var guard = 0;

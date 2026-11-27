@@ -47,4 +47,13 @@ Raw samples are unchanged. New filter/resonance locks re-export with the same na
 
 - The lowest filter cutoff discrepancy is explicitly deferred by the user pending hardware verification; no additional correction is applied.
 - Generate the next automatic capture project with `node scripts/build-calibration.mjs <output-directory> --scratch-isolated`. It uses original ascending/reversed chirps, ordered tone tags and transient pulses; 16 chained patterns at 60 BPM take 64 seconds. FX11/12 are stored in the backup.
-- Cases separate onset triggering, empty steps with/without a ringing voice, repeated notes, playback direction and drum FX switching. Capture at master volume 12 in SY0, without manual FX or knob changes. Hardware acceptance and Scratch algorithm fitting remain pending.
+- Cases separate onset triggering, empty steps with/without a ringing voice, repeated notes, playback direction and drum FX switching. Capture at master volume 12 in SY0, without manual FX or knob changes. The valid capture has now informed the source-reader model; see the calibration notes below.
+
+### Scratch source-reader calibration — 2026-11-27
+
+- Valid v4 hardware capture: 44.1 kHz stereo / 16-bit, no clipped samples. The full automatic 16-pattern test was captured. Private audio remains outside Git.
+- FX11/12 now oscillate an existing sample source instead of repeating an entire step and adding an arbitrary pitch envelope. At 60 BPM the cycles are 0.5 / 0.25 seconds. Empty steps can process a ringing tail; genuinely silent steps do not synthesize a new hit. The song clock and pattern chain keep advancing.
+- In eight selected effect-interior chirp sections, actual browser playback now has 100% audible coverage and approximately 2–17 cents median dominant-frequency error per section. Previously P02/P03 were silent in these windows; the other sections had partial silence and roughly 1,187–4,688 cents median error on their audible samples. Reversal edges, release, drums and phase are excluded. Effect-interior chirp frequency measurements and missing-audio coverage are stored in `tests/fixtures/scratch-hardware-calibration-20261127.json`. These are not waveform identity or full FX validation.
+- Still pending: effect-release transients, short drum slices / boundaries, alternate pitches, trim ranges, tempo changes during a held effect, physical mobile/R1 performance, and hardware live gestures (the recording uses saved FX). The lowest filter cutoff discrepancy remains deferred by user request.
+
+This change's sync regression passed all 15 live FX in both simulated SY1 master and external-slave modes. The saved FX14 slave-grid assertion still failed (note/step offset); it is the previously documented baseline issue, not marked fixed here.

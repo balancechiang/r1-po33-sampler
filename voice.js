@@ -22,5 +22,25 @@
   }
   return voice.end;
  }
- const api={Speed,protect};root.PO33LiveVoice=api;if(typeof module!=='undefined')module.exports=api;
+ // Measured Scratch source cursor: time continues; a ringing voice oscillates.
+ function scratchCursor(phase,half,anchor,span,fresh,kind){
+  const cycle=half*2,u=((phase%cycle)+cycle)%cycle;
+  let offset=u<=half?u:(fresh && kind===11?-(u-half):cycle-u);
+  const pos=anchor+offset;
+  return ((pos%span)+span)%span;
+ }
+ function scratchLoop(context,source,start,span,anchor,half,fresh,kind){
+  const count=Math.max(2,Math.round(half*2*source.sampleRate)),buffer=context.createBuffer(source.numberOfChannels,count,source.sampleRate);
+  half=count/source.sampleRate/2;
+  for(let ch=0;ch<source.numberOfChannels;ch++){
+   const input=source.getChannelData(ch),output=buffer.getChannelData(ch);
+   for(let i=0;i<count;i++){
+    const pos=(start+scratchCursor(i/source.sampleRate,half,anchor,span,fresh,kind))*source.sampleRate;
+    const a=Math.min(input.length-1,Math.max(0,Math.floor(pos))),b=Math.min(input.length-1,a+1);
+    output[i]=input[a]+(input[b]-input[a])*(pos-a);
+   }
+  }
+  return {buffer,half,anchor,span,fresh,kind};
+ }
+ const api={Speed,protect,scratchCursor,scratchLoop};root.PO33LiveVoice=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
