@@ -821,7 +821,7 @@
   var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
   var fxTimers=[], transportGeneration=0, scheduledEffect=0;
   var sampleVoices=[], reversedBuffers=new WeakMap();
-  var voiceEffect=0,loopHold=null,unisonSerial=0;
+  var voiceEffect=0,loopHold=null,readerLoop=null,unisonSerial=0;
 
   function fxInstall() {
     if(fx.installed)return;
@@ -860,7 +860,7 @@
     if(previous===11 || previous===12 || kind===11 || kind===12)retuneScratch(kind,fromPattern,boundary);
     if(previous===5 || previous===6 || kind===5 || kind===6)retuneUnison(kind===5||kind===6?kind:0,fromPattern);
     if(kind===7 || kind===8)glideOctave(kind,fromPattern,boundary);
-    if(kind>=1 && kind<=4 && seq.playing)holdLoop(kind,!!fromPattern);
+    if(kind>=1 && kind<=4 && seq.playing && (!fromPattern || kind===3))holdLoop(kind,!!fromPattern);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
     if(!fromPattern && kind===15)refreshVoices(15,true);
 
@@ -888,6 +888,7 @@
     window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
     window.PO33Runtime.setActive("voices",true);
     src.onended=function(){setTimeout(function(){[src,g,...Object.values(entry.controls || {})].forEach(function(node){try{node.disconnect();}catch(error){}});},40);var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);window.PO33Runtime.setActive("voices",sampleVoices.some(function(v){return v.end>ac.currentTime;}));};
+    return entry;
   }
   function cutSampleVoice(v,at) {
     // Tiny release avoids clicks. Keep scheduled future voices in the timeline.
@@ -956,12 +957,67 @@
       voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,sourcePad:v.sourcePad,scratchContinuation:true,scratchNegative:scratchNegative(kind,boundary),scratchAgeSeconds:Math.max(0,at-boundary)});
     });
   }
+  function readerEffect(kind){return kind===1 || kind===2 || kind===4;}
+  function readerView(slot,note,time){
+    var sample=samples[slot-1],view=slot>8?rawSlice(sample,note):sample;if(!view)return null;
+    var values=effectiveTweak(slot,time),trim=slot>8?(values.slices[note] || {start:0,length:100}):values;
+    var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
+    if(region.end<=region.start)return null;
+    return {buffer:view.buffer,start:region.start/view.buffer.sampleRate,end:region.end/view.buffer.sampleRate};
+  }
+  function emitReader(state,time,position){
+    if(state.entry)cancelVoice(state.entry,time);
+    if(position>=state.end || (state.gateEnd!==Infinity && time>=state.gateEnd)){state.entry=null;return;}
+    state.entry=voice(state.slot,state.note,time,state.gateEnd===Infinity?undefined:state.gateEnd-time,readerLoop.kind,undefined,{reader:true,sourcePad:state.sourcePad,readerRegion:{buffer:state.buffer,start:position,end:state.end}});
+    if(state.entry)state.rate=state.entry.speed.rate;
+  }
+  function drainReaders(limit,inclusive){
+    var h=readerLoop;if(!h)return;var count=0,epsilon=inclusive ? .000001 : -.000001;
+    while(h.next<limit+epsilon && count++<256){
+      var time=h.next;h.tick++;h.next=h.start+(h.tick+1)*h.period;
+      for(var state of h.slots.values()){
+        state.resetAt=time;state.resetAlive=!!(state.entry && state.entry.start<time && state.entry.end>time);
+        if(!state.resetAlive || time<ctx().currentTime-.002)continue;
+        var chunk=Math.floor((h.tick-state.originTick)/h.repeats);
+        state.origin+=(chunk-state.chunk)*h.period*state.rate;state.chunk=chunk;
+        var position=state.origin;
+        state.resetPosition=position;emitReader(state,time,position);
+      }
+    }
+  }
+  function prepareReaders(kind,time){
+    if(readerLoop && readerLoop.kind===kind){
+      drainReaders(time,true);var nextPeriod=window.PO33FX.readerSpec(kind,stepDur()).period;
+      if(Math.abs(nextPeriod-readerLoop.period)>.000000001){var phase=(readerLoop.next-time)/readerLoop.period;readerLoop.period=nextPeriod;readerLoop.next=time+phase*nextPeriod;readerLoop.start=readerLoop.next-(readerLoop.tick+1)*nextPeriod;}
+      return;
+    }
+    if(readerLoop)drainReaders(time,false);
+    readerLoop=null;if(!readerEffect(kind))return;
+    var spec=window.PO33FX.readerSpec(kind,stepDur()),period=spec.period;
+    readerLoop={kind:kind,start:time,next:time+period,tick:0,period:period,repeats:spec.repeats,slots:new Map()};
+    sampleVoices.forEach(function(v){
+      if(v.start>=time || v.end<=time || !v.speed || readerLoop.slots.has(v.slot) || v.scratch)return;
+      readerLoop.slots.set(v.slot,{slot:v.slot,note:v.note,sourcePad:v.sourcePad,buffer:v.src.buffer,origin:v.anchor+v.speed.state(time).position,originTick:0,chunk:0,end:v.anchor+v.span,rate:v.speed.state(time).rate,gateEnd:v.gateEnd,entry:v});
+    });
+  }
+  function readerNote(slot,note,time,gate){
+    var h=readerLoop,view=readerView(slot,note,time);if(!h)return;
+    if(!view){var old=h.slots.get(slot);if(old && old.entry)cancelVoice(old.entry,time);h.slots.delete(slot);return;}
+    var state=h.slots.get(slot),onTick=state && Math.abs(state.resetAt-time)<.00001;
+    var ignoreStart=onTick && state.resetAlive && state.buffer===view.buffer;
+    var recapture=!state || state.buffer!==view.buffer || (onTick && !state.resetAlive);
+    if(!state)state={slot:slot};
+    if(recapture){state.origin=view.start;state.originTick=h.tick;state.chunk=0;}
+    state.note=note;state.sourcePad=note;state.buffer=view.buffer;state.end=view.end;state.gateEnd=gate?time+gate:Infinity;
+    h.slots.set(slot,state);emitReader(state,time,ignoreStart?state.resetPosition:view.start);
+  }
   function advanceLoopShadow(now){
     if(!loopHold)return;var h=loopHold.shadow;
     h.phase+=Math.max(0,now-h.last)/stepDur();h.last=now;
     while(h.phase>=1){h.phase-=1;h.step++;if(h.step>=16){h.step=0;if(h.order.length>1)h.chain=(h.chain+1)%h.order.length;if(h.order.length)h.pattern=h.order[h.chain];if(h.queued){h.pattern=h.queued;h.queued=0;}}if(exporting)exportSteps++;}
   }
   function holdLoop(kind,automatic){
+    readerLoop=null;
     var now=ctx().currentTime,audible=audibleStepAt(now),old=loopHold;
     if(old)advanceLoopShadow(now);
     var shadow=old?old.shadow:{step:audible.step,pattern:audible.pattern,chain:audible.chain,phase:Math.max(0,(now-audible.start)/stepDur()+(audible.step%2?SWING:0)),last:now,order:patternChain.slice(),queued:seq.queued};
@@ -1247,7 +1303,7 @@
     src.connect(controls.input);
     if(scratch)src.start(t,(rate*(performance.scratchAgeSeconds || 0))%scratch.buffer.duration);else src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,sourcePad:s.sourcePad,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
+    return trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,sourcePad:s.sourcePad,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1267,11 +1323,13 @@
     var view=slotNum>8?rawSlice(sample,sourcePad):sample;if(!view)return;
     var trim=slotNum>8?(tw.slices[sourcePad] || {start:0,length:100}):tw;
     var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
-    var sourceStart=region.start/view.buffer.sampleRate;
+    var selectedSourceStart=region.start/view.buffer.sampleRate;
+    if(performance && performance.readerRegion){var read=performance.readerRegion;view=Object.assign({},view,{buffer:read.buffer});region={start:Math.max(0,Math.round(read.start*view.buffer.sampleRate)),end:Math.min(view.buffer.length,Math.round(read.end*view.buffer.sampleRate))};}
+    var sourceStart=performance && performance.readerRegion?selectedSourceStart:region.start/view.buffer.sampleRate;
     var fullSpan=(region.end-region.start)/view.buffer.sampleRate;
     if(performance && performance.resumeSeconds)region.start=Math.min(region.end,region.start+Math.round(performance.resumeSeconds*view.buffer.sampleRate));
     var s={buffer:view.buffer,sourcePad:sourcePad,fullSpan:fullSpan,resume:performance && performance.resumeSeconds || 0,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
-    playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
+    return playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 
   function trigger(padIndex) {
@@ -1317,6 +1375,7 @@
   function fireStep(step, when,effect,loopEvent) {
     var pat = patterns[seq.pattern - 1];
     var extra = patternExtras[seq.pattern - 1];
+    if(!loopEvent)prepareReaders(effect,when);
     if(!fxHeld && !shakeFx && effect!==scheduledEffect)queueFx(effect,when);
     scheduledEffect=effect;
     if(effect!==14 && (fxHeld || shakeFx) && (state.mode==="STEP" || writeHeld)) {
@@ -1327,14 +1386,15 @@
       var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
       // A queued Loop takes ownership at its audible onset; do not double-trigger it.
-      if (v >= 0 && !(effect===13 && step%4===3) && !(!loopEvent && effect>=1 && effect<=4)) {
+      if (v >= 0 && !(effect===13 && step%4===3) && !(!loopEvent && effect===3)) {
         // Saved Unison allocates all four voices to the first simultaneous slot.
         if((effect===5 || effect===6) && unisonTriggered)continue;
         if(effect===5 || effect===6)unisonTriggered=true;
 
         var detail=extra && extra.steps && extra.steps[i+":"+step];
         var repeats=window.PO33FX.stepRepeats(effect);
-        if(loopEvent)voice(i+1,v,when,loopEvent.kind>=3?loopEvent.period:(i<8 && detail && detail.length?detail.length*stepDur():undefined),effect,undefined,loopEvent);
+        if(!loopEvent && readerEffect(effect)){readerNote(i+1,v,when,i<8 && detail && detail.length?detail.length*stepDur():undefined);}
+        else if(loopEvent)voice(i+1,v,when,loopEvent.kind>=3?loopEvent.period:(i<8 && detail && detail.length?detail.length*stepDur():undefined),effect,undefined,loopEvent);
         else if(repeats){for(var roll=0;roll<repeats;roll++)voice(i+1,v,when+roll*stepDur()/repeats,stepDur()/repeats,effect,undefined,{loop:true,kind:effect,step:step,period:stepDur()/repeats});}
         else {var retrigs=i>=8 && detail ? (detail.retrigs || 1) : 1;
           for(var hit=0;hit<retrigs;hit++)voice(i + 1,v,when+hit*stepDur()/retrigs,i<8 && detail && detail.length ? detail.length*stepDur() : (hit<retrigs-1 ? stepDur()/retrigs : undefined),effect);}
@@ -1352,8 +1412,9 @@
     if(syncController&&syncMode===1){syncClock?.tempo(params.bpm,ac.currentTime);syncController.bpm=params.bpm;syncController.config();}
     var now = ac.currentTime;
     if(fx.engine)fx.engine.setStepDuration(stepDur());
+    if(readerLoop && readerLoop.next<now-.25)readerLoop=null; // Do not replay stale resets after suspension.
     if(loopHold){scheduleLoop(now);return;}
-    if(syncMode>=2)return;
+    if(syncMode>=2){if(readerLoop)drainReaders(Math.min(now+.12,seq.nextTime),false);return;}
     if (seq.nextTime < now-stepDur()) {if(syncMode===1)restoreSyncCursor(now);else seq.nextTime = now + 0.02;}
     var guard = 0;
     while (seq.nextTime < now + 0.12 && guard++ < 64) {
@@ -1383,6 +1444,7 @@
         }
       }
     }
+    if(readerLoop)drainReaders(Math.min(now+.12,seq.nextTime),false);
   }
 
   async function startSeq() {
@@ -1423,6 +1485,7 @@
   function stopSeq() {
     syncStartToken++;syncStarting=false;if(syncController)syncController.stop();
     if (!seq.playing) return;
+    readerLoop=null;
     seq.playing = false;syncRetriggerAt=null;musicSession('ambient');
     parameterLatches.stop(ctx().currentTime);
     stopShakeSensors(); cancelShakeFx(); stopTransportAnimation();

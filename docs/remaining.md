@@ -126,3 +126,15 @@ FX1/2/4 remain open. FX1 appears unchanged with160ms notes but held a400ms note 
 In three saved Loop3 interior windows (even entry, odd entry and alternating empty steps), actual browser marker matching improves25%→100% within a40ms matching window. This validates slice identity/onset proximity, not sample-level waveform or exact transient identity.
 
 Next capture v9 (`--loop-source`) isolates FX1/2/4 on single160ms/400ms/1s/2s chirps, with four dry reference patterns. Each pattern triggers one note only; a valid20ms silent pad at3.75s chokes tails before the next pattern. Effect spans end at3s. Nominal64seconds/60BPM; native allocation/checksum and browser import/export pass, hardware capture pending. This removes the intervening-note ambiguity from v7/v8.
+
+### Loop source v9 capture — 2026-11-27
+
+Valid142.85-second stereo capture, no clipping, peak about−20.91dBFS. Four durations (160ms/400ms/1s/2s) establish advancing read windows for saved FX1/2/4: period=step,4/3step,1/3step and repetition count4,3,8 respectively. The event-level macro-loop path is replaced for these saved modes; live holds are retained pending a hardware gesture test. The song/chain cursor continues normally.
+
+Across the twelve selected v9 cases, the new actual browser capture has100% coverage of audible hardware probes and roughly2–13cents per-case median frequency error on non-boundary windows. End times differ by about2–13ms in this recording. Old coverage was partial in several cases, with large pitch/path errors. These are not worst-case waveform or gain bounds. Numerical data: `tests/fixtures/loop-sources-v9-calibration-20261127.json`; analysis: `scripts/analyze-loop-sources-v9.py`.
+
+V8 cross-check: independent even/odd-entry and empty-step marker windows for all four Loop types now find matching source IDs/onsets within40ms. The initial2seconds of the mixed switch case improve70%→80% matching but remain incomplete. This cross-check does not assess extra low-level transients or phase identity.
+
+Remaining: live touch/hold gestures, mixed-effect entry and switching, alternate tempo/pitch/locks and cross-pattern/bank behavior, mobile/R1 runtime and external-slave synchronization including FX14. Lowest filter cutoff discrepancy remains deferred.
+
+Reader automation keeps original PCM/bank data unchanged. Filter tails across resets, live overrides and suspended-page recovery are software approximations rather than hardware-calibrated behavior; stale reset schedules are discarded after a long scheduling gap instead of replayed in a burst.

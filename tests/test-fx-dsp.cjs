@@ -83,3 +83,12 @@ for(const [pattern,start,slice] of [[4,1,5],[8,1.25,6],[13,1,5]]){
  hits.forEach((hit,i)=>{assert.equal(hit.slice,slice+2*Math.floor(i/4));assert(Math.abs(hit.time-hits[0].time-i*.125)<.007);});
 }
 console.log('PASS recorded Loop3 recapture order and timing for even/odd entry and empty-step patterns');}
+
+{const {readerSpec,readerPosition}=require('../effects.js'),d=require('./fixtures/loop-sources-v9-calibration-20261127.json');
+for(const kind of [1,2,4]){const spec=readerSpec(kind,.25),errors=[];
+ for(const p of d.sourceProbes.filter(q=>q.kind===kind&&q.active)){
+  const position=p.time<3?readerPosition(p.time,1,spec.period,spec.repeats):readerPosition(3-1e-7,1,spec.period,spec.repeats)+p.time-3;
+  errors.push(Math.abs(1200*Math.log2(220*Math.exp(Math.log(8)/2*position)/p.frequencyHz)));
+ }errors.sort((a,b)=>a-b);assert(errors[Math.floor(errors.length/2)]<35,JSON.stringify({kind,median:errors[Math.floor(errors.length/2)]}));
+}
+console.log('PASS measured Loop1/2/4 advancing read windows across four source lengths');}

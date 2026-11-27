@@ -13,10 +13,10 @@ def markers(x,rate,on,p):
  for i in ii:
   q=y[i:min(len(y),i+round(rate*.04))];z=abs(np.fft.rfft(q*np.hanning(len(q)),16384));ff=np.fft.rfftfreq(16384,1/rate);ids=np.where((ff>160)&(ff<1200))[0];hz=float(ff[ids[z[ids].argmax()]]);rows.append({'time':float(i/rate),'slice':int(round((hz-220)/55))+1,'frequencyHz':hz})
  return rows
-ho=origin(hw,r);report={'profile':'loops-v8','hardwareOnsetSeconds':ho,'quality':{'seconds':len(hw)/r,'peakDbFS':float(20*np.log10(abs(a).max())),'clippedSamples':int(np.sum(abs(a)>=32767/32768))},'hardwareMarkers':{str(p):markers(hw,r,ho,p) for p in range(1,17)},'browserComparisons':{},'scope':'Only saved FX3 recapture is corrected; FX1/2/4 remain unresolved. Marker matching is not waveform equivalence.'}
+ho=origin(hw,r);report={'profile':'loops-v8','hardwareOnsetSeconds':ho,'quality':{'seconds':len(hw)/r,'peakDbFS':float(20*np.log10(abs(a).max())),'clippedSamples':int(np.sum(abs(a)>=32767/32768))},'hardwareMarkers':{str(p):markers(hw,r,ho,p) for p in range(1,17)},'browserComparisons':{},'scope':'Two-second marker windows; --all includes saved FX1/2/4 and the initial mixed-switch window. Matching is hardware-event recall within40ms, not waveform equivalence or extra-transient precision.'}
 for label,file in [('before',sys.argv[2]),('after',sys.argv[3])]:
  web=np.fromfile(file,'<f4');rate=json.loads(Path(file+'.json').read_text())['rate'];on=origin(web,rate);results=[]
- for p,start in [(4,1),(8,1.25),(13,1)]:
+ for p,start in ([(2,1),(3,1),(4,1),(5,1),(6,1.25),(7,1.25),(8,1.25),(9,1.25),(11,1),(12,1),(13,1),(14,1),(15,0)] if '--all' in sys.argv else [(4,1),(8,1.25),(13,1)]):
   actual=[m for m in report['hardwareMarkers'][str(p)] if start<=m['time']<start+2];predicted=markers(web,rate,on,p);matched=[]
   for m in actual:
    nearest=min(predicted,key=lambda q:abs(q['time']-m['time']));matched.append({'hardwareTime':m['time'],'hardwareSlice':m['slice'],'webTime':nearest['time'],'webSlice':nearest['slice'],'match':abs(m['time']-nearest['time'])<.04 and m['slice']==nearest['slice']})

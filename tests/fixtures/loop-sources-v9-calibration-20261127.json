@@ -1,0 +1,6374 @@
+{
+  "profile": "loop-sources-v9",
+  "hardwareOnsetSeconds": 16.838548752834466,
+  "quality": {
+    "seconds": 142.85,
+    "sampleRate": 44100,
+    "channels": 2,
+    "peakDbFS": -20.90667163617428,
+    "clippedSamples": 0
+  },
+  "sourceProbes": [
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.80343747275398
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.93744631136568
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.8080956796617
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 256.86745789628964
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.27999999999999997,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.32,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.39999999999999997,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.6000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.7200000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.8400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 0.9600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.1600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.28,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.32,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.4000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.4400000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.6400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.6800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.84,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.8800000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.9200000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 1.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.3200000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.8400000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.3200000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "time": 3.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.9320605414858
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 238.12880940599274
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.9673949010362
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 258.6223183905696
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 269.54106721406276
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.55799985371738
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.32,
+      "active": true,
+      "frequencyHz": 234.9893900061512
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 245.48364629923208
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 255.39695699072084
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 266.7239028135649
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 232.51817454619842
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 243.06133877247683
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 252.6624328812825
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.68,
+      "active": true,
+      "frequencyHz": 264.0303578416556
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 274.6079313355623
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 230.1264444094823
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 240.54425749544782
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 250.08252386682355
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 261.2312152317486
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 271.8332672447827
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 295.4263433633562
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 308.62620619522426
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 321.23780463755253
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.1600000000000001,
+      "active": true,
+      "frequencyHz": 331.91289570729424
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.28,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.32,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.4000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.4400000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.6400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.6800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.84,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.8800000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.9200000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 1.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.3200000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.8400000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.3200000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "time": 3.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.82812720419224
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.94287769721936
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.83271911006045
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 258.4295768558629
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 269.388189856995
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.7513642673813
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.32,
+      "active": true,
+      "frequencyHz": 235.21051192007627
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 245.65352445909818
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 255.60726421952944
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 266.9232197128632
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 232.69801326987945
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 243.25092279567272
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 252.86322035619898
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.68,
+      "active": true,
+      "frequencyHz": 264.2514856461715
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 274.84854802236873
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 230.0071555854612
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 240.37484966494782
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 249.93746734145827
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 261.05284146032534
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 271.6756500094284
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 295.23389773288847
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 308.42648028446365
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 321.05582046184384
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.1600000000000001,
+      "active": true,
+      "frequencyHz": 334.6829552347847
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 349.2642934272761
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 291.8774644778433
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.32,
+      "active": true,
+      "frequencyHz": 304.8370263750435
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 317.1814277844569
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.4000000000000001,
+      "active": true,
+      "frequencyHz": 331.13604527347866
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.4400000000000002,
+      "active": true,
+      "frequencyHz": 345.019266200819
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.56,
+      "active": true,
+      "frequencyHz": 301.26942525496696
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.6,
+      "active": true,
+      "frequencyHz": 314.0730058846333
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 327.77996697846294
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.6800000000000002,
+      "active": true,
+      "frequencyHz": 341.30553606893056
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 355.9306231712148
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 297.8811858985897
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.84,
+      "active": true,
+      "frequencyHz": 311.2180784428645
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 324.29530065217784
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.9200000000000002,
+      "active": true,
+      "frequencyHz": 337.6780735936165
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 352.56163611621815
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 382.63254570553624
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.08,
+      "active": true,
+      "frequencyHz": 399.09074068610266
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 416.36497212514075
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.16,
+      "active": true,
+      "frequencyHz": 433.9863111371256
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 452.12115139965493
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 378.21992142320863
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.3200000000000003,
+      "active": true,
+      "frequencyHz": 394.9319036146261
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 411.51809669211184
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.4,
+      "active": true,
+      "frequencyHz": 428.5512410915341
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.44,
+      "active": true,
+      "frequencyHz": 446.6443943270528
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.56,
+      "active": true,
+      "frequencyHz": 390.643755647964
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.6,
+      "active": true,
+      "frequencyHz": 407.0361529529387
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 424.0407118514628
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.68,
+      "active": true,
+      "frequencyHz": 442.31048851551895
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 461.3556369482378
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 386.19350839402074
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.8400000000000003,
+      "active": true,
+      "frequencyHz": 402.8052451200483
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 420.0279436949254
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.92,
+      "active": true,
+      "frequencyHz": 438.1969130791357
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 456.66720497199066
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.04,
+      "active": true,
+      "frequencyHz": 496.1275764552224
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.08,
+      "active": true,
+      "frequencyHz": 517.1367936920178
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.12,
+      "active": true,
+      "frequencyHz": 539.0978357802351
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.16,
+      "active": true,
+      "frequencyHz": 562.1074088155747
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.2,
+      "active": true,
+      "frequencyHz": 586.0078055021173
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.3200000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "time": 3.68,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.67737963389922
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.76984958911146
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.69650030128196
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 258.24728829909844
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 269.2389851232747
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.61549465984578
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.32,
+      "active": true,
+      "frequencyHz": 235.05972239236394
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 245.51186734821874
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 255.4260899787223
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 266.75216217673227
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 232.54720398025896
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 243.06731961370033
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 252.68783018843388
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.68,
+      "active": true,
+      "frequencyHz": 264.0673524560495
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 274.66725191120014
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 230.13745214026213
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 240.55150618384377
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 250.11288677357192
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 261.27188284596826
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 271.86223037330683
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 295.47131422479555
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 308.65726993185115
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 321.32927858749076
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.1600000000000001,
+      "active": true,
+      "frequencyHz": 334.90997655554327
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 349.5337294471838
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 291.6917998917802
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.32,
+      "active": true,
+      "frequencyHz": 304.5992496925423
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 316.9866216723517
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.4000000000000001,
+      "active": true,
+      "frequencyHz": 330.92971258620395
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.4400000000000002,
+      "active": true,
+      "frequencyHz": 344.78981452002637
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.56,
+      "active": true,
+      "frequencyHz": 301.06590100355453
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.6,
+      "active": true,
+      "frequencyHz": 313.87326304883095
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 327.5609077117163
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.6800000000000002,
+      "active": true,
+      "frequencyHz": 341.0476505453294
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 355.71852137446996
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 297.6978244011756
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.84,
+      "active": true,
+      "frequencyHz": 311.0945737290222
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 324.06632949007724
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.9200000000000002,
+      "active": true,
+      "frequencyHz": 337.44858239259844
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 352.32927473444954
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 382.37379498318023
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.08,
+      "active": true,
+      "frequencyHz": 398.85853076772554
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 416.1012238879398
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.16,
+      "active": true,
+      "frequencyHz": 433.6789317964299
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 451.81379888569876
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 378.0230288715159
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.3200000000000003,
+      "active": true,
+      "frequencyHz": 394.7127901931521
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 411.1915247603821
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.4,
+      "active": true,
+      "frequencyHz": 428.2804361035912
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.44,
+      "active": true,
+      "frequencyHz": 446.38146642207835
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.56,
+      "active": true,
+      "frequencyHz": 390.34657237481787
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.6,
+      "active": true,
+      "frequencyHz": 406.74673863460833
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 423.7670569468172
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.68,
+      "active": true,
+      "frequencyHz": 442.0374601396169
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 461.070927907115
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 385.9301370007208
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.8400000000000003,
+      "active": true,
+      "frequencyHz": 402.46965080912213
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 419.7801164167419
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.92,
+      "active": true,
+      "frequencyHz": 437.8993094837228
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 456.353019947549
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.04,
+      "active": true,
+      "frequencyHz": 495.78984693028536
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.08,
+      "active": true,
+      "frequencyHz": 516.7700904512991
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.12,
+      "active": true,
+      "frequencyHz": 538.7365003959333
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.16,
+      "active": true,
+      "frequencyHz": 561.7127751954075
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.2,
+      "active": true,
+      "frequencyHz": 585.6162193665195
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.2800000000000002,
+      "active": true,
+      "frequencyHz": 636.1820233880303
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.3200000000000003,
+      "active": true,
+      "frequencyHz": 663.0650941454371
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.3600000000000003,
+      "active": true,
+      "frequencyHz": 691.503550427414
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.4,
+      "active": true,
+      "frequencyHz": 720.8105106485839
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.44,
+      "active": true,
+      "frequencyHz": 751.227499445157
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.56,
+      "active": true,
+      "frequencyHz": 851.2006584703396
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.6,
+      "active": true,
+      "frequencyHz": 887.3654017396826
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.64,
+      "active": true,
+      "frequencyHz": 925.0302850776534
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "time": 3.68,
+      "active": true,
+      "frequencyHz": 964.1232588319381
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.51942970063547
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.64067973797466
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.53792192665523
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 256.75623995271013
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.24000000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.27999999999999997,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.39999999999999997,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.6000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.7200000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.76,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.8400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 0.9600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.1600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.28,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.4000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.4400000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.6400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.76,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.84,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.8800000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.9200000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 1.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.7600000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.8400000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.70620222038636
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.82966903369666
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.72398414833245
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 258.2764196866386
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 269.2656000264715
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.24000000000000002,
+      "active": true,
+      "frequencyHz": 280.74491690627553
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 292.4261497337474
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.72802394446998
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 233.85021296202348
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 244.43209638161306
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.48,
+      "active": true,
+      "frequencyHz": 254.16818446804268
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.52,
+      "active": true,
+      "frequencyHz": 265.5278972345038
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 276.25210590048556
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 288.48608042971836
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 300.42826686583425
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 230.59887729587493
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.76,
+      "active": true,
+      "frequencyHz": 241.0529724256529
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.62610282631786
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 261.8491338091215
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 272.4211258948058
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 284.5912118085616
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 296.1192420227727
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 322.0108557173976
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 332.6848187495871
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.1600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.28,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.4000000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.4400000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.6400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.76,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.84,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.8800000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.9200000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 1.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.7600000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.8400000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.92,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.5654915597882
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.63265229397686
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.58993796134155
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 258.0964998172121
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 269.1007594601121
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.24000000000000002,
+      "active": true,
+      "frequencyHz": 280.54383057398456
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 292.2521385380374
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.90138455921235
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 234.0459595082645
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 244.58094290032898
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.48,
+      "active": true,
+      "frequencyHz": 254.3821953719112
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.52,
+      "active": true,
+      "frequencyHz": 265.7394307890433
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 276.4672601465452
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 288.69401116976036
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 300.6776009641151
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 230.75549642750013
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.76,
+      "active": true,
+      "frequencyHz": 241.28121803302614
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.83189427773948
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 262.0737071591216
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 272.6368468972464
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 284.8144622760978
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 296.35119122502203
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 322.31045390051213
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 335.80310404834745
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 350.58040931514256
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.1600000000000001,
+      "active": true,
+      "frequencyHz": 365.1559966059924
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 380.4377273120857
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.24,
+      "active": true,
+      "frequencyHz": 397.02722470422935
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 413.97274087990456
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 317.135625520053
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.4000000000000001,
+      "active": true,
+      "frequencyHz": 331.0119849462051
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.4400000000000002,
+      "active": true,
+      "frequencyHz": 345.1880060729027
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.48,
+      "active": true,
+      "frequencyHz": 359.4668968590939
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.52,
+      "active": true,
+      "frequencyHz": 375.17628928361836
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.56,
+      "active": true,
+      "frequencyHz": 391.1404213649477
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.6,
+      "active": true,
+      "frequencyHz": 407.4434867235402
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 424.518489172322
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 326.56367077963824
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.76,
+      "active": true,
+      "frequencyHz": 340.24879429993683
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 354.89512988745275
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.84,
+      "active": true,
+      "frequencyHz": 370.16009425944236
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 385.48739843047906
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.9200000000000002,
+      "active": true,
+      "frequencyHz": 401.72949077607785
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 419.1230450057421
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 455.56576380648187
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.08,
+      "active": true,
+      "frequencyHz": 474.8613531567269
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 494.9196447040632
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.16,
+      "active": true,
+      "frequencyHz": 515.8697939566799
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 537.8102286104928
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.24,
+      "active": true,
+      "frequencyHz": 560.7571722770903
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 584.6247906079276
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 448.1917286215107
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.4,
+      "active": true,
+      "frequencyHz": 467.1470833746174
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.44,
+      "active": true,
+      "frequencyHz": 487.34555302328096
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.48,
+      "active": true,
+      "frequencyHz": 508.07259287906334
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.52,
+      "active": true,
+      "frequencyHz": 529.5566338399506
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.56,
+      "active": true,
+      "frequencyHz": 552.035438117848
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.6,
+      "active": true,
+      "frequencyHz": 575.4980732881753
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 600.0540946944747
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 461.35605139404163
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.7600000000000002,
+      "active": true,
+      "frequencyHz": 481.1625737283404
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 501.62801685908016
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.8400000000000003,
+      "active": true,
+      "frequencyHz": 522.8022363940697
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 544.9724310063658
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.92,
+      "active": true,
+      "frequencyHz": 568.12975672332
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 592.0453746704434
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.08,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.16,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.24,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.4,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.44,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.48,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.52,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.56,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.6,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.41657653613726
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.08,
+      "active": true,
+      "frequencyHz": 237.48511193980934
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 247.4797072505177
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.16,
+      "active": true,
+      "frequencyHz": 257.92325794601163
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 268.9462446552519
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.24000000000000002,
+      "active": true,
+      "frequencyHz": 280.3489633737153
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 292.08084017193136
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.79938053767253
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.39999999999999997,
+      "active": true,
+      "frequencyHz": 233.8824814803763
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.44,
+      "active": true,
+      "frequencyHz": 244.44708847574114
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.48,
+      "active": true,
+      "frequencyHz": 254.2044814307646
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.52,
+      "active": true,
+      "frequencyHz": 265.5607284778854
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.56,
+      "active": true,
+      "frequencyHz": 276.291544105371
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.6000000000000001,
+      "active": true,
+      "frequencyHz": 288.5202463709363
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 300.4664020194437
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 230.62212090339938
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.76,
+      "active": true,
+      "frequencyHz": 241.08663099871603
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.6551620080141
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.8400000000000001,
+      "active": true,
+      "frequencyHz": 261.8921048685861
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 272.4569623736292
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.92,
+      "active": true,
+      "frequencyHz": 284.61774608948593
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 296.1522274513198
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 322.1027444030427
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.08,
+      "active": true,
+      "frequencyHz": 335.6064665072542
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 350.3568588369272
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.1600000000000001,
+      "active": true,
+      "frequencyHz": 364.9022584754051
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 380.19649882121
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.24,
+      "active": true,
+      "frequencyHz": 396.79144402933235
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 413.6929872587163
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 316.9741651372451
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.4000000000000001,
+      "active": true,
+      "frequencyHz": 330.88206728531253
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.4400000000000002,
+      "active": true,
+      "frequencyHz": 344.927295676593
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.48,
+      "active": true,
+      "frequencyHz": 359.23630681334527
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.52,
+      "active": true,
+      "frequencyHz": 374.96338712625817
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.56,
+      "active": true,
+      "frequencyHz": 390.87476101847125
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.6,
+      "active": true,
+      "frequencyHz": 407.15930918939404
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 424.24938014651246
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 325.89500841229744
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.76,
+      "active": true,
+      "frequencyHz": 339.46821495066973
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 354.23100966412784
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.84,
+      "active": true,
+      "frequencyHz": 369.36348045239913
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 384.64001288717367
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.9200000000000002,
+      "active": true,
+      "frequencyHz": 400.92300553072386
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 418.33658212884455
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 454.569121635572
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.08,
+      "active": true,
+      "frequencyHz": 473.8331371918969
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 493.8318769999386
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.16,
+      "active": true,
+      "frequencyHz": 514.7500745204205
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 536.6264500067737
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.24,
+      "active": true,
+      "frequencyHz": 559.5330682447291
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 583.3653075649543
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 447.07943116502753
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.4,
+      "active": true,
+      "frequencyHz": 466.21492611467266
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.44,
+      "active": true,
+      "frequencyHz": 486.3841550734168
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.48,
+      "active": true,
+      "frequencyHz": 507.10840877934163
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.52,
+      "active": true,
+      "frequencyHz": 528.5506714004462
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.56,
+      "active": true,
+      "frequencyHz": 550.940878897377
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.6,
+      "active": true,
+      "frequencyHz": 574.3113165560115
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 598.7749795596758
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 460.5528619057087
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.7600000000000002,
+      "active": true,
+      "frequencyHz": 480.1262485628671
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 500.6387912939931
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.8400000000000003,
+      "active": true,
+      "frequencyHz": 521.7001075674001
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 543.8593445161968
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.92,
+      "active": true,
+      "frequencyHz": 567.0026719709907
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 590.9230880554925
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.04,
+      "active": true,
+      "frequencyHz": 641.9174195420535
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.08,
+      "active": true,
+      "frequencyHz": 669.3792311266423
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.12,
+      "active": true,
+      "frequencyHz": 697.8397125964507
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.16,
+      "active": true,
+      "frequencyHz": 727.1974702751587
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.2,
+      "active": true,
+      "frequencyHz": 758.2826703873252
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.24,
+      "active": true,
+      "frequencyHz": 790.3150388768132
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.2800000000000002,
+      "active": true,
+      "frequencyHz": 824.193875023334
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.3600000000000003,
+      "active": true,
+      "frequencyHz": 895.5618817273132
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.4,
+      "active": true,
+      "frequencyHz": 933.5032551669343
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.44,
+      "active": true,
+      "frequencyHz": 972.971314729383
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.48,
+      "active": true,
+      "frequencyHz": 1014.6275813653799
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.52,
+      "active": true,
+      "frequencyHz": 1057.499183359802
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.56,
+      "active": true,
+      "frequencyHz": 1102.6725654500576
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.6,
+      "active": true,
+      "frequencyHz": 1149.1216649224577
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "time": 3.64,
+      "active": true,
+      "frequencyHz": 1198.3417194693357
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.27154356233086
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 226.60369719388285
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 225.93184743434585
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.24403625976024
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.5189464531938
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 231.2583946512108
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 251.316436515184
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 0.9600000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.28,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.6400000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.8,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.8800000000000001,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 1.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.36,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.72,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.4536764784093
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 226.77670822694787
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 226.0963464892128
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.1068973903594
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.41226690089914
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 231.13221385527532
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 251.16259138847673
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.05523233294687
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 249.27069707234847
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 248.43614952328699
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 247.7063671839424
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 246.94582034140365
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 246.1844717218024
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 245.42453641195954
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 266.7566731340029
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 274.32218785173717
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 273.34795756462177
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 272.4235376780225
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 271.5595333803858
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 270.6833054342136
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 294.13511153462576
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 292.6376269896463
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 291.71584961641
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 290.8342887073038
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 290.1469154571286
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 298.4894890390327
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 324.7607342791713
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.8000000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.88,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 2.96,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.04,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.12,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.2,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.2800000000000002,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.3600000000000003,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.31354611898223
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 226.6401900154735
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 225.9701468708207
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.2852420336262
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.5777767407675
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 231.3212877826978
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 251.35473492182376
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.23425150948754
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 249.44764532461542
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 248.37099855423153
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 247.5561078292367
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 246.8056429420783
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 246.04457828769466
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 245.31342105014568
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 266.58899401361174
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 274.1416554741831
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 273.1724610390268
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 272.25138412335724
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 271.40504855429623
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 270.51871127018063
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 293.9422119796503
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 292.4776133604011
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 291.54969894445776
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 290.69164963731777
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 290.0942276097572
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 298.6452257837367
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 325.0375176834705
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 323.3374856437488
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 322.2147473427824
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 320.9748161332596
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.04,
+      "active": true,
+      "frequencyHz": 349.19089891937784
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.12,
+      "active": true,
+      "frequencyHz": 379.0830077270747
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.2,
+      "active": true,
+      "frequencyHz": 412.35217600023213
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.2800000000000002,
+      "active": true,
+      "frequencyHz": 447.597399795848
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.3600000000000003,
+      "active": true,
+      "frequencyHz": 486.58827496353985
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "time": 3.64,
+      "active": false,
+      "frequencyHz": null
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.04,
+      "active": true,
+      "frequencyHz": 227.18964310752432
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.12,
+      "active": true,
+      "frequencyHz": 226.5175816929586
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.2,
+      "active": true,
+      "frequencyHz": 225.85001369180497
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.27999999999999997,
+      "active": true,
+      "frequencyHz": 225.14091483471626
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.36,
+      "active": true,
+      "frequencyHz": 224.42532481595887
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.64,
+      "active": true,
+      "frequencyHz": 231.15531161612182
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.7200000000000001,
+      "active": true,
+      "frequencyHz": 251.1945171748451
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.8,
+      "active": true,
+      "frequencyHz": 250.10293574239432
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.88,
+      "active": true,
+      "frequencyHz": 249.30228353056506
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 0.9600000000000001,
+      "active": true,
+      "frequencyHz": 248.46554256156554
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.04,
+      "active": true,
+      "frequencyHz": 247.73007675098495
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.12,
+      "active": true,
+      "frequencyHz": 246.97205850330067
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.2,
+      "active": true,
+      "frequencyHz": 246.21447136947768
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.28,
+      "active": true,
+      "frequencyHz": 245.45355366348608
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.36,
+      "active": true,
+      "frequencyHz": 266.7788166077112
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.6400000000000001,
+      "active": true,
+      "frequencyHz": 273.94621371086635
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.72,
+      "active": true,
+      "frequencyHz": 272.9847931775656
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.8,
+      "active": true,
+      "frequencyHz": 272.0960408532108
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.8800000000000001,
+      "active": true,
+      "frequencyHz": 271.2375551687278
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 1.96,
+      "active": true,
+      "frequencyHz": 270.36425306301794
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.04,
+      "active": true,
+      "frequencyHz": 293.75058120949444
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.12,
+      "active": true,
+      "frequencyHz": 292.3352485126987
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.2,
+      "active": true,
+      "frequencyHz": 291.3786603663148
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.2800000000000002,
+      "active": true,
+      "frequencyHz": 290.5502504572444
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.36,
+      "active": true,
+      "frequencyHz": 290.0479114375967
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.64,
+      "active": true,
+      "frequencyHz": 298.45609946235896
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.72,
+      "active": true,
+      "frequencyHz": 324.8528050181554
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.8000000000000003,
+      "active": true,
+      "frequencyHz": 323.1072807571856
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.88,
+      "active": true,
+      "frequencyHz": 322.00656284041173
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 2.96,
+      "active": true,
+      "frequencyHz": 320.77588290661674
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.04,
+      "active": true,
+      "frequencyHz": 348.9717833309911
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.12,
+      "active": true,
+      "frequencyHz": 378.8438023977524
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.2,
+      "active": true,
+      "frequencyHz": 412.0697486680225
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.2800000000000002,
+      "active": true,
+      "frequencyHz": 447.32554755883694
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.3600000000000003,
+      "active": true,
+      "frequencyHz": 486.29888169489124
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "time": 3.64,
+      "active": true,
+      "frequencyHz": 651.0256988303809
+    }
+  ],
+  "endings": [
+    {
+      "pattern": 5,
+      "kind": 1,
+      "span": 0.16,
+      "hardwareEndSeconds": 0.167437641723356
+    },
+    {
+      "pattern": 6,
+      "kind": 1,
+      "span": 0.4,
+      "hardwareEndSeconds": 1.1569160997732426
+    },
+    {
+      "pattern": 7,
+      "kind": 1,
+      "span": 1,
+      "hardwareEndSeconds": 3.259705215419501
+    },
+    {
+      "pattern": 8,
+      "kind": 1,
+      "span": 2,
+      "hardwareEndSeconds": 3.767120181405896
+    },
+    {
+      "pattern": 9,
+      "kind": 2,
+      "span": 0.16,
+      "hardwareEndSeconds": 0.16857142857142857
+    },
+    {
+      "pattern": 10,
+      "kind": 2,
+      "span": 0.4,
+      "hardwareEndSeconds": 1.0747392290249433
+    },
+    {
+      "pattern": 11,
+      "kind": 2,
+      "span": 1,
+      "hardwareEndSeconds": 3.0098639455782314
+    },
+    {
+      "pattern": 12,
+      "kind": 2,
+      "span": 2,
+      "hardwareEndSeconds": 3.769478458049887
+    },
+    {
+      "pattern": 13,
+      "kind": 4,
+      "span": 0.16,
+      "hardwareEndSeconds": 0.7526757369614513
+    },
+    {
+      "pattern": 14,
+      "kind": 4,
+      "span": 0.4,
+      "hardwareEndSeconds": 2.7470975056689344
+    },
+    {
+      "pattern": 15,
+      "kind": 4,
+      "span": 1,
+      "hardwareEndSeconds": 3.5979818594104307
+    },
+    {
+      "pattern": 16,
+      "kind": 4,
+      "span": 2,
+      "hardwareEndSeconds": 3.7677551020408164
+    }
+  ],
+  "browserComparisons": {
+    "before": [
+      {
+        "pattern": 5,
+        "activeHardwareProbes": 4,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 20.29986811426749,
+        "webEndSeconds": 0.178
+      },
+      {
+        "pattern": 6,
+        "activeHardwareProbes": 24,
+        "audibleFraction": 0.375,
+        "medianPitchErrorCents": 23.84848853962161,
+        "webEndSeconds": 0.4184375
+      },
+      {
+        "pattern": 7,
+        "activeHardwareProbes": 65,
+        "audibleFraction": 0.3076923076923077,
+        "medianPitchErrorCents": 652.8346597005108,
+        "webEndSeconds": 1.0184375
+      },
+      {
+        "pattern": 8,
+        "activeHardwareProbes": 74,
+        "audibleFraction": 0.5405405405405406,
+        "medianPitchErrorCents": 1329.3881653433655,
+        "webEndSeconds": 2.018375
+      },
+      {
+        "pattern": 9,
+        "activeHardwareProbes": 4,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 18.275753021360842,
+        "webEndSeconds": 0.178
+      },
+      {
+        "pattern": 10,
+        "activeHardwareProbes": 24,
+        "audibleFraction": 0.375,
+        "medianPitchErrorCents": 21.206518636042862,
+        "webEndSeconds": 0.4184375
+      },
+      {
+        "pattern": 11,
+        "activeHardwareProbes": 66,
+        "audibleFraction": 0.3333333333333333,
+        "medianPitchErrorCents": 580.4245333249883,
+        "webEndSeconds": 1.0184375
+      },
+      {
+        "pattern": 12,
+        "activeHardwareProbes": 81,
+        "audibleFraction": 0.5432098765432098,
+        "medianPitchErrorCents": 1181.5248786356174,
+        "webEndSeconds": 2.018375
+      },
+      {
+        "pattern": 13,
+        "activeHardwareProbes": 7,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 18.691677054224368,
+        "webEndSeconds": 3.0200625
+      },
+      {
+        "pattern": 14,
+        "activeHardwareProbes": 27,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 169.31636384832444,
+        "webEndSeconds": 3.0200625
+      },
+      {
+        "pattern": 15,
+        "activeHardwareProbes": 35,
+        "audibleFraction": 0.8571428571428571,
+        "medianPitchErrorCents": 311.9385152257031,
+        "webEndSeconds": 3.0200625
+      },
+      {
+        "pattern": 16,
+        "activeHardwareProbes": 36,
+        "audibleFraction": 0.8333333333333334,
+        "medianPitchErrorCents": 310.7262991340144,
+        "webEndSeconds": 3.0200625
+      }
+    ],
+    "after": [
+      {
+        "pattern": 5,
+        "activeHardwareProbes": 4,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 2.053076877955467,
+        "webEndSeconds": 0.16466666666666666
+      },
+      {
+        "pattern": 6,
+        "activeHardwareProbes": 24,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 3.12236835418992,
+        "webEndSeconds": 1.1550416666666667
+      },
+      {
+        "pattern": 7,
+        "activeHardwareProbes": 65,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 5.7325168834615665,
+        "webEndSeconds": 3.2550625
+      },
+      {
+        "pattern": 8,
+        "activeHardwareProbes": 74,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 7.403411450882365,
+        "webEndSeconds": 3.7561666666666667
+      },
+      {
+        "pattern": 9,
+        "activeHardwareProbes": 4,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 4.077191970862144,
+        "webEndSeconds": 0.16466666666666666
+      },
+      {
+        "pattern": 10,
+        "activeHardwareProbes": 24,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 4.869597594927537,
+        "webEndSeconds": 1.0716666666666668
+      },
+      {
+        "pattern": 11,
+        "activeHardwareProbes": 66,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 5.59477593899911,
+        "webEndSeconds": 3.0050416666666666
+      },
+      {
+        "pattern": 12,
+        "activeHardwareProbes": 81,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 9.245258502331232,
+        "webEndSeconds": 3.7561666666666667
+      },
+      {
+        "pattern": 13,
+        "activeHardwareProbes": 7,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 5.569059003260233,
+        "webEndSeconds": 0.7479375
+      },
+      {
+        "pattern": 14,
+        "activeHardwareProbes": 27,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 9.11681550914356,
+        "webEndSeconds": 2.7383333333333333
+      },
+      {
+        "pattern": 15,
+        "activeHardwareProbes": 35,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 11.957987149743902,
+        "webEndSeconds": 3.588416666666667
+      },
+      {
+        "pattern": 16,
+        "activeHardwareProbes": 36,
+        "audibleFraction": 1.0,
+        "medianPitchErrorCents": 13.17260723242888,
+        "webEndSeconds": 3.7561666666666667
+      }
+    ]
+  },
+  "scope": "Saved60BPM loops, non-boundary single-source probes; not waveform, gain or live-gesture equivalence."
+}

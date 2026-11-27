@@ -6,19 +6,19 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 
 | Key | Official effect | App implementation |
 | --- | --- | --- |
-| 01 | Loop 16 | Hold the audible pattern and cycle its 16 sequencer steps; the original chain clock continues independently. |
-| 02 | Loop 12 | Cycle a 12-step window starting at the audible step captured on press, within the captured pattern. |
-| 03 | Loop short | Hold the captured step and retrigger its notes every half-step (32nd notes, two hits per original step). |
-| 04 | Loop shorter | Hold the captured step and retrigger its notes every third-step (48th notes, three hits per original step). |
+| 01 | Loop 16 | Saved: repeat a one-step source-read window four times, then advance it; live legacy hold still requires verification. |
+| 02 | Loop 12 | Saved: repeat a 4/3-step read window three times, then advance it; live legacy hold remains uncalibrated. |
+| 03 | Loop short | Saved: four half-step hits, recapture after two steps. Live: held-step approximation, not hardware-verified. |
+| 04 | Loop shorter | Saved: repeat a third-step source-read window eight times, then advance it. Live legacy hold remains uncalibrated. |
 | 05 | Unison | Four source layers with measured slight detuning and fitted gains; each layer consumes a voice. |
-| 06 | Unison low | Four source layers combining the original pitch with two slightly detuned lower-octave layers. |
-| 07 | Octave up | Glide each active source from its current playback rate toward twice its neutral rate (35ms exponential time constant); new notes start at their base rate and glide too. |
-| 08 | Octave down | Same continuous source-rate glide toward half the neutral rate; preserve current source position. |
+| 06 | Unison low | Three measured near-original layers plus one near-half-rate layer; relative phase remains approximate. |
+| 07 | Octave up | Reset to base rate and advance through semitones toward double rate over about260ms; preserve the source cursor. |
+| 08 | Octave down | Same measured progression toward half rate; release returns promptly to base. |
 | 09 | Stutter 8 | 50% amplitude shutter at 8 Hz at 120 BPM (one sixteenth period), tempo-scaled; no captured audio loop. |
 | 10 | Stutter 6 | 50% amplitude shutter at 6 Hz at 120 BPM (4/3 sixteenth period), tempo-scaled; no captured audio loop. |
-| 11 | Scratch | Live: freeze the audible step and retrigger its notes at half-step intervals, alternating forward/reverse with a pitch envelope. An empty step stays silent. |
-| 12 | Scratch fast | Same held-step playback at quarter-step intervals, twice the retrigger rate. |
-| 13 | 6/8 quantize | Move sequenced triggers onto 12 equally spaced positions per normal 16-step bar; collisions sound together. Keep the bar duration. |
+| 11 | Scratch | Forward/reverse reading of an active source; empty steps can process an existing tail. Transport continues. |
+| 12 | Scratch fast | Same source-reader family at twice the oscillation rate. |
+| 13 | 6/8 quantize | Play the first three steps of each beat at thirds; suppress each fourth step while keeping the bar clock. |
 | 14 | Retrigger pattern | A manual rising edge queues step zero at the next nominal sixteenth boundary. Holding does not repeat the command. Cancel only unheard lookahead; existing tails use normal slot choke and four-voice stealing. Preserve the chain index. WRITE stores one jump flag at the pressed step, not a span; saved flags jump on every visit. |
 | 15 | Reverse | Play each sound backwards from the end of its own trimmed region, preserving pitch, slice selection and step duration. Cached reversed audio is derived only; original samples remain unchanged. |
 | 16 / 00 | No effect | Bypass/release. In write mode the existing FX+16 action clears saved pattern effects. |
@@ -31,15 +31,9 @@ from the supplied third-party implementation guide has been added.
 
 ## Audio and controls
 
-- A five-second ring buffer continuously records the original mixed input, including
-  manually played sounds before transport starts. It never records its own FX return.
-- Master volume is applied after the dry/FX mix so captured loops still respond to
-  BPM + 1–16. The bypass signal keeps the same gain before the output filter/saturator.
-- If a loop is requested before enough history exists, use the available material.
-  A request made before any signal waits for the first sound instead of freezing
-  silence. Short edge fades keep captured loop periods intact.
-- 09 and 10 run on the master stream. 05/06 layer source rates at the voice layer. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
-  individual source regions, including independently copied drum slices.
+- A legacy mixed-input history remains for compatibility; current saved Loop readers and Scratch do not replay that master history.
+- Master volume follows the FX mix; source-reader resets leave original PCM unchanged.
+- 09/10 run on the master stream. 05/06 layer individual voices. Saved01/02/04 reset source read positions; legacy live holds and saved03 use the shadow-cursor scheduler. 07/08 change source rates;11/12 oscillate source readers;13/14 operate on events;15 reverses individual regions.
 - Unison no longer uses the master-stream granular shifter. Four layers share a trigger group, preserving same-slot choke between triggers while counting every layer toward the four-voice limit. Live transitions resume the source position.
   The existing 512-frame ScriptProcessor path for the amplitude shutters is retained
   for r1/browser compatibility; device performance and sound still need listening tests.
@@ -140,3 +134,11 @@ FX13 selects the first three steps of each four-step beat and spreads them at th
 Unique step markers establish that saved FX3 captures a new source every two original sixteenths: four hits of step5 at half-step intervals, then four of step7, then9 and11. Starting one step later yields6/8/10/12. The alternating-empty-step case has the same recapture order. `scheduleLoop` now advances this captured step for automatic FX3 only; live held-step behavior is left unverified.
 
 Do not generalize this rule to other Loop numbers: short v8 samples let FX1 pass normal notes, FX2 adds selected repeats, and FX4 reads/repeats differently from the simple frozen-step model. Earlier long-source v7 behavior differs. Length-dependent reader behavior needs a separate isolated-source test; no claim of complete Loop1–4 reconstruction is made.
+
+## Loop source readers, v9
+
+Saved FX1/2/4 now reset each active voice's read position rather than replacing the song cursor. At60BPM, the read interval/repetition count is250ms×4,333.33ms×3 and83.33ms×8 respectively. After each group, the read window advances one interval through the original PCM. A source that reaches its physical end before a reset stays ended. Turning FX off leaves the latest read position running forward.
+
+Intervening notes are ordered against reset ticks. A reset of an active same-slot voice can retain the captured start while a new note updates its end; a voice already finished can accept a fresh start. This fits the v8 independent marker windows as well as v9 single-source durations. Sources share immutable native bank buffers, so this operates on bounded views without copying or rewriting samples. Four-voice stealing and same-slot choke still apply. Reset events are scheduled on the audio clock; tempo changes rescale future intervals without rescaling already-consumed chunks.
+
+This path is for saved automation. The existing live hold path is retained and still needs hardware gesture verification. Mixed mode switches, pitch/tempo edits while active, cross-bank web samples, parameter locks, and external-sync timing are not fully calibrated. The v8 mixed-switch segment still differs.

@@ -100,6 +100,8 @@
   function quantizeStep(step){return Math.floor(step/4)*4+Math.min(step%4,2)*4/3;}
   var codes=["non","L16","L12","L32","L48","uni","uno","ocu","ocd","st8","st6","scr","scf","6-8","rtr","rev","non"];
   function stepRepeats(kind){return ({3:2,4:3})[kind] || 0;}
+  function readerSpec(kind,step){return kind===1?{period:step,repeats:4}:kind===2?{period:step*4/3,repeats:3}:kind===4?{period:step/3,repeats:8}:null;}
+  function readerPosition(seconds,rate,period,repeats){var tick=Math.floor(seconds/period);return (Math.floor(tick/repeats)*period+(seconds-tick*period))*rate;}
   function loopCell(pcm,offset,available,rate,period,playbackRate){
     var frames=Math.max(2,Math.ceil(period*rate*playbackRate)+1),out=new Float32Array(frames),start=Math.max(0,Math.round(offset*rate)),count=Math.min(frames,Math.round(available*rate),pcm.length-start);
     if(count>0)out.set(pcm.subarray(start,start+count));
@@ -109,5 +111,5 @@
   }
   // V6 multi-pitch harmonic capture; low mode resolves three near-unity layers and one half-rate layer.
   function unisonLayers(kind){return kind===5?[.98388644,.99413750,1.00627777,1.01660276]:kind===6?[.99459477,1.00292946,1.00437673,.49609343]:[1];}
-  return {unisonLayers:unisonLayers,unisonGains:function(kind){return [.35,.46666667,.35,.35];},Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
+  return {readerSpec:readerSpec,readerPosition:readerPosition,unisonLayers:unisonLayers,unisonGains:function(kind){return [.35,.46666667,.35,.35];},Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
 });
