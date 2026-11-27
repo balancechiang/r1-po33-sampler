@@ -27,8 +27,12 @@ try:
   for kind,target in [('sound',2),('pattern',2)]:
    before=snap();down('write');down(kind,2)
    assert code()=='CPy' and blinking(),(kind,code())
+   assert page.locator('#lcdNumber').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.625s'
+   opacities=page.locator('#lcdNumber').evaluate('''e=>{const a=e.getAnimations()[0];a.pause();return [0,312,313,624].map(t=>{a.currentTime=t;return getComputedStyle(e).opacity;});}''')
+   assert opacities==['1','1','0','0'],opacities
    page.wait_for_timeout(100);assert snap()==before,'copy modified data before paste'
    pad(target);assert code()=='CPy' and not blinking()
+   assert page.locator('#lcdNumber').evaluate('(e)=>getComputedStyle(e).opacity')=='1'
    source=page.locator('[data-pad="1"]');assert source.get_attribute('data-led-reason')=='copy-source'
    assert source.locator('.led').evaluate('(e)=>getComputedStyle(e).animationDuration')=='0.3125s'
    colors=source.locator('.led').evaluate('''e=>{const a=e.getAnimations()[0];a.pause();return [0,156,157,312].map(t=>{a.currentTime=t;return getComputedStyle(e).backgroundColor;});}''')
