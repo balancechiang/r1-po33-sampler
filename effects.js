@@ -38,10 +38,11 @@
     this.stepSamples=Math.max(1,stepSeconds*this.sampleRate);
     this.loop=null;this.pending=false;this.waitingForSignal=false;this.pos=0;this.scratchPhase=0;
     this.transition=Math.max(1,Math.round(this.sampleRate*.005));
-    var steps={1:16,2:12,3:4,4:2,9:.5,10:2/3,11:4,12:4};
+    var steps={1:16,2:12,3:4,4:2,11:4,12:4};
     this.requested=steps[kind]?Math.round(this.stepSamples*steps[kind]):0;
     if(this.requested){this.pending=true;this.capture();}
   };
+  Engine.prototype.setStepDuration=function(seconds){var next=Math.max(1,seconds*this.sampleRate);if((this.kind===9 || this.kind===10) && this.stepSamples)this.pos*=next/this.stepSamples;this.stepSamples=next;};
   Engine.prototype.release=function(){this.kind=0;this.loop=null;this.pending=false;};
   Engine.prototype.pitch=function(ratio){
     var span=Math.round(this.sampleRate*.04),base=Math.round(this.sampleRate*.012);
@@ -60,7 +61,12 @@
       blockPeak=Math.max(blockPeak,Math.abs(x));
       this.write=(this.write+1)%this.history.length;this.filled=Math.min(this.history.length,this.filled+1);
       var y=x;
-      if(kind>=5&&kind<=8 && this.filled>this.sampleRate*.055){
+      if(kind===9 || kind===10){
+        var period=this.stepSamples*(kind===9?1:4/3),phase=this.pos/period;
+        var edge=Math.min(this.sampleRate*.001,period*.02),position=this.pos;
+        var gate=phase<.5?Math.max(0,Math.min(1,position/edge,(period*.5-position)/edge)):0;
+        y=x*gate;this.pos=(this.pos+1)%period;
+      } else if(kind>=5&&kind<=8 && this.filled>this.sampleRate*.055){
         var ratio=kind===5?1.008:kind===7?2:.5;
         var shifted=this.pitch(ratio);
         y=kind===5?x*.55+shifted*.45:kind===6?x*.45+shifted*.55:shifted;
@@ -101,5 +107,7 @@
     for(var i=0;i<fade;i++){out[i]*=i/fade;if(count>i)out[count-1-i]*=i/fade;}
     return out;
   }
-  return {Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
+  // Rates fitted from the 2026-11-27 isolated harmonic-source recording.
+  function unisonLayers(kind){return kind===5?[.98372,.99407,1.00439,1.01453]:kind===6?[1,1,.497,.503]:[1];}
+  return {unisonLayers:unisonLayers,unisonGains:function(kind){return kind===5?[.35,.5,.5,.35]:[.35,.35,.35,.35];},Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
 });

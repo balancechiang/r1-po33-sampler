@@ -35,3 +35,9 @@ voices=[1,2,3,4].map(slot=>({slot,start:1,end:3}));const hit={slot:8,start:.2,en
 voices=[];let seed=33;for(let i=0;i<400;i++){seed=(seed*1664525+1013904223)>>>0;const start=(seed%500)/100;allocate(voices,{slot:1+(seed%16),start,end:start+.2+(seed%120)/100},()=>{},4);}
 for(const time of voices.flatMap(v=>[v.start+.000001,v.end-.000001])){const active=voices.filter(v=>v.start<=time&&v.end>time);assert.ok(active.length<=4);assert.equal(new Set(active.map(v=>v.slot)).size,active.length);}
 console.log('PASS transient onsets at 3 rates, quiet/sustained/16-hit boundaries; choke, oldest stealing, future lookahead, 400-event concurrency invariants.');
+
+// Layers of one trigger may coexist; the next trigger still chokes the entire slot.
+{const voices=[],cut=(v,t)=>{v.end=t;};for(let i=0;i<4;i++)allocate(voices,{slot:1,group:10,start:0,end:1},cut,4);
+assert.equal(voices.filter(v=>v.end>0).length,4);
+for(let i=0;i<4;i++)allocate(voices,{slot:1,group:11,start:.2,end:1},cut,4);
+assert.equal(voices.filter(v=>v.end>.2).length,4);assert(voices.filter(v=>v.group===10).every(v=>v.end===.2));}

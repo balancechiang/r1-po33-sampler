@@ -30,21 +30,19 @@ try:
   def up(i):page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
   def play():page.locator('[data-act="play"]').click()
   configure(0,[])
-  page.evaluate("uniTest.slotPitch();uniTest.fire(1,15,0);uniTest.fire(2,0,0);window.firstVoices=fxVoices.slice(-2);window.baseRates=firstVoices.map(v=>v.src.playbackRate.value)")
-  page.evaluate('uniTest.on(5)');page.wait_for_timeout(30)
-  rates=page.evaluate('firstVoices.map(v=>v.src.playbackRate.value)');assert abs(rates[0]-2**(3/12))<1e-5 and abs(rates[1]-1)<1e-5,rates
-  assert page.evaluate('fxVoices.length')==2
-  routing=page.evaluate('uniTest.routing()');assert routing['engine']==0 and routing['dry']>.99 and routing['wet']<.001,routing
-  page.evaluate('uniTest.on(6)');page.wait_for_timeout(10)
-  rates=page.evaluate('firstVoices.map(v=>v.src.playbackRate.value)');assert abs(rates[0]-2**(3/12)*.5)<1e-5 and abs(rates[1]-.5)<1e-5
-  page.evaluate('uniTest.off()');page.wait_for_timeout(10)
-  assert page.evaluate('firstVoices.every((v,i)=>Math.abs(v.src.playbackRate.value-baseRates[i])<1e-5)')
-  assert page.evaluate('fxVoices.length')==2
-  print('PASS live 05/06 align existing source rates to slot base / lower octave, no restart, no master-bus effect, release restores note rates')
-  page.evaluate('uniTest.on(5);uniTest.fire(3,0,5);uniTest.fire(4,15,5);uniTest.fire(5,8,5)');assert page.evaluate('fxVoices.slice(-3).every(v=>Math.abs(v.src.playbackRate.value-1)<1e-6)')
-  page.evaluate('uniTest.fire(9,8,6)');assert page.evaluate('fxVoices.at(-1).note===8 && fxVoices.at(-1).src.playbackRate.value===.5')
-  events=page.evaluate('fxVoices.map(v=>({start:v.start,end:Math.min(v.end,v.cutAt===undefined?Infinity:v.cutAt)}))')
-  assert all(sum(v['start']<=t+1e-7 and v['end']>t+1e-7 for v in events)<=4 for t in [v['start'] for v in events])
-  assert not errors,errors;print('PASS future note mapping ignores pad offsets, drum index preserved, normal four-voice stealing retained')
+  def active():return page.evaluate('fxVoices.filter(v=>v.start<=v.src.context.currentTime && v.end>v.src.context.currentTime && (v.cutAt===undefined || v.cutAt>v.src.context.currentTime)).map(v=>({rate:v.src.playbackRate.value,slot:v.slot,note:v.note,group:v.group}))')
+  page.evaluate('uniTest.slotPitch();uniTest.fire(1,4,0);uniTest.on(5)');page.wait_for_timeout(40)
+  voices=active();assert len(voices)==4,voices
+  expected=[.98372,.99407,1.00439,1.01453]
+  assert all(abs(v['rate']/2**(3/12)-r)<1e-5 for v,r in zip(voices,expected)),voices
+  assert len({v['group'] for v in voices})==1
+  routing=page.evaluate('uniTest.routing()');assert routing['engine']==0 and routing['dry']>.99 and routing['wet']<.001
+  page.evaluate('uniTest.on(6)');page.wait_for_timeout(30);voices=active();assert len(voices)==4
+  assert all(abs(v['rate']/2**(3/12)-r)<1e-5 for v,r in zip(voices,[1,1,.497,.503])),voices
+  page.evaluate('uniTest.off()');page.wait_for_timeout(30);voices=active();assert len(voices)==1 and abs(voices[0]['rate']-2**(3/12))<1e-5
+  page.evaluate('uniTest.fire(3,4,5)');page.wait_for_timeout(20);voices=active();assert len(voices)==4 and all(v['slot']==3 for v in voices)
+  page.evaluate('uniTest.fire(9,8,6)');page.wait_for_timeout(20);voices=active();assert len(voices)==4 and all(v['slot']==9 and v['note']==8 for v in voices)
+  assert not errors,errors
+  print('PASS measured four-layer Unison/Low, live enter/switch/release, shared choke group, drum index and global four-voice stealing')
   b.close()
 finally:server.shutdown();server.server_close()

@@ -10,12 +10,12 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | 02 | Loop 12 | Cycle a 12-step window starting at the audible step captured on press, within the captured pattern. |
 | 03 | Loop short | Hold the captured step and retrigger its notes every half-step (32nd notes, two hits per original step). |
 | 04 | Loop shorter | Hold the captured step and retrigger its notes every third-step (48th notes, three hits per original step). |
-| 05 | Unison | Force source rates to slot base pitch, ignoring pad-note offsets; existing voices retain their sample position. No synthetic detuned layer. |
-| 06 | Unison low | Same source-rate alignment, one octave below slot base pitch. |
+| 05 | Unison | Four source layers with measured slight detuning and fitted gains; each layer consumes a voice. |
+| 06 | Unison low | Four source layers combining the original pitch with two slightly detuned lower-octave layers. |
 | 07 | Octave up | Glide each active source from its current playback rate toward twice its neutral rate (35ms exponential time constant); new notes start at their base rate and glide too. |
 | 08 | Octave down | Same continuous source-rate glide toward half the neutral rate; preserve current source position. |
-| 09 | Stutter 8 | Capture a eighth-beat fragment and repeat it eight times per beat. |
-| 10 | Stutter 6 | Capture a sixth-beat fragment and repeat it six times per beat. |
+| 09 | Stutter 8 | 50% amplitude shutter at 8 Hz at 120 BPM (one sixteenth period), tempo-scaled; no captured audio loop. |
+| 10 | Stutter 6 | 50% amplitude shutter at 6 Hz at 120 BPM (4/3 sixteenth period), tempo-scaled; no captured audio loop. |
 | 11 | Scratch | Live: freeze the audible step and retrigger its notes at half-step intervals, alternating forward/reverse with a pitch envelope. An empty step stays silent. |
 | 12 | Scratch fast | Same held-step playback at quarter-step intervals, twice the retrigger rate. |
 | 13 | 6/8 quantize | Move sequenced triggers onto 12 equally spaced positions per normal 16-step bar; collisions sound together. Keep the bar duration. |
@@ -38,11 +38,10 @@ from the supplied third-party implementation guide has been added.
 - If a loop is requested before enough history exists, use the available material.
   A request made before any signal waits for the first sound instead of freezing
   silence. Short edge fades keep captured loop periods intact.
-- 09 and 10 run on the master stream. 05/06 align source rates at the voice layer. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
+- 09 and 10 run on the master stream. 05/06 layer source rates at the voice layer. 01–04 use source-level sequencer retriggers and a separate shadow clock; 07–08 glide source rates; live 11–12 freeze a captured step. 13–14 operate on sequencer events. 15 operates on
   individual source regions, including independently copied drum slices.
-- Unison no longer uses the master-stream granular shifter. Existing logical voices
-  are retained without adding layers; normal same-slot choke and the four-voice limit apply.
-  The existing 512-frame ScriptProcessor path for Stutter is retained
+- Unison no longer uses the master-stream granular shifter. Four layers share a trigger group, preserving same-slot choke between triggers while counting every layer toward the four-voice limit. Live transitions resume the source position.
+  The existing 512-frame ScriptProcessor path for the amplitude shutters is retained
   for r1/browser compatibility; device performance and sound still need listening tests.
 - On-screen FX remains momentary. Shake FX remains latched and uses the same
   numbering. A held screen FX key takes priority over shake and saved effects.
@@ -96,13 +95,12 @@ subdivision/direction/envelope within each saved step, allowing the song to prog
 Octave glides also use the source-rate trajectory used for live knob changes, keeping
 trim deadlines, choke and four-voice limits in sync.
 
-## Unison source-rate model (2026-11-25)
+## Recorded Unison and shutter calibration (2026-11-27)
 
-The 05/06 behavior is a user-specified, hardware-unverified model. Manual and saved
-FX use the same source-rate mapping. 05 ignores pad pitch and retains slot pitch;
-06 applies an additional 0.5 ratio. Existing sources change rate immediately without
-restarting. Release restores the original note plus current slot pitch. Drum slice
-indices are never replaced. No invented timing jitter or detuned clones are added.
-07/08 retain the earlier requested octave glides; the instant-switch model is not
-generalized to all effects. Legacy DSP Engine modes 05/06 remain for compatibility
-but are bypassed by the current app routing.
+The isolated harmonic-source hardware capture replaces the earlier unverified root-pitch-clamping model. FX5 shows four resolvable detuned bands (harmonic 8: 865.70, 874.79, 883.87, 892.79 Hz for an 880 Hz dry harmonic). FX6 retains original and lower-octave components. The source-layer ratios/gains are fitted approximations at the tested base pitch; wider note/pitch behavior and exact phase/interpolation remain unverified.
+
+A trigger's layers share a choke group, so they coexist but the next hit in the same slot replaces the group. All layers count toward the four-voice allocator. Live enter/switch/release resumes the current sample position; future scheduled notes remain on their clock grid. Note pitch is preserved rather than forcibly replaced with the slot root.
+
+FX9/10 are live amplitude gates, not recorded fragment loops. At 120 BPM the measured families are approximately 8/6 Hz with near 50% on time; the app uses a 1 ms edge. Source-layer and gate changes use the same paths for live and recorded FX.
+
+On the isolated test's analysis windows, wet/dry RMS differences versus hardware are about +0.19 dB (FX5), +0.18 dB (FX6), -0.30 dB (FX9), +0.14 dB (FX10). This is not a claim of waveform/phase identity or full calibration on arbitrary material. Scratch, filters and other FX still require further modeling.

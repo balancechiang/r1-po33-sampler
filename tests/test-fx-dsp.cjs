@@ -17,7 +17,7 @@ for(let kind=1;kind<=15;kind++){
   e.release();assert.deepEqual(run(e,signal(512)),signal(512));
 }
 // History starts before the first FX. Loop duration remains musically exact.
-for(const [kind,steps] of [[1,16],[2,12],[3,4],[4,2],[9,.5],[10,2/3]]){
+for(const [kind,steps] of [[1,16],[2,12],[3,4],[4,2]]){
   const e=new Engine(rate);run(e,input);e.engage(kind,step);
   assert.equal(e.loop.length,Math.round(rate*step*steps));
   const out=run(e,new Float32Array(e.loop.length*3));
@@ -47,3 +47,20 @@ assert.equal(new Set(times).size,12);
 assert(times.every((v,i)=>i===0||v>=times[i-1]));
 assert(times.some((v,i)=>v!==i));
 console.log('PASS: all 15 DSP modes finite/bounded, bypass recovery, exact loop periods, startup history recovery, measured +/-octave pitch, bidirectional scratch rates, 6/8 quantization grid.');
+
+// Recorded Shutter 8/6 are amplitude gates, not captured-audio loops.
+for(const [kind,hz] of [[9,8],[10,6]]){
+ const e=new Engine(rate);e.engage(kind,step);assert.equal(e.loop,null);
+ const out=run(e,new Float32Array(rate*2).fill(.5));let rises=0,high=0;
+ for(let i=rate;i<out.length;i++){if(out[i]>.2)high++;if(out[i-1]<.2 && out[i]>=.2)rises++;}
+ assert.equal(rises,hz);assert(Math.abs(high/rate-.5)<.03);
+ const silence=run(e,new Float32Array(rate));assert(silence.every(v=>v===0),'gate must not replay history');
+}
+
+const measurement=require('./fixtures/fx-hardware-calibration-20261127.json');
+const {unisonLayers,unisonGains}=require('../effects.js');
+unisonLayers(5).forEach((ratio,i)=>assert(Math.abs(ratio*measurement.dryHarmonic8Hz-measurement.fx5Harmonic8Hz[i])<.2));
+assert.equal(unisonLayers(5).length,4);assert(unisonLayers(6).some(r=>r>.99));assert(unisonLayers(6).some(r=>r<.51));
+assert(unisonGains(5).every(v=>v>0&&v<=.5));
+
+{const e=new Engine(rate);e.engage(9,.125);run(e,new Float32Array(500).fill(.5));const phase=e.pos/e.stepSamples;e.setStepDuration(.25);assert(Math.abs(e.pos/e.stepSamples-phase)<1e-12);}

@@ -1,0 +1,53 @@
+{
+  "source": "hardware-fx-vol12-20261127-122745.wav",
+  "bpm": 120,
+  "masterVolume": 12,
+  "fx5Harmonic8Hz": [
+    865.7,
+    874.79,
+    883.87,
+    892.79
+  ],
+  "dryHarmonic8Hz": 880,
+  "fx5EstimatedLayerGains": [
+    0.3498,
+    0.4757,
+    0.5153,
+    0.3424
+  ],
+  "fx6ObservedComponentsHz": [
+    55,
+    110
+  ],
+  "shutterHz": {
+    "9": 8,
+    "10": 6
+  },
+  "comparison": [
+    {
+      "fx": 5,
+      "hardwareWetDryRMS": 0.8588786253845514,
+      "webWetDryRMS": 0.8776581287384033,
+      "relativeErrorDB": 0.18787169632995276
+    },
+    {
+      "fx": 6,
+      "hardwareWetDryRMS": 0.8846970549847155,
+      "webWetDryRMS": 0.903239905834198,
+      "relativeErrorDB": 0.18017070456762357
+    },
+    {
+      "fx": 9,
+      "hardwareWetDryRMS": 0.7223031750475725,
+      "webWetDryRMS": 0.6980441808700562,
+      "relativeErrorDB": -0.2967322576935991
+    },
+    {
+      "fx": 10,
+      "hardwareWetDryRMS": 0.7145872714616143,
+      "webWetDryRMS": 0.7259079217910767,
+      "relativeErrorDB": 0.13652519532018784
+    }
+  ],
+  "scope": "One original harmonic source, one hardware/interface recording. Layer/resampling details are fitted approximations; full firmware identity is not claimed."
+}

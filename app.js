@@ -818,7 +818,7 @@
   var fx = {kind:0,proc:null,wet:null,engine:null,installed:false};
   var fxTimers=[], transportGeneration=0, scheduledEffect=0;
   var sampleVoices=[], reversedBuffers=new WeakMap();
-  var voiceEffect=0,scratchHold=null,loopHold=null;
+  var voiceEffect=0,scratchHold=null,loopHold=null,unisonSerial=0;
 
   function fxInstall() {
     if(fx.installed)return;
@@ -882,7 +882,7 @@
   }
   function trackVoice(src,g,start,end,details) {
     var entry={src:src,gain:g,start:start,end:end,slot:slotNumForVoice,note:voiceNote,
-      gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect,...details};
+      group:details.performance && details.performance.unisonGroup,gate:voiceGate,tweak:JSON.parse(JSON.stringify(voiceTweak)),effect:voiceEffect,...details};
     window.PO33Sampling.allocate(sampleVoices,entry,cutSampleVoice,4);
     window.PO33Runtime.setActive("voices",true);
     src.onended=function(){setTimeout(function(){[src,g,...Object.values(entry.controls || {})].forEach(function(node){try{node.disconnect();}catch(error){}});},40);var i=sampleVoices.indexOf(entry);if(i>=0)sampleVoices.splice(i,1);window.PO33Runtime.setActive("voices",sampleVoices.some(function(v){return v.end>ac.currentTime;}));};
@@ -914,14 +914,15 @@
       voice(v.slot,v.note,Math.max(now+RAMP,v.start),v.gate,effect,Object.assign({},v.tweak,effectiveTweak(v.slot,Math.max(now,v.start))));
     });
   }
-  // Event/source-rate Unison model; no extra hidden voices or mixed-bus chorus.
-  function sourceRate(semitones,pitch,effect){return Math.pow(2,((effect===5||effect===6?0:semitones)+pitch)/12)*(effect===6||effect===8?.5:effect===7?2:1);}
+  function sourceRate(semitones,pitch,effect){return Math.pow(2,(semitones+pitch)/12)*(effect===8?.5:effect===7?2:1);}
   function retuneUnison(kind,fromPattern){
-    var now=ctx().currentTime;
-    sampleVoices.slice().forEach(function(v){
-      if(v.end<=now || !v.speed || (fromPattern && v.start>now+.002 && v.effect!==kind))return;
-      var at=Math.max(now,v.start),values=effectiveTweak(v.slot,at);v.effect=kind;
-      v.speed.target(at,sourceRate(v.semitones,values.pitch,kind),0,now);v.speed.apply(v.src.playbackRate,now);replanVoice(v);
+    var now=ctx().currentTime,seen=new Set(),voices=sampleVoices.slice();
+    voices.forEach(function(v){
+      if(v.end<=now || !v.speed || v.effect===kind || (fromPattern && v.start>now+.002))return;
+      var key=v.group===undefined?v:v.group;if(seen.has(key))return;seen.add(key);
+      var at=Math.max(now+.003,v.start),resume=(v.anchor-(v.sourceStart===undefined?v.anchor:v.sourceStart))+(v.start>now?0:v.speed.state(at).position),gate=v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at);
+      voices.filter(function(old){return v.group===undefined?old===v:old.group===v.group;}).forEach(function(old){cancelVoice(old,now);});
+      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume});
     });
   }
   function glideOctave(kind,fromPattern){
@@ -1060,7 +1061,7 @@
     var values=effectiveTweak(v.slot,time);v.tweak=JSON.parse(JSON.stringify(effectiveTweak(v.slot,now)));
     setVoiceControls(v.controls,values,time,false);
     if(Number.isFinite(patch.pitch)){
-      v.speed.target(time,sourceRate(v.semitones,values.pitch,v.effect),.015,now);
+      v.speed.target(time,sourceRate(v.semitones,values.pitch,v.effect)*(v.performance.unisonLayer || 1),.015,now);
       v.speed.apply(v.src.playbackRate,now);replanVoice(v);
     }
   }
@@ -1216,12 +1217,13 @@
     if(!recHeld && !rec.on)musicSession(syncMode>=2?'play-and-record':'ambient');
     var c = ctx();
     var t = when === undefined ? c.currentTime : when;
-    var rate = sourceRate(semitones,s.pitch || 0,voiceEffect===7||voiceEffect===8?0:voiceEffect);
+    var performance=s.performance || {};
+    var rate = sourceRate(semitones,s.pitch || 0,voiceEffect===7||voiceEffect===8?0:voiceEffect)*(performance.unisonLayer || 1);
     var trimOff = (s.trim / 100) * s.duration;
     var off = (s.offset || 0) + trimOff;
     var avail = (s.duration - trimOff) * (s.length === undefined ? 1 : s.length / 100);
     if (avail<=0)return;
-    var speed=new window.PO33LiveVoice.Speed(t,rate),performance=s.performance || {};
+    var speed=new window.PO33LiveVoice.Speed(t,rate);
     if(voiceEffect===7 || voiceEffect===8)speed.target(t,rate*(voiceEffect===7?2:.5),.035,t);
     if(performance.scratch){speed=new window.PO33LiveVoice.Speed(t,rate*.8);speed.target(t,rate*1.4,.008,t);speed.target(t+(s.gateSeconds || .06)*.45,rate*.5,.012,t);}
     var dur = Math.min(speed.end(avail,t)-t,s.gateSeconds || Infinity),attack=Math.min(.002,dur*.3),release=Math.min(.003,dur*.3);
@@ -1235,24 +1237,31 @@
     g.gain.linearRampToValueAtTime(0.95, t + attack);
     g.gain.setValueAtTime(0.95, t + Math.max(attack, dur - release));
     g.gain.linearRampToValueAtTime(0, t + dur);
-    var controls=connectVoice(g,slotNumForVoice,when);
+    var controls=connectVoice(g,slotNumForVoice,when);controls.input.gain.value=performance.unisonGain===undefined?1:performance.unisonGain;
     src.connect(controls.input);
     src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,cutAt:undefined});
+    trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,span:avail,semitones:semitones,gateEnd:s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
   function voice(slotNum,padIndex,when,gateSeconds,effect,override,performance) {
+    var kind=effect===undefined?fx.kind:effect;
+    if((kind===5 || kind===6) && !(performance && performance.unisonGroup!==undefined)){
+      var group=++unisonSerial;
+      window.PO33FX.unisonLayers(kind).forEach(function(ratio,index){voice(slotNum,padIndex,when,gateSeconds,kind,override,Object.assign({},performance,{unisonGroup:group,unisonLayer:ratio,unisonGain:window.PO33FX.unisonGains(kind)[index]}));});return;
+    }
     slotNumForVoice=slotNum;voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
     var at=when===undefined?ctx().currentTime:when;
-    window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice);
+    window.PO33Sampling.choke(sampleVoices,slotNum,at,cutSampleVoice,performance && performance.unisonGroup);
     var sample=samples[slotNum-1];if(!sample)return;
     var tw=override || effectiveTweak(slotNum,at);voiceTweak=tw;
     var view=slotNum>8?rawSlice(sample,padIndex):sample;if(!view)return;
     var trim=slotNum>8?(tw.slices[padIndex] || {start:0,length:100}):tw;
     var region=window.PO33Sampling.trimFrames(view,trim,view.buffer.length,view.buffer.sampleRate);
-    var s={buffer:view.buffer,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
+    var sourceStart=region.start/view.buffer.sampleRate;
+    if(performance && performance.resumeSeconds)region.start=Math.min(region.end,region.start+Math.round(performance.resumeSeconds*view.buffer.sampleRate));
+    var s={buffer:view.buffer,sourceStart:sourceStart,offset:region.start/view.buffer.sampleRate,duration:(region.end-region.start)/view.buffer.sampleRate,trim:0,length:100,pitch:tw.pitch,gateSeconds:gateSeconds,performance:performance};
     playPitched(s,slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,when);
   }
 
@@ -1330,6 +1339,7 @@
     if (!ac || !seq.playing || ac.state!=="running") return;
     if(syncController&&syncMode===1){syncClock?.tempo(params.bpm,ac.currentTime);syncController.bpm=params.bpm;syncController.config();}
     var now = ac.currentTime;
+    if(fx.engine)fx.engine.setStepDuration(stepDur());
     if(loopHold){scheduleLoop(now);return;}
     if(scratchHold){scheduleScratch(now);return;}
     if(syncMode>=2)return;

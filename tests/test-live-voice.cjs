@@ -8,3 +8,5 @@ const voice={slot:1,start:0,end:1},others=[1,2,3].map((_,i)=>({slot:i+2,start:.1
 const newer={slot:9,start:1,end:2},old=[1,2,3].map((_,i)=>({slot:i+1,start:i*.1,end:8}));old.push({slot:8,start:3,end:8});protect([newer,...old],newer,5,1.5,cut);assert.equal(old[0].end,3);assert.equal(newer.end,5);
 const clone={slot:1,start:0,end:1},future={slot:1,start:2,end:8};protect([clone,future],clone,6,.5,cut);assert.equal(clone.end,2);assert.equal(future.end,8);
 console.log('PASS analytic smoothed-rate position/end, pruning and future lock retention, extended tails preserve four voices/oldest stealing and same-slot cutoff.');
+
+{const group=Array.from({length:4},()=>({slot:1,group:7,start:0,end:2}));let cutCount=0;protect(group,group[0],3,.5,()=>cutCount++);assert.equal(cutCount,0);assert.equal(group[0].end,3);}

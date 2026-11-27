@@ -30,3 +30,7 @@ A user line-out capture of the original automatic test project (master volume 12
 - Absolute analog gain, LCD meter values and physical knob angles cannot be inferred solely from this soundcard recording.
 
 Private recordings and captured PCM remain outside Git. Regression measurements are in `tests/fixtures/hardware-calibration-20261127.json`.
+
+The second, single-source FX recording on 2026-11-27 calibrates Unison 5/6 source-layer spectra and Shutter 9/10 gating. The earlier root-clamping Unison model and repeated-buffer shutter model were removed. Isolated wet/dry RMS matches within about 0.3 dB for these four cases, but exact phase, arbitrary-note behavior, Scratch and filter/resonance remain unverified/incomplete.
+
+During this FX calibration, the SY1 all-live-FX clock-grid regression passed. The simulated external-slave test still intermittently failed its strict grid/saved-FX14 assertions; a baseline run serving pre-change app/effects/sampling/voice files reproduced a failure. No slave-clock correction is claimed in this change; physical slave timing and Unison on non-root notes remain follow-up checks.

@@ -34,12 +34,12 @@
   const result=points.map((start,i)=>({start,end:i+1<points.length?points[i+1]:data.length}));
   while(result.length<16)result.push(null);return result;
  }
- function choke(voices,slot,time,cut){
-  voices.forEach(function(v){if(v.slot===slot && v.start<=time && v.end>time){v.end=time;cut(v,time);}});
+ function choke(voices,slot,time,cut,group){
+  voices.forEach(function(v){if(v.slot===slot && !(group!==undefined && v.group===group) && v.start<=time && v.end>time){v.end=time;cut(v,time);}});
  }
  function allocate(voices,incoming,cut,limit){
   limit=limit || 4;var t=incoming.start;
-  choke(voices,incoming.slot,t,cut);
+  choke(voices,incoming.slot,t,cut,incoming.group);
   var active=voices.filter(function(v){return v.start<=t && v.end>t;}).sort(function(a,b){return a.start-b.start;});
   while(active.length>=limit){var victim=active.shift();victim.end=t;cut(victim,t);}
   // A live hit can arrive before voices already scheduled by the lookahead sequencer.

@@ -16,7 +16,7 @@
  function protect(voices,voice,end,now,cut){
   voice.end=end;const times=[now,...voices.filter(v=>v!==voice && v.start>now && v.start<end).map(v=>v.start)].sort((a,b)=>a-b);
   for(const t of times){if(t>=voice.end)break;
-   for(const v of voices)if(v!==voice && v.slot===voice.slot && v.start<=t && v.end>t){const victim=v.start>voice.start?voice:v;victim.end=t;cut(victim,t);}
+   for(const v of voices)if(v!==voice && v.slot===voice.slot && !(voice.group!==undefined && v.group===voice.group) && v.start<=t && v.end>t){const victim=v.start>voice.start?voice:v;victim.end=t;cut(victim,t);}
    const active=voices.filter(v=>v.start<=t && v.end>t).sort((a,b)=>a.start-b.start);
    while(active.length>4){const victim=active.shift();victim.end=t;cut(victim,t);}
   }

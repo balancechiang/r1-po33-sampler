@@ -45,3 +45,5 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `node scripts/build-calibration.mjs <output-dir> --fx-isolated`: automatic single-source FX diagnostic project (all 15 FX, no competing sounds).
 
 Native PCM import/restore bypasses additional master coloration by default; the optional tone switch may explicitly enable it. The calibration import browser test also checks that this state survives reload and that the browser-built edited export preserves volume codes.
+
+- `python tests/test-unison-source.py`: measured four-layer rates, live enter/switch/release, grouped choke and global four-voice stealing.
