@@ -1,7 +1,7 @@
 // Original, deterministic calibration material; no external recordings.
 import fs from 'node:fs';import path from 'node:path';import assert from 'node:assert/strict';
 import {emptyProject,compileProject} from '../decoder/vendor/so-sample/project.ts';
-import {emptyPattern,writeCell,writeEffects,DEFAULT_PARAMETERS,readEffects} from '../decoder/vendor/so-sample/pattern.ts';
+import {emptyPattern,writeCell,writeEffects,DEFAULT_PARAMETERS,readEffects,readCell} from '../decoder/vendor/so-sample/pattern.ts';
 import {encodeMulaw,SAMPLE_RATE} from '../decoder/vendor/so-sample/mulaw.ts';
 import {EMPTY_GLOBALS} from '../src/codec/po33Template.ts';
 import {encodePO33Backup} from '../src/codec/po33Encode.ts';
@@ -18,7 +18,7 @@ const slices=[];
 for(let k=0;k<16;k++){const type=k%4;const clip=sound('drum'+k,.32,t=>type===0?.5*Math.sin(2*Math.PI*(48*t+90*.015*(1-Math.exp(-t/.015))))*Math.exp(-t/.085):type===1?(noise()*.28+Math.sin(2*Math.PI*180*t)*.16)*Math.exp(-t/.055):type===2?noise()*.17*Math.exp(-t/.025):.25*Math.sin(2*Math.PI*(700+k*43)*t)*Math.exp(-t/.08));slices.push(clip);}
 model.drums[0]={slices};
 const sections=[];function hit(p,step,slot,key=5,extra={}){writeCell(model.patterns[p-1],step,slot,{...DEFAULT_PARAMETERS,key,...extra});}
-function section(p,name,detail){sections.push({pattern:p,startSeconds:(p-1)*2,endSeconds:p*2,name,detail});}
+function section(p,name,detail){const bar=240/model.tempo;sections.push({pattern:p,startSeconds:(p-1)*bar,endSeconds:p*bar,name,detail});}
 for(let i=0;i<16;i++)hit(1,i+1,1,i+1,{timing:1});section(1,'Melodic key map','Keys 1..16, one per sixteenth; 220 Hz source.');
 const pitches=[1,4,7,10,13,16,19,22,25];for(let i=0;i<pitches.length;i++)hit(2,i+1,1,5,{pitch:pitches[i],timing:1});section(2,'Pitch lock map','Native pitch codes 1,4,7,10,13,16,19,22,25 on steps 1..9. Remaining steps silent.');
 const volumes=[1,9,18,27,36,45,54,63];volumes.forEach((v,i)=>hit(3,i*2+1,1,5,{volume:v,timing:1}));section(3,'Volume lock map','Native volume codes 1,9,18,27,36,45,54,63 on odd steps.');
@@ -41,10 +41,31 @@ if(isolated){
   section(p,effect?'Isolated FX '+effect:'Dry reference',effect===14?'Final step only; last pattern.':steady?'One sustained source; FX steps5-12, no competing voices.':'One source only; FX steps5-12; dry steps1-4/13-16.');
  });
 }
+const filterTest=process.argv.includes('--filter-isolated');
+const filterCells=[];
+if(filterTest){
+ if(isolated)throw Error('Choose either FX or filter profile');
+ model.tempo=60;model.melodic=Array(8).fill(null);model.drums=Array(8).fill(null);model.patterns=Array.from({length:16},emptyPattern);sections.length=0;library.clear();
+ const frequencies=[5,10,15,20,30,40,60,80,110,150,220,330,440,660,880,1320,1760,2640,3520,5280,7040,9000,10500];
+ const phases=frequencies.map((_,i)=>((i*0.6180339887498949)%1)*2*Math.PI),n=Math.round(2*SAMPLE_RATE),pcm=new Float64Array(n);let peak=0;
+ for(let i=0;i<n;i++){const t=i/SAMPLE_RATE;let v=0;for(let k=0;k<frequencies.length;k++)v+=Math.sin(2*Math.PI*frequencies[k]*t+phases[k]);pcm[i]=v;peak=Math.max(peak,Math.abs(v));}
+ for(let i=0;i<n;i++)pcm[i]=pcm[i]/peak*.16*Math.min(1,i/(SAMPLE_RATE*.003),(n-i)/(SAMPLE_RATE*.003));
+ const codes=encodeMulaw(pcm);library.set('filter-multisine',codes);model.melodic[0]={sampleId:'filter-multisine',start:0,end:codes.length};
+ function block(p,filter,resonance=Array(8).fill(1)){
+  filter.forEach((code,i)=>{const step=i*2+1;hit(p,step,1,5,{filter:code,resonance:resonance[i],timing:2});filterCells.push({pattern:p,step,filter:code,resonance:resonance[i]});});
+ }
+ block(1,Array(8).fill(63));section(1,'Dry reference','Filter 63, resonance 1; repeated 0.5-second source windows.');
+ const low=Array.from({length:31},(_,i)=>i+1).concat(63),high=Array.from({length:31},(_,i)=>i+32).concat(63);
+ for(let i=0;i<4;i++){const a=low.slice(i*8,i*8+8),b=high.slice(i*8,i*8+8);block(i+2,a);section(i+2,'Filter codes '+a.join(','),'Resonance 1, fixed volume/pitch; 0.5 seconds per value.');block(i+6,b);section(i+6,'Filter codes '+b.join(','),'Resonance 1, fixed volume/pitch; 0.5 seconds per value.');}
+ const resonance=[1,9,18,27,36,45,54,63];[8,16,24,39,47,55].forEach((code,i)=>{block(i+10,Array(8).fill(code),resonance);section(i+10,'Resonance at filter '+code,'Resonance codes '+resonance.join(',')+'; 0.5 seconds per value.');});
+ block(16,Array(8).fill(63));section(16,'Dry reference / end marker','Same source and codes as P01; confirms gain stability and chain completion.');
+ sections.sort((a,b)=>a.pattern-b.pattern);
+ fs.writeFileSync(path.join(out,'filter-source.json'),JSON.stringify({frequencies,phases,peakBeforeMulaw:.16,sourceSeconds:2,parameterSeconds:.5,filterCells},null,2));
+}
 const template={globals:EMPTY_GLOBALS.map(a=>Uint8Array.from(a)),patterns:Array.from({length:16},emptyPattern),sounds:Array(136).fill(null)};
 const state=compileProject(model,id=>library.get(id),template),wav=encodePO33Backup({raw:{state}},44100),decoded=decodePO33Backup(wav);
-assert.equal(decoded.validation.checksumErrors,0);assert.equal(decoded.validation.unresolvedAudioRanges,0);assert.equal(decoded.meta.bpm,120);assert.deepEqual(decoded.patternChain,model.chain);
+assert.equal(decoded.validation.checksumErrors,0);assert.equal(decoded.validation.unresolvedAudioRanges,0);assert.equal(decoded.meta.bpm,model.tempo);assert.deepEqual(decoded.patternChain,model.chain);
 const expected=model.patterns.map(readEffects);assert.deepEqual(state.patterns.map(readEffects),expected);assert.deepEqual(decoded.raw.state.patterns.map(readEffects),expected);
-assert.deepEqual([...new Set(expected.flat().filter(Boolean))].sort((a,b)=>a-b),Array.from({length:15},(_,i)=>i+1));
-const file=isolated?'Web-Sampler-Calibration-FX-v2-120BPM.po33.wav':'Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
-const report={file,bpm:120,chain:model.chain,firstPassSeconds:32,recommendedRecordingSeconds:40,sampleSeconds:[...library.values()].reduce((n,v)=>n+v.length,0)/SAMPLE_RATE,backupSeconds:(wav.byteLength-44)/4/44100,checksumErrors:0,unresolvedAudioRanges:0,sections,nativeFX:expected};fs.writeFileSync(path.join(out,'calibration-map.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({file:path.join(out,file),bytes:wav.byteLength,sampleSeconds:report.sampleSeconds,backupSeconds:report.backupSeconds,checks:'checksum, slice references, tempo, chain and all 15 stored FX passed'},null,2));
+if(filterTest){assert(expected.flat().every(f=>f===null));for(const cell of filterCells){const c=readCell(decoded.raw.state.patterns[cell.pattern-1],cell.step,1);assert.equal(c.filter,cell.filter);assert.equal(c.resonance,cell.resonance);assert.equal(c.volume,36);assert.equal(c.pitch,13);assert.equal(c.timing,2);}assert(decoded.patterns.every(p=>p.steps.reduce((n,s)=>n+s.triggers.length,0)===8));}else assert.deepEqual([...new Set(expected.flat().filter(Boolean))].sort((a,b)=>a-b),Array.from({length:15},(_,i)=>i+1));
+const file=filterTest?'Web-Sampler-Calibration-Filter-v3-60BPM.po33.wav':isolated?'Web-Sampler-Calibration-FX-v2-120BPM.po33.wav':'Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
+const report={file,bpm:model.tempo,chain:model.chain,firstPassSeconds:16*240/model.tempo,recommendedRecordingSeconds:filterTest?75:40,sampleSeconds:[...library.values()].reduce((n,v)=>n+v.length,0)/SAMPLE_RATE,backupSeconds:(wav.byteLength-44)/4/44100,checksumErrors:0,unresolvedAudioRanges:0,sections,nativeFX:expected};fs.writeFileSync(path.join(out,'calibration-map.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({file:path.join(out,file),bytes:wav.byteLength,sampleSeconds:report.sampleSeconds,backupSeconds:report.backupSeconds,checks:filterTest?'checksum, audio references, tempo, chain and all 128 native filter/resonance cells passed':'checksum, slice references, tempo, chain and all 15 stored FX passed'},null,2));

@@ -23,7 +23,8 @@ try:
   def snap():return page.evaluate('()=>{const s=testSnapshot();delete s.assets;return s;}')
   def code():return page.locator('#lcdNumber').get_attribute('data-value')
   def blinking():return 'record-armed-blink' in (page.locator('#lcdNumber').get_attribute('class') or '')
-  import sys
+  import sys,json
+  filter_test="--filter" in sys.argv
   for act,i in [('write',1),('sound',2),('rec',3)]:down(act,i)
   for i in [3,2,1]:up(i)
   page.locator('#transferFileInput').set_input_files(sys.argv[1])
@@ -31,16 +32,20 @@ try:
   assert page.locator('body').get_attribute('data-transfer')=='success',page.locator('#transferHint').text_content()
   data=snap();assert data['nativePCM'] is True
   assert page.locator('#transferTone').text_content().endswith('OFF')
-  assert data['bpm']==120 and data['chain']==list(range(1,17)),(data['bpm'],data['chain'])
+  assert data['bpm']==(60 if filter_test else 120) and data['chain']==list(range(1,17)),(data['bpm'],data['chain'])
   exported=page.evaluate('''async()=>{const m=await import("./decoder/browser/src/codec/po33WebProject.js"),p=await import("./decoder/browser/decoder/vendor/so-sample/pattern.js");const state=m.buildHardwareProject(testSnapshot()).raw.state;return Array.from({length:8},(_,i)=>p.readCell(state.patterns[2],i*2+1,1).volume);}''')
-  assert exported==[1,9,18,27,36,45,54,63],exported
-  fx={n for e in data['extras'] for n in e['effects'] if n};assert fx==set(range(1,16)),fx
+  assert exported==([36]*8 if filter_test else [1,9,18,27,36,45,54,63]),exported
+  if filter_test:
+   plan=json.loads(Path(sys.argv[1]).with_name("filter-source.json").read_text())["filterCells"]
+   values=page.evaluate('''async plan=>{const m=await import("./decoder/browser/src/codec/po33WebProject.js"),p=await import("./decoder/browser/decoder/vendor/so-sample/pattern.js");const state=m.buildHardwareProject(testSnapshot()).raw.state;return plan.map(c=>{const v=p.readCell(state.patterns[c.pattern-1],c.step,1);return [v.filter,v.resonance];});}''',plan)
+   assert values==[[c["filter"],c["resonance"]] for c in plan]
+  fx={n for e in data['extras'] for n in e['effects'] if n};assert fx==(set() if filter_test else set(range(1,16))),fx
   page.wait_for_timeout(3200);down('play');up();page.wait_for_timeout(300)
   assert page.locator('#lcdNumber').get_attribute('data-value')=='P01'
   down('play');up()
   page.evaluate('PO33Transfer.flush()');page.reload();page.wait_for_function('document.body.dataset.loading==="false"')
   assert snap()['nativePCM'] is True
   assert not errors,errors
-  print('PASS actual frontend import/play: 120BPM, 16-pattern chain, all 15 FX preserved')
+  print('PASS filter/reso 128 cells, 60BPM chain and browser export' if filter_test else 'PASS actual frontend import/play: 120BPM, 16-pattern chain, all 15 FX preserved')
   browser.close()
 finally:server.shutdown();server.server_close()

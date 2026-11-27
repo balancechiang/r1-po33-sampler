@@ -47,3 +47,6 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 Native PCM import/restore bypasses additional master coloration by default; the optional tone switch may explicitly enable it. The calibration import browser test also checks that this state survives reload and that the browser-built edited export preserves volume codes.
 
 - `python tests/test-unison-source.py`: measured four-layer rates, live enter/switch/release, grouped choke and global four-voice stealing.
+
+- `node scripts/build-calibration.mjs <output-dir> --filter-isolated`: original 5 Hz–10.5 kHz multisine; 60 BPM, 64-second automatic filter/resonance sweep, 128 verified native cells and no FX.
+- `python tests/test-calibration-import.py <filter-backup.wav> --filter`: actual browser import/reload/play and exact filter/resonance code re-export.
