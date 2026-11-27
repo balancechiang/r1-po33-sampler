@@ -57,9 +57,13 @@ for(const [kind,hz] of [[9,8],[10,6]]){
  const silence=run(e,new Float32Array(rate));assert(silence.every(v=>v===0),'gate must not replay history');
 }
 
-const measurement=require('./fixtures/fx-hardware-calibration-20261127.json');
 const {unisonLayers,unisonGains}=require('../effects.js');
-unisonLayers(5).forEach((ratio,i)=>assert(Math.abs(ratio*measurement.dryHarmonic8Hz-measurement.fx5Harmonic8Hz[i])<.2));
+// The longer v6 high-harmonic capture supersedes the short v2 peak estimates.
+const v6=require('./fixtures/unison-v6-calibration-20261127.json');
+for(const kind of [5,6])for(let layer=0;layer<4;layer++){
+ const errors=v6.partialMeasurements.filter(row=>row.kind===kind).map(row=>Math.abs(1200*Math.log2(unisonLayers(kind)[layer]/row.partials[layer].ratio))).sort((a,b)=>a-b);
+ assert(errors[Math.floor(errors.length/2)]<1.5,JSON.stringify({kind,layer,errors}));
+}
 assert.equal(unisonLayers(5).length,4);assert(unisonLayers(6).some(r=>r>.99));assert(unisonLayers(6).some(r=>r<.51));
 assert(unisonGains(5).every(v=>v>0&&v<=.5));
 

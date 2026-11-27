@@ -1316,11 +1316,15 @@
     if(effect!==14 && (fxHeld || shakeFx) && (state.mode==="STEP" || writeHeld)) {
       extra.effects[step]=effect || 16;persistSoon();
     }
+    var unisonTriggered=false;
     for (var i = 0; i < TOTAL_SLOTS; i++) {
       var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
       // A queued Loop takes ownership at its audible onset; do not double-trigger it.
       if (v >= 0 && !(!loopEvent && effect>=1 && effect<=4)) {
+        // Saved Unison allocates all four voices to the first simultaneous slot.
+        if((effect===5 || effect===6) && unisonTriggered)continue;
+        if(effect===5 || effect===6)unisonTriggered=true;
 
         var detail=extra && extra.steps && extra.steps[i+":"+step];
         var repeats=window.PO33FX.stepRepeats(effect);

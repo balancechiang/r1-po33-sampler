@@ -90,3 +90,13 @@ Both profiles use original synthesized material at60BPM and a nominal64-second s
 | Scratch11/12 | v4/v5 measured corrections | Fractional live entry, other pitches/tempo/trim and switching edges still pending |
 
 Use master12/SY0 and saved chain1–16. Capture the two projects separately; do not operate knobs or FX during capture. Keep the lowest filter cutoff discrepancy deferred. The nominal chain duration is a reference; a native Loop/quantize traversal change itself is evidence, not a reason to force pattern selection during recording.
+
+### Unison v6 capture — 2026-11-27
+
+Valid recording:115seconds total,44.1kHz stereo/16-bit, no clipping, peak about−14.7dBFS. Twelve isolated note-key/pitch-lock/drum cases refine FX5's four rates and resolve FX6 as three near-original rates plus one near-half rate. Numerical partial measurements are in `tests/fixtures/unison-v6-calibration-20261127.json`, produced by `scripts/analyze-unison-v6.py`. The former v2 short-window peaks are superseded for these source layers.
+
+P14/P15 identify first-slot priority when simultaneous saved events compete for Unison's four voices. The application now keeps the first event; later-time events retain stealing behavior. Root clamping is not reintroduced: the isolated note/pitch cases still preserve their different pitches.
+
+Still pending: relative phase/beat envelope, absolute and short-window gain, exact per-note rate quantization, live multi-source entry/switch/release, other signal levels, and mobile/R1 verification. The v7 other-FX project is prepared but not yet recorded. Saved-FX14 slave synchronization remains separately pending; lowest filter cutoff error remains deferred.
+
+V6 actual browser captures: median absolute wet/dry RMS error across24 isolated windows improves from0.68 to0.42dB; this is a median, not a worst-case bound. In P14/P15's80–240Hz dominant-band check, hardware is109.14/110.27Hz, old browser175.37/174.64Hz, new browser109.22/110.23Hz. Per-partial matched rate-fit errors (median of each case's mean error) improve1.83→0.13cents for FX5 and299.04→0.27cents for FX6; these are fitted spectral rates, not whole-waveform pitch accuracy.

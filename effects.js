@@ -107,7 +107,7 @@
     for(var i=0;i<fade;i++){out[i]*=i/fade;if(count>i)out[count-1-i]*=i/fade;}
     return out;
   }
-  // Rates fitted from the 2026-11-27 isolated harmonic-source recording.
-  function unisonLayers(kind){return kind===5?[.98372,.99407,1.00439,1.01453]:kind===6?[1,1,.497,.503]:[1];}
-  return {unisonLayers:unisonLayers,unisonGains:function(kind){return kind===5?[.35,.5,.5,.35]:[.35,.35,.35,.35];},Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
+  // V6 multi-pitch harmonic capture; low mode resolves three near-unity layers and one half-rate layer.
+  function unisonLayers(kind){return kind===5?[.98388644,.99413750,1.00627777,1.01660276]:kind===6?[.99459477,1.00292946,1.00437673,.49609343]:[1];}
+  return {unisonLayers:unisonLayers,unisonGains:function(kind){return [.35,.46666667,.35,.35];},Engine:Engine,names:names,codes:codes,quantizeStep:quantizeStep,stepRepeats:stepRepeats,loopCell:loopCell};
 });

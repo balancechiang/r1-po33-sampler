@@ -1,0 +1,1137 @@
+{
+  "profile": "unison-v6",
+  "onsetSeconds": 18.012993197278913,
+  "partialMeasurements": [
+    {
+      "pattern": 2,
+      "second": 0,
+      "dryPattern": 1,
+      "baseHz": 54.99717475078149,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 1243.9279419162933,
+          "ratio": 0.9833927616583515,
+          "relativeAmplitude": 0.2995744478780533
+        },
+        {
+          "frequencyHz": 1257.5112941660889,
+          "ratio": 0.9941311411346794,
+          "relativeAmplitude": 0.39185649261593025
+        },
+        {
+          "frequencyHz": 1272.3511348813583,
+          "ratio": 1.0058628431503744,
+          "relativeAmplitude": 0.28873640285925645
+        },
+        {
+          "frequencyHz": 1285.9390381499563,
+          "ratio": 1.0166048204548384,
+          "relativeAmplitude": 0.2898659097839038
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "second": 0,
+      "dryPattern": 1,
+      "baseHz": 54.99717475078149,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 1257.495106516786,
+          "ratio": 0.9941183439165961,
+          "relativeAmplitude": 0.3758054003164199
+        },
+        {
+          "frequencyHz": 1268.6327455406183,
+          "ratio": 1.0029232539350392,
+          "relativeAmplitude": 0.4370967842154437
+        },
+        {
+          "frequencyHz": 1269.596815109253,
+          "ratio": 1.003685403416198,
+          "relativeAmplitude": 0.37534316258819067
+        },
+        {
+          "frequencyHz": 627.5484888336223,
+          "ratio": 0.4961112462494623,
+          "relativeAmplitude": 0.46832317160150944
+        }
+      ]
+    },
+    {
+      "pattern": 2,
+      "second": 1,
+      "dryPattern": 1,
+      "baseHz": 109.99459486810589,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 2489.110064708734,
+          "ratio": 0.9838863160161235,
+          "relativeAmplitude": 0.32836089648241723
+        },
+        {
+          "frequencyHz": 2515.046068255165,
+          "ratio": 0.9941382045699007,
+          "relativeAmplitude": 0.4382856663627986
+        },
+        {
+          "frequencyHz": 2545.93467989643,
+          "ratio": 1.0063477419244222,
+          "relativeAmplitude": 0.3270463414211184
+        },
+        {
+          "frequencyHz": 2571.8770634167927,
+          "ratio": 1.0166021523309439,
+          "relativeAmplitude": 0.32684160341172563
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "second": 1,
+      "dryPattern": 1,
+      "baseHz": 109.99459486810589,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 2516.276186257021,
+          "ratio": 0.9946244411113341,
+          "relativeAmplitude": 0.3634507162309044
+        },
+        {
+          "frequencyHz": 2537.2440506566245,
+          "ratio": 1.00291254180698,
+          "relativeAmplitude": 0.47268916997275207
+        },
+        {
+          "frequencyHz": 2541.0699922169433,
+          "ratio": 1.0044248459836598,
+          "relativeAmplitude": 0.34806387216035156
+        },
+        {
+          "frequencyHz": 1255.0536965524318,
+          "ratio": 0.49609303156623763,
+          "relativeAmplitude": 0.43343341733817836
+        }
+      ]
+    },
+    {
+      "pattern": 2,
+      "second": 2,
+      "dryPattern": 1,
+      "baseHz": 164.8307688700207,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 3730.5763715383882,
+          "ratio": 0.9840333439413006,
+          "relativeAmplitude": 0.3514112280438484
+        },
+        {
+          "frequencyHz": 3768.8727153249424,
+          "ratio": 0.994134967788092,
+          "relativeAmplitude": 0.46636927739233397
+        },
+        {
+          "frequencyHz": 3814.5761056044203,
+          "ratio": 1.0061903864384876,
+          "relativeAmplitude": 0.3507910285566927
+        },
+        {
+          "frequencyHz": 3854.106804620015,
+          "ratio": 1.0166176025216183,
+          "relativeAmplitude": 0.3518446286855973
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "second": 2,
+      "dryPattern": 1,
+      "baseHz": 164.8307688700207,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 3770.145557826824,
+          "ratio": 0.9944707120106183,
+          "relativeAmplitude": 0.34341577599365075
+        },
+        {
+          "frequencyHz": 3802.2285209630686,
+          "ratio": 1.0029334004411155,
+          "relativeAmplitude": 0.4732810176213972
+        },
+        {
+          "frequencyHz": 3807.1640414372064,
+          "ratio": 1.004235268097092,
+          "relativeAmplitude": 0.3604207123978869
+        },
+        {
+          "frequencyHz": 1881.3504036769173,
+          "ratio": 0.4962534859169984,
+          "relativeAmplitude": 0.4499581636673502
+        }
+      ]
+    },
+    {
+      "pattern": 2,
+      "second": 3,
+      "dryPattern": 1,
+      "baseHz": 82.38859857772326,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 1864.056967634348,
+          "ratio": 0.9837035283235244,
+          "relativeAmplitude": 0.3395705442595679
+        },
+        {
+          "frequencyHz": 1883.820525463733,
+          "ratio": 0.9941331889543714,
+          "relativeAmplitude": 0.4557055133312461
+        },
+        {
+          "frequencyHz": 1906.0546039132166,
+          "ratio": 1.0058665972136351,
+          "relativeAmplitude": 0.3440987899571827
+        },
+        {
+          "frequencyHz": 1925.8253152304442,
+          "ratio": 1.016300032896078,
+          "relativeAmplitude": 0.33962795083039826
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "second": 3,
+      "dryPattern": 1,
+      "baseHz": 82.38859857772326,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 1883.7708982804984,
+          "ratio": 0.9941069996071056,
+          "relativeAmplitude": 0.3719031646109055
+        },
+        {
+          "frequencyHz": 1899.7400195625546,
+          "ratio": 1.002534253292019,
+          "relativeAmplitude": 0.46763192530146636
+        },
+        {
+          "frequencyHz": 1902.5581494130693,
+          "ratio": 1.0040214418948132,
+          "relativeAmplitude": 0.35057684455223803
+        },
+        {
+          "frequencyHz": 940.0483716298218,
+          "ratio": 0.4960840339233846,
+          "relativeAmplitude": 0.4636973055531993
+        }
+      ]
+    },
+    {
+      "pattern": 5,
+      "second": 0,
+      "dryPattern": 4,
+      "baseHz": 54.9971713599298,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 1243.9492461302025,
+          "ratio": 0.9834096644314576,
+          "relativeAmplitude": 0.36437036218041013
+        },
+        {
+          "frequencyHz": 1257.5185580359816,
+          "ratio": 0.9941369449128281,
+          "relativeAmplitude": 0.48304371641188926
+        },
+        {
+          "frequencyHz": 1272.3414113625452,
+          "ratio": 1.0058552181953915,
+          "relativeAmplitude": 0.37377903416830893
+        },
+        {
+          "frequencyHz": 1285.9294037050413,
+          "ratio": 1.0165972665799223,
+          "relativeAmplitude": 0.3717794674766101
+        }
+      ]
+    },
+    {
+      "pattern": 6,
+      "second": 0,
+      "dryPattern": 4,
+      "baseHz": 54.9971713599298,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 1257.485846095309,
+          "ratio": 0.994111084341185,
+          "relativeAmplitude": 0.40107450424206004
+        },
+        {
+          "frequencyHz": 1268.8146495512328,
+          "ratio": 1.0030671208030086,
+          "relativeAmplitude": 0.5054420186574569
+        },
+        {
+          "frequencyHz": 1269.596815109253,
+          "ratio": 1.0036854652984415,
+          "relativeAmplitude": 0.45367307639381466
+        },
+        {
+          "frequencyHz": 627.5480480465621,
+          "ratio": 0.49611092837102055,
+          "relativeAmplitude": 0.49909810167001156
+        }
+      ]
+    },
+    {
+      "pattern": 5,
+      "second": 1,
+      "dryPattern": 4,
+      "baseHz": 87.06116761238246,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 1970.2915386333477,
+          "ratio": 0.9839616427750948,
+          "relativeAmplitude": 0.36903116797863034
+        },
+        {
+          "frequencyHz": 1990.0490967259577,
+          "ratio": 0.9938285477162354,
+          "relativeAmplitude": 0.4846741449890859
+        },
+        {
+          "frequencyHz": 2014.7587770470834,
+          "ratio": 1.0061685375931075,
+          "relativeAmplitude": 0.36734648750252097
+        },
+        {
+          "frequencyHz": 2035.7624202584761,
+          "ratio": 1.0166577362082927,
+          "relativeAmplitude": 0.36772698728834174
+        }
+      ]
+    },
+    {
+      "pattern": 6,
+      "second": 1,
+      "dryPattern": 4,
+      "baseHz": 87.06116761238246,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 1991.2822923786412,
+          "ratio": 0.9944444044036773,
+          "relativeAmplitude": 0.3747704373509591
+        },
+        {
+          "frequencyHz": 2007.3058643851875,
+          "ratio": 1.0024465603920356,
+          "relativeAmplitude": 0.48890569906162185
+        },
+        {
+          "frequencyHz": 2011.135516273978,
+          "ratio": 1.0043590847519406,
+          "relativeAmplitude": 0.36541852301309524
+        },
+        {
+          "frequencyHz": 991.3474559783936,
+          "ratio": 0.4950779375634991,
+          "relativeAmplitude": 0.41715618670018684
+        }
+      ]
+    },
+    {
+      "pattern": 5,
+      "second": 2,
+      "dryPattern": 4,
+      "baseHz": 138.35258860726464,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 3131.4599795789723,
+          "ratio": 0.9840830248664312,
+          "relativeAmplitude": 0.42412148693752477
+        },
+        {
+          "frequencyHz": 3163.5826225780265,
+          "ratio": 0.9941777882979804,
+          "relativeAmplitude": 0.5620155771595746
+        },
+        {
+          "frequencyHz": 3201.867108420586,
+          "ratio": 1.0062089535943888,
+          "relativeAmplitude": 0.4281701092062161
+        },
+        {
+          "frequencyHz": 3235.2307169449195,
+          "ratio": 1.016693699052161,
+          "relativeAmplitude": 0.42820934129667665
+        }
+      ]
+    },
+    {
+      "pattern": 6,
+      "second": 2,
+      "dryPattern": 4,
+      "baseHz": 138.35258860726464,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 3164.8166076570706,
+          "ratio": 0.994565576670543,
+          "relativeAmplitude": 0.43985827146715545
+        },
+        {
+          "frequencyHz": 3190.7561018297056,
+          "ratio": 1.00271724268428,
+          "relativeAmplitude": 0.6001562309478291
+        },
+        {
+          "frequencyHz": 3195.7043982614246,
+          "ratio": 1.0042722791695673,
+          "relativeAmplitude": 0.45276994033069085
+        },
+        {
+          "frequencyHz": 1577.4698254856614,
+          "ratio": 0.49573083725252254,
+          "relativeAmplitude": 0.5844052746172972
+        }
+      ]
+    },
+    {
+      "pattern": 5,
+      "second": 3,
+      "dryPattern": 4,
+      "baseHz": 219.77434569831976,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 4974.515448948654,
+          "ratio": 0.9841152282894748,
+          "relativeAmplitude": 0.3530778285785621
+        },
+        {
+          "frequencyHz": 5025.165163418248,
+          "ratio": 0.9941353309164705,
+          "relativeAmplitude": 0.4946423684586228
+        },
+        {
+          "frequencyHz": 5086.928432474804,
+          "ratio": 1.006354043321986,
+          "relativeAmplitude": 0.36743720284146697
+        },
+        {
+          "frequencyHz": 5138.811570096673,
+          "ratio": 1.0166181557464253,
+          "relativeAmplitude": 0.36546257280410166
+        }
+      ]
+    },
+    {
+      "pattern": 6,
+      "second": 3,
+      "dryPattern": 4,
+      "baseHz": 219.77434569831976,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 5027.635102051318,
+          "ratio": 0.9946239622709593,
+          "relativeAmplitude": 0.3600199246965197
+        },
+        {
+          "frequencyHz": 5069.6347236648935,
+          "ratio": 1.0029328051394744,
+          "relativeAmplitude": 0.5156059888104769
+        },
+        {
+          "frequencyHz": 5077.040602499716,
+          "ratio": 1.0043979203280815,
+          "relativeAmplitude": 0.3921342023846789
+        },
+        {
+          "frequencyHz": 2506.4030263133054,
+          "ratio": 0.49584515552103753,
+          "relativeAmplitude": 0.5124266872214878
+        }
+      ]
+    },
+    {
+      "pattern": 8,
+      "second": 0,
+      "dryPattern": 7,
+      "baseHz": 109.99456302722045,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 2489.105565510853,
+          "ratio": 0.9838848224015012,
+          "relativeAmplitude": 0.29620632634809163
+        },
+        {
+          "frequencyHz": 2515.055482561737,
+          "ratio": 0.9941422136036709,
+          "relativeAmplitude": 0.3996588881385062
+        },
+        {
+          "frequencyHz": 2545.939983826284,
+          "ratio": 1.0063501297574364,
+          "relativeAmplitude": 0.2920297171856549
+        },
+        {
+          "frequencyHz": 2571.8709537329937,
+          "ratio": 1.0166000315996373,
+          "relativeAmplitude": 0.28478285171634643
+        }
+      ]
+    },
+    {
+      "pattern": 9,
+      "second": 0,
+      "dryPattern": 7,
+      "baseHz": 109.99456302722045,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 2516.2811854948754,
+          "ratio": 0.9946267051131503,
+          "relativeAmplitude": 0.54404445598067
+        },
+        {
+          "frequencyHz": 2538.752031326294,
+          "ratio": 1.0035089013793095,
+          "relativeAmplitude": 0.04311994462152707
+        },
+        {
+          "frequencyHz": 2541.0015848558387,
+          "ratio": 1.0043980969223056,
+          "relativeAmplitude": 0.34548281369088785
+        },
+        {
+          "frequencyHz": 1255.0564270163345,
+          "ratio": 0.4960942544618021,
+          "relativeAmplitude": 0.31993648364977234
+        }
+      ]
+    },
+    {
+      "pattern": 8,
+      "second": 1,
+      "dryPattern": 7,
+      "baseHz": 164.99190600638198,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 3733.6691324820476,
+          "ratio": 0.983887297698219,
+          "relativeAmplitude": 0.35266100716247134
+        },
+        {
+          "frequencyHz": 3772.5688671814396,
+          "ratio": 0.9941380600171392,
+          "relativeAmplitude": 0.46627477801271106
+        },
+        {
+          "frequencyHz": 3818.8979525828004,
+          "ratio": 1.0063465865423786,
+          "relativeAmplitude": 0.34795332485262936
+        },
+        {
+          "frequencyHz": 3857.8205648663625,
+          "ratio": 1.016603377505956,
+          "relativeAmplitude": 0.3482093640731016
+        }
+      ]
+    },
+    {
+      "pattern": 9,
+      "second": 1,
+      "dryPattern": 7,
+      "baseHz": 164.99190600638198,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 3774.413278304489,
+          "ratio": 0.9946240946954438,
+          "relativeAmplitude": 0.5509494161264717
+        },
+        {
+          "frequencyHz": 3805.957542629046,
+          "ratio": 1.0029365615699617,
+          "relativeAmplitude": 0.4806108362783006
+        },
+        {
+          "frequencyHz": 3811.4966588543766,
+          "ratio": 1.0043962158406532,
+          "relativeAmplitude": 0.37583033665814375
+        },
+        {
+          "frequencyHz": 1882.5826785221414,
+          "ratio": 0.4960935526264205,
+          "relativeAmplitude": 0.3084189543492912
+        }
+      ]
+    },
+    {
+      "pattern": 8,
+      "second": 2,
+      "dryPattern": 7,
+      "baseHz": 219.98922225251926,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 4978.221290500096,
+          "ratio": 0.9838864000634382,
+          "relativeAmplitude": 0.32723064145992153
+        },
+        {
+          "frequencyHz": 5030.110009563182,
+          "ratio": 0.9941415900246209,
+          "relativeAmplitude": 0.45138082724415074
+        },
+        {
+          "frequencyHz": 5091.870576835291,
+          "ratio": 1.0063478337115357,
+          "relativeAmplitude": 0.3415398016055071
+        },
+        {
+          "frequencyHz": 5143.749755983806,
+          "ratio": 1.0166011382217397,
+          "relativeAmplitude": 0.33915168929278455
+        }
+      ]
+    },
+    {
+      "pattern": 9,
+      "second": 2,
+      "dryPattern": 7,
+      "baseHz": 219.98922225251926,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 5032.579819730702,
+          "ratio": 0.9946297187141186,
+          "relativeAmplitude": 0.5170568875214836
+        },
+        {
+          "frequencyHz": 5074.572243011235,
+          "ratio": 1.0029290231765913,
+          "relativeAmplitude": 0.47412107239277224
+        },
+        {
+          "frequencyHz": 5081.99221147342,
+          "ratio": 1.0043954919478317,
+          "relativeAmplitude": 0.35861679437656097
+        },
+        {
+          "frequencyHz": 2510.1091281057543,
+          "ratio": 0.49609330114175215,
+          "relativeAmplitude": 0.3454276206383858
+        }
+      ]
+    },
+    {
+      "pattern": 8,
+      "second": 3,
+      "dryPattern": 7,
+      "baseHz": 329.9837861520751,
+      "harmonic": 23,
+      "kind": 5,
+      "partials": [
+        {
+          "frequencyHz": 7467.331474550874,
+          "ratio": 0.9838864801084906,
+          "relativeAmplitude": 0.2972177359526396
+        },
+        {
+          "frequencyHz": 7545.151546052596,
+          "ratio": 0.9941399577386938,
+          "relativeAmplitude": 0.4119662617172085
+        },
+        {
+          "frequencyHz": 7637.800305322675,
+          "ratio": 1.0063472451686575,
+          "relativeAmplitude": 0.2705234154475201
+        },
+        {
+          "frequencyHz": 7715.624796475886,
+          "ratio": 1.016601305126746,
+          "relativeAmplitude": 0.275965924947856
+        }
+      ]
+    },
+    {
+      "pattern": 9,
+      "second": 3,
+      "dryPattern": 7,
+      "baseHz": 329.9837861520751,
+      "harmonic": 23,
+      "kind": 6,
+      "partials": [
+        {
+          "frequencyHz": 7548.865547877602,
+          "ratio": 0.99462931008567,
+          "relativeAmplitude": 0.4780379844779617
+        },
+        {
+          "frequencyHz": 7611.863947475422,
+          "ratio": 1.0029299023178497,
+          "relativeAmplitude": 0.4336575213479763
+        },
+        {
+          "frequencyHz": 7622.978702401838,
+          "ratio": 1.004394368859758,
+          "relativeAmplitude": 0.32951564912532616
+        },
+        {
+          "frequencyHz": 3765.1655998313927,
+          "ratio": 0.4960936234943944,
+          "relativeAmplitude": 0.3246889479224627
+        }
+      ]
+    }
+  ],
+  "medianFits": {
+    "5": {
+      "ratios": [
+        0.9838864400859644,
+        0.9941375024649837,
+        1.0062777700683836,
+        1.01660276491845
+      ],
+      "gains": [
+        0.34549088615170814,
+        0.4609901456719786,
+        0.346026057404906,
+        0.34391865745174993
+      ],
+      "matchedMeanErrorCentsBeforeAfter": [
+        1.8295206025889976,
+        0.12527903551410327
+      ]
+    },
+    "6": {
+      "ratios": [
+        0.9945947694707511,
+        1.0029294627472205,
+        1.0043767268058494,
+        0.4960934268840863
+      ],
+      "gains": [
+        0.38843995227924,
+        0.4737010450070847,
+        0.3629196177054911,
+        0.4416957905027643
+      ],
+      "matchedMeanErrorCentsBeforeAfter": [
+        299.0351940706219,
+        0.2650384369803387
+      ]
+    }
+  },
+  "scope": "Twelve isolated notes/pitch locks/drum slices; 23rd partial, 0.2\u20130.9 seconds. Gain and phase interference remain approximate. No raw audio.",
+  "actualPlaybackComparisons": {
+    "before": {
+      "rmsWindows": [
+        {
+          "pattern": 2,
+          "second": 0,
+          "hardwareWetDryDb": -7.321221624285881,
+          "webWetDryDb": -3.967580556869507,
+          "errorDb": 3.3536410674163744
+        },
+        {
+          "pattern": 2,
+          "second": 1,
+          "hardwareWetDryDb": -2.2321638750313437,
+          "webWetDryDb": -1.9344998598098755,
+          "errorDb": 0.29766401522146824
+        },
+        {
+          "pattern": 2,
+          "second": 2,
+          "hardwareWetDryDb": -2.6659848870465264,
+          "webWetDryDb": -1.6125787496566772,
+          "errorDb": 1.0534061373898491
+        },
+        {
+          "pattern": 2,
+          "second": 3,
+          "hardwareWetDryDb": -5.299381494724878,
+          "webWetDryDb": -5.012879371643066,
+          "errorDb": 0.2865021230818119
+        },
+        {
+          "pattern": 3,
+          "second": 0,
+          "hardwareWetDryDb": -1.5747602570323265,
+          "webWetDryDb": -0.7830443382263184,
+          "errorDb": 0.7917159188060081
+        },
+        {
+          "pattern": 3,
+          "second": 1,
+          "hardwareWetDryDb": -1.6211983367809775,
+          "webWetDryDb": -2.8136074542999268,
+          "errorDb": -1.1924091175189493
+        },
+        {
+          "pattern": 3,
+          "second": 2,
+          "hardwareWetDryDb": -0.9326991624780606,
+          "webWetDryDb": -2.639331817626953,
+          "errorDb": -1.7066326551488924
+        },
+        {
+          "pattern": 3,
+          "second": 3,
+          "hardwareWetDryDb": -2.365568482724318,
+          "webWetDryDb": -1.9994090795516968,
+          "errorDb": 0.3661594031726212
+        },
+        {
+          "pattern": 5,
+          "second": 0,
+          "hardwareWetDryDb": -1.910568816761006,
+          "webWetDryDb": -3.967580556869507,
+          "errorDb": -2.057011740108501
+        },
+        {
+          "pattern": 5,
+          "second": 1,
+          "hardwareWetDryDb": -4.493710183832741,
+          "webWetDryDb": -5.051699638366699,
+          "errorDb": -0.5579894545339581
+        },
+        {
+          "pattern": 5,
+          "second": 2,
+          "hardwareWetDryDb": -2.4702553399217733,
+          "webWetDryDb": -1.2692557573318481,
+          "errorDb": 1.2009995825899251
+        },
+        {
+          "pattern": 5,
+          "second": 3,
+          "hardwareWetDryDb": -2.027870504656983,
+          "webWetDryDb": -1.0908257961273193,
+          "errorDb": 0.9370447085296636
+        },
+        {
+          "pattern": 6,
+          "second": 0,
+          "hardwareWetDryDb": -0.5987003929927022,
+          "webWetDryDb": -0.7830443382263184,
+          "errorDb": -0.1843439452336162
+        },
+        {
+          "pattern": 6,
+          "second": 1,
+          "hardwareWetDryDb": -2.378576398033711,
+          "webWetDryDb": -2.0925910472869873,
+          "errorDb": 0.2859853507467238
+        },
+        {
+          "pattern": 6,
+          "second": 2,
+          "hardwareWetDryDb": -1.1527747335801524,
+          "webWetDryDb": -3.0506694316864014,
+          "errorDb": -1.897894698106249
+        },
+        {
+          "pattern": 6,
+          "second": 3,
+          "hardwareWetDryDb": -1.3483228268741234,
+          "webWetDryDb": -1.3196332454681396,
+          "errorDb": 0.028689581405983766
+        },
+        {
+          "pattern": 8,
+          "second": 0,
+          "hardwareWetDryDb": -2.061760488902369,
+          "webWetDryDb": -1.9344998598098755,
+          "errorDb": 0.12726062909249336
+        },
+        {
+          "pattern": 8,
+          "second": 1,
+          "hardwareWetDryDb": -2.2614630325498712,
+          "webWetDryDb": -1.6071662902832031,
+          "errorDb": 0.6542967422666681
+        },
+        {
+          "pattern": 8,
+          "second": 2,
+          "hardwareWetDryDb": -1.8000169655441498,
+          "webWetDryDb": -1.0902259349822998,
+          "errorDb": 0.70979103056185
+        },
+        {
+          "pattern": 8,
+          "second": 3,
+          "hardwareWetDryDb": -1.8890893680003384,
+          "webWetDryDb": -0.9035751819610596,
+          "errorDb": 0.9855141860392789
+        },
+        {
+          "pattern": 9,
+          "second": 0,
+          "hardwareWetDryDb": -2.472254227036839,
+          "webWetDryDb": -2.8136074542999268,
+          "errorDb": -0.3413532272630877
+        },
+        {
+          "pattern": 9,
+          "second": 1,
+          "hardwareWetDryDb": -0.43386786643898656,
+          "webWetDryDb": -2.6395535469055176,
+          "errorDb": -2.205685680466531
+        },
+        {
+          "pattern": 9,
+          "second": 2,
+          "hardwareWetDryDb": -1.0087074414404322,
+          "webWetDryDb": -1.3195970058441162,
+          "errorDb": -0.310889564403684
+        },
+        {
+          "pattern": 9,
+          "second": 3,
+          "hardwareWetDryDb": -1.3129284792308549,
+          "webWetDryDb": -1.8407427072525024,
+          "errorDb": -0.5278142280216476
+        }
+      ],
+      "medianAbsoluteRmsErrorDb": 0.6820438864142591,
+      "priority": [
+        {
+          "pattern": 14,
+          "hardwareDominantHz": 109.13801193237305,
+          "webDominantHz": 175.3692626953125
+        },
+        {
+          "pattern": 15,
+          "hardwareDominantHz": 110.27355194091797,
+          "webDominantHz": 174.6368408203125
+        }
+      ]
+    },
+    "after": {
+      "rmsWindows": [
+        {
+          "pattern": 2,
+          "second": 0,
+          "hardwareWetDryDb": -7.321221624285881,
+          "webWetDryDb": -4.772857666015625,
+          "errorDb": 2.548363958270256
+        },
+        {
+          "pattern": 2,
+          "second": 1,
+          "hardwareWetDryDb": -2.2321638750313437,
+          "webWetDryDb": -2.375321388244629,
+          "errorDb": -0.14315751321328518
+        },
+        {
+          "pattern": 2,
+          "second": 2,
+          "hardwareWetDryDb": -2.6659848870465264,
+          "webWetDryDb": -2.702298641204834,
+          "errorDb": -0.03631375415830762
+        },
+        {
+          "pattern": 2,
+          "second": 3,
+          "hardwareWetDryDb": -5.299381494724878,
+          "webWetDryDb": -5.7663164138793945,
+          "errorDb": -0.46693491915451624
+        },
+        {
+          "pattern": 3,
+          "second": 0,
+          "hardwareWetDryDb": -1.5747602570323265,
+          "webWetDryDb": -1.1691261529922485,
+          "errorDb": 0.40563410404007794
+        },
+        {
+          "pattern": 3,
+          "second": 1,
+          "hardwareWetDryDb": -1.6211983367809775,
+          "webWetDryDb": -1.874160647392273,
+          "errorDb": -0.2529623106112955
+        },
+        {
+          "pattern": 3,
+          "second": 2,
+          "hardwareWetDryDb": -0.9326991624780606,
+          "webWetDryDb": -1.810904860496521,
+          "errorDb": -0.8782056980184604
+        },
+        {
+          "pattern": 3,
+          "second": 3,
+          "hardwareWetDryDb": -2.365568482724318,
+          "webWetDryDb": -2.3430628776550293,
+          "errorDb": 0.02250560506928867
+        },
+        {
+          "pattern": 5,
+          "second": 0,
+          "hardwareWetDryDb": -1.910568816761006,
+          "webWetDryDb": -4.772857666015625,
+          "errorDb": -2.862288849254619
+        },
+        {
+          "pattern": 5,
+          "second": 1,
+          "hardwareWetDryDb": -4.493710183832741,
+          "webWetDryDb": -5.453963756561279,
+          "errorDb": -0.9602535727285382
+        },
+        {
+          "pattern": 5,
+          "second": 2,
+          "hardwareWetDryDb": -2.4702553399217733,
+          "webWetDryDb": -2.492522954940796,
+          "errorDb": -0.022267615019022635
+        },
+        {
+          "pattern": 5,
+          "second": 3,
+          "hardwareWetDryDb": -2.027870504656983,
+          "webWetDryDb": -2.1770968437194824,
+          "errorDb": -0.1492263390624995
+        },
+        {
+          "pattern": 6,
+          "second": 0,
+          "hardwareWetDryDb": -0.5987003929927022,
+          "webWetDryDb": -1.1691261529922485,
+          "errorDb": -0.5704257599995464
+        },
+        {
+          "pattern": 6,
+          "second": 1,
+          "hardwareWetDryDb": -2.378576398033711,
+          "webWetDryDb": -2.278325080871582,
+          "errorDb": 0.1002513171621291
+        },
+        {
+          "pattern": 6,
+          "second": 2,
+          "hardwareWetDryDb": -1.1527747335801524,
+          "webWetDryDb": -1.482926607131958,
+          "errorDb": -0.33015187355180564
+        },
+        {
+          "pattern": 6,
+          "second": 3,
+          "hardwareWetDryDb": -1.3483228268741234,
+          "webWetDryDb": -2.375943422317505,
+          "errorDb": -1.0276205954433815
+        },
+        {
+          "pattern": 8,
+          "second": 0,
+          "hardwareWetDryDb": -2.061760488902369,
+          "webWetDryDb": -2.375321388244629,
+          "errorDb": -0.31356089934226006
+        },
+        {
+          "pattern": 8,
+          "second": 1,
+          "hardwareWetDryDb": -2.2614630325498712,
+          "webWetDryDb": -2.698586940765381,
+          "errorDb": -0.4371239082155096
+        },
+        {
+          "pattern": 8,
+          "second": 2,
+          "hardwareWetDryDb": -1.8000169655441498,
+          "webWetDryDb": -2.176466226577759,
+          "errorDb": -0.376449261033609
+        },
+        {
+          "pattern": 8,
+          "second": 3,
+          "hardwareWetDryDb": -1.8890893680003384,
+          "webWetDryDb": -2.1680707931518555,
+          "errorDb": -0.278981425151517
+        },
+        {
+          "pattern": 9,
+          "second": 0,
+          "hardwareWetDryDb": -2.472254227036839,
+          "webWetDryDb": -1.874160647392273,
+          "errorDb": 0.5980935796445661
+        },
+        {
+          "pattern": 9,
+          "second": 1,
+          "hardwareWetDryDb": -0.43386786643898656,
+          "webWetDryDb": -1.805367350578308,
+          "errorDb": -1.3714994841393215
+        },
+        {
+          "pattern": 9,
+          "second": 2,
+          "hardwareWetDryDb": -1.0087074414404322,
+          "webWetDryDb": -2.3757903575897217,
+          "errorDb": -1.3670829161492895
+        },
+        {
+          "pattern": 9,
+          "second": 3,
+          "hardwareWetDryDb": -1.3129284792308549,
+          "webWetDryDb": -2.7662744522094727,
+          "errorDb": -1.4533459729786178
+        }
+      ],
+      "medianAbsoluteRmsErrorDb": 0.4213790061277938,
+      "priority": [
+        {
+          "pattern": 14,
+          "hardwareDominantHz": 109.13801193237305,
+          "webDominantHz": 109.222412109375
+        },
+        {
+          "pattern": 15,
+          "hardwareDominantHz": 110.27355194091797,
+          "webDominantHz": 110.2294921875
+        }
+      ]
+    }
+  }
+}

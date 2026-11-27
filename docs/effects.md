@@ -120,3 +120,11 @@ The v4 original-chirp recording at 60 BPM / master 12 contradicts the earlier pe
 The v5 shared-versus-independent allocation comparison shows the same drum behavior: native saved FX11/12 reads the first drum slice regardless of the current note's slice number. A temporary source-pad override models this without rewriting pattern notes. Reader continuation retains the source actually being played. FX11's starting direction follows the transport's sixteenth phase; an ongoing reverse reader reaching its origin terminates. Turning off Scratch at that terminated origin does not start the sample again.
 
 The v5 recording validates these specific saved-automation cases at60BPM/base pitch, not arbitrary live gestures. Four drum chirp windows now have roughly2–4 cents median error (previously899–903); the two erroneous long tails are gone. Reversal clicks and edge-phase identity are not fitted.
+
+## Unison v6 multi-pitch refinement
+
+The longer 60BPM capture resolves high partials across four note keys, four native pitch locks and four drum slices. FX5's median fitted rate ratios are0.98388644/0.99413750/1.00627777/1.01660276. FX6 shows three near-original bands (0.99459477/1.00292946/1.00437673) plus one low band (0.49609343), superseding the earlier two-original/two-low approximation. Source gains use0.35/0.4667/0.35/0.35; the higher central gain follows the observed approximately4:3 partial-amplitude ratio. Low-band gain is kept conservative because its frequency response differs from the high dry reference. These are fitted source-layer approximations, not a firmware algorithm claim.
+
+At a saved step containing simultaneous sound slots, hardware P14/P15 retains the first addressed sound as its four-layer group; the app previously ended up with the last. `fireStep` now gives the first sound priority for FX5/6; a later step can still replace it through normal four-voice stealing. No pattern data is rewritten. Multi-source live FX entry has not been proven by this saved-automation capture.
+
+Relative beating phase, window-dependent RMS, exact start offsets, gain under arbitrary signal levels and live multi-source switching remain incomplete. In particular, equal-pitch sections at different pattern positions do not have identical recorded short-window RMS, so a per-note gain patch or invented random detune is not used.
