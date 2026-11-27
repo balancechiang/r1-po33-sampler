@@ -73,3 +73,20 @@ FX11 entry on the opposite sixteenth phase starts with reverse reading; the P05 
 In selected interior windows, four drum cases improved from approximately899–903 cents median dominant-frequency error to2–4 cents. P04/P05's unwanted browser tails are now digital silence, matching the absence of a hardware signal (hardware noise floor about66dB below dry reference). This does not claim matching reversal clicks, sample-level phase, arbitrary timing, alternate pitches or trim ranges. Measurements: `tests/fixtures/scratch-boundary-calibration-20261127.json`; analysis: `scripts/analyze-scratch-boundaries.py`. Raw audio remains private.
 
 Remaining: live/manual gestures and mobile hardware, FX onset at fractional-step timings, alternate BPM/pitch during Scratch, other slice ranges and non-first-slice live release, precise switching transients, plus the previously documented saved-FX14 external-slave issue. Lowest filter cutoff error remains explicitly deferred.
+
+## Next FX captures: Unison v6 and other FX v7
+
+Both profiles use original synthesized material at60BPM and a nominal64-second sixteen-pattern chain. Generate with `node scripts/build-calibration.mjs <directory> --unison-extended` or `--other-fx`. All native note/lock cells, expected FX, audio allocations and checksum round-trip are verified; frontend tests use `tests/test-calibration-import.py <wav> --extended-fx`. No runtime effect coefficients are changed before the new hardware measurements.
+
+| Area | Existing evidence | Next capture |
+| --- | --- | --- |
+| Unison5/6 | Layers and relative level fitted at root note | v6: non-root note keys, native pitch locks, drum slices, held enter/switch/release, four slots plus a fifth event |
+| Loop1–4 | Software scheduling tests; hardware precision incomplete | v7: distinguishable step markers, middle-span on/off |
+| Octave7/8 | Smooth source-rate implementation; exact glide curve unmeasured | v7: one held harmonic source, on/off and7→8 switch |
+| Shutter9/10 | Root-source rate/duty/level calibrated at120BPM | v7:60BPM, held switching and release |
+| Quantize13 | Approximate step mapping | v7: dense timing markers, middle-span and whole-pattern handoff |
+| Retrigger14 | Live timing tests; saved external-slave grid failure documented | Separate synchronized capture/debugging, excluded from v7 to avoid trapping an unattended chain |
+| Reverse15 | Reverse buffer implementation; hardware boundary/selection incomplete | v7: melodic chirp and distinct drum slices |
+| Scratch11/12 | v4/v5 measured corrections | Fractional live entry, other pitches/tempo/trim and switching edges still pending |
+
+Use master12/SY0 and saved chain1–16. Capture the two projects separately; do not operate knobs or FX during capture. Keep the lowest filter cutoff discrepancy deferred. The nominal chain duration is a reference; a native Loop/quantize traversal change itself is evidence, not a reason to force pattern selection during recording.
