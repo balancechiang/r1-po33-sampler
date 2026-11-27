@@ -21,6 +21,10 @@ export function buildFxProfile(c){
   note(12,1,1,9,{timing:15});const a=Array(16).fill(null);for(let i=4;i<8;i++)a[i]=5;for(let i=8;i<12;i++)a[i]=6;writeEffects(model.patterns[11],a);section(12,'Held note switch5→6→off','Single key9 note; tests reader continuity and gain on switch.');
   for(let p=13;p<=15;p++){for(let slot=1;slot<=4;slot++)note(p,1,slot,5,{timing:15,pitch:[13,16,18,21][slot-1]});note(p,9,5,5,{timing:15,pitch:24});if(p>13)fx(p,p===14?5:6,1,16);section(p,'Voice stealing '+(p===13?'dry':'FX'+(p===14?5:6)),'Four separately addressed slots with pitch codes13/16/18/21 start together; fifth slot with pitch24 joins at2s. Shared original PCM keeps the backup short. Identifies allocation/stealing without manually operating FX.');}
   keys.forEach((key,i)=>note(16,1+i*4,1,key));section(16,'Dry end reference','Identical to P01.');allowedFX=[5,6];
+ }else if(profile==='loop-source'){
+  const durations=[.16,.4,1,2],silent=sound('loop-source-silence',.02,()=>0),k=Math.log(8)/2;
+  durations.forEach((seconds,i)=>{const take=sound('loop-source-'+i,seconds,t=>.2*(.5+t/4)*Math.sin(2*Math.PI*220/k*(Math.exp(k*t)-1)));model.drums[i]={slices:Array.from({length:16},(_,pad)=>({...(pad===15?silent:take)}))};});
+  for(let p=1;p<=16;p++){const i=(p-1)%4,group=Math.floor((p-1)/4),kind=[0,1,2,4][group];note(p,1,9+i,1);note(p,16,9+i,16);if(kind)fx(p,kind,1,12);section(p,'Single source '+durations[i]+'s '+(kind?'FX'+kind:'dry'),'One initial note only; effect off at3s, valid silent pad at3.75s chokes any remaining tail. No intervening note can change the capture.');}allowedFX=[1,2,4];
  }else if(profile==='loops'){
   const slices=Array.from({length:16},(_,i)=>{const f=220+55*i;return sound('loop-marker-'+i,.16,t=>.22*Math.sin(2*Math.PI*f*t)*Math.exp(-t/.035)+.055*Math.sin(2*Math.PI*f*2.7*t)*Math.exp(-t/.009));});
   model.drums[0]={slices};
@@ -44,6 +48,6 @@ export function buildFxProfile(c){
   for(const [p,a,b] of [[13,7,8],[14,9,10]]){note(p,1,1,5,{timing:15});const e=Array(16).fill(null);for(let i=4;i<8;i++)e[i]=a;for(let i=8;i<12;i++)e[i]=b;writeEffects(model.patterns[p-1],e);section(p,'Held switch'+a+'→'+b+'→off','No new note at effect changes; compare release continuity.');}
   grid(15);fx(15,13,1,16);section(15,'6/8 quantize / whole pattern','Dense markers; tests chain handoff into dry P16.');grid(16);section(16,'Dry end reference','Identical to P01.');allowedFX=[1,2,3,4,7,8,9,10,13,15];
  }
- const manifest={profile:profile==='unison'?'unison-v6':profile==='loops'?'loops-v8':'other-fx-v7',bpm:60,allowedFX,cells,notes:'Original synthesized sources; hardware capture pending. FX14 requires a separate sync test.'};
+ const manifest={profile:profile==='unison'?'unison-v6':profile==='loops'?'loops-v8':profile==='loop-source'?'loop-sources-v9':'other-fx-v7',bpm:60,allowedFX,cells,notes:'Original synthesized sources; hardware capture pending. FX14 requires a separate sync test.'};
  fs.writeFileSync(path.join(out,'fx-source.json'),JSON.stringify(manifest,null,2));return manifest;
 }

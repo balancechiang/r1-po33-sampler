@@ -134,3 +134,9 @@ Relative beating phase, window-dependent RMS, exact start offsets, gain under ar
 A held source's octave effect ramps through semitones over about260ms, resetting to base speed when7↔8 changes and returning to base when released. The source cursor is retained. `Speed.octave` schedules4ms constant-rate pieces and integrates their consumed PCM length, so source endings follow the same trajectory as audio. Pending pieces are removed by manual/future parameter changes. This is a measured approximation, not a claim of exact firmware tick timing.
 
 FX13 selects the first three steps of each four-step beat and spreads them at thirds: twelve hits per bar. The fourth note is suppressed instead of overwriting the third at a shared rounded timestamp. The global sixteen-step song and sync clocks still advance normally. Loop1–4's detailed native capture/recapture behavior remains pending and should not be described as hardware-calibrated.
+
+## Saved Loop3 recapture, v8
+
+Unique step markers establish that saved FX3 captures a new source every two original sixteenths: four hits of step5 at half-step intervals, then four of step7, then9 and11. Starting one step later yields6/8/10/12. The alternating-empty-step case has the same recapture order. `scheduleLoop` now advances this captured step for automatic FX3 only; live held-step behavior is left unverified.
+
+Do not generalize this rule to other Loop numbers: short v8 samples let FX1 pass normal notes, FX2 adds selected repeats, and FX4 reads/repeats differently from the simple frozen-step model. Earlier long-source v7 behavior differs. Length-dependent reader behavior needs a separate isolated-source test; no claim of complete Loop1–4 reconstruction is made.

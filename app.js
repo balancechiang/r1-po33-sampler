@@ -977,7 +977,10 @@
     var period=stepDur()/(h.kind===3?2:h.kind===4?3:1),guard=0;
     while(h.next<now+.12 && guard++<128){
       if(exporting && exportSteps>=EXPORT_BARS*STEPS)break;
-      var step=h.kind<=2?(h.origin+h.index%(h.kind===1?16:12))%16:h.origin;
+      var step=h.origin;
+      if(h.kind<=2)step=(h.origin+h.index%(h.kind===1?16:12))%16;
+      // V8 saved FX3 captures a new step every four repeats (two original steps).
+      else if(h.kind===3 && h.automatic)step=(h.origin+Math.floor(h.index/4)*2)%16;
       seq.pattern=h.pattern;fireStep(step,h.next,h.kind,{loop:true,kind:h.kind,step:step,period:period});
       visQueue.push({t:h.next,s:step,pattern:h.pattern,chain:h.chain});h.index++;h.next+=period;
     }

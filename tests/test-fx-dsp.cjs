@@ -76,3 +76,10 @@ assert(unisonGains(5).every(v=>v>0&&v<=.5));
  selected.forEach((step,index)=>assert(Math.abs((hits[index].time-hits[0].time)-quantizeStep(step)*.25)<.006));
  assert(native.glideFits.every(row=>Math.abs(row.durationSeconds-.260)<.02));
  console.log('PASS hardware 6/8 slice order and onset grid; measured octave glide duration');}
+
+{const data=require('./fixtures/loops-v8-calibration-20261127.json');
+for(const [pattern,start,slice] of [[4,1,5],[8,1.25,6],[13,1,5]]){
+ const hits=data.hardwareMarkers[pattern].filter(h=>h.time>=start && h.time<start+2);assert.equal(hits.length,16);
+ hits.forEach((hit,i)=>{assert.equal(hit.slice,slice+2*Math.floor(i/4));assert(Math.abs(hit.time-hits[0].time-i*.125)<.007);});
+}
+console.log('PASS recorded Loop3 recapture order and timing for even/odd entry and empty-step patterns');}

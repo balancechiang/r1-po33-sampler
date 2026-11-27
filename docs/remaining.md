@@ -116,3 +116,13 @@ V7 actual browser captures reduce median pitch error across selected glide probe
 Sync regression this round: all15 live FX passed in SY1 master mode. The current simulated slave run failed the live-FX7 grid assertion. A read-only baseline run serving pre-change HEAD app/effects/sampling/voice passed its live cases but failed the saved slave-FX14 grid assertion. Thus the external-slave family remains unreliable, but the exact FX7 failure is not proven pre-existing or fixed by this comparison. No complete slave pass is claimed.
 
 Next diagnostic: `--loop-isolated` builds v8 with sixteen distinct220–1045Hz slice markers, dry references, FX1–4 spans starting on both step parities, alternating empty steps and a1→2→3→4 switch. Nominal64seconds at60BPM,2.56seconds sample pool. Protocol cells, allocations, FX and browser import/export checks pass; native capture is pending.
+
+### Loop v8 capture — 2026-11-27
+
+The stereo capture is143.35seconds with no clipped samples and peak about−21.93dBFS. Sixteen unique short tone markers expose a verified saved-FX3 recapture window: four half-step repeats per captured note, recapture after two nominal steps. This matches the even-entry, odd-entry and alternating-empty-step cases. The previous app repeated only the original captured note for the whole FX span. Only this saved-FX3 case is corrected; live gestures are not measured.
+
+FX1/2/4 remain open. FX1 appears unchanged with160ms notes but held a400ms note in v7; FX2 interleaves regular notes and source-reset hits; FX4's grouped repeats and changing read identity are not reproduced by the current event-level model. These observations suggest length/read-position dependence but do not identify the firmware algorithm. A single-note/duration matrix is needed before replacing those engines. FX14 slave synchronization and the deferred lowest filter cutoff discrepancy remain open. Numerical evidence is stored in `tests/fixtures/loops-v8-calibration-20261127.json`; private audio stays outside Git.
+
+In three saved Loop3 interior windows (even entry, odd entry and alternating empty steps), actual browser marker matching improves25%→100% within a40ms matching window. This validates slice identity/onset proximity, not sample-level waveform or exact transient identity.
+
+Next capture v9 (`--loop-source`) isolates FX1/2/4 on single160ms/400ms/1s/2s chirps, with four dry reference patterns. Each pattern triggers one note only; a valid20ms silent pad at3.75s chokes tails before the next pattern. Effect spans end at3s. Nominal64seconds/60BPM; native allocation/checksum and browser import/export pass, hardware capture pending. This removes the intervening-note ambiguity from v7/v8.

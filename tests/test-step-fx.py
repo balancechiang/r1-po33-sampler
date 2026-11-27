@@ -31,7 +31,7 @@ try:
    entries=page.evaluate('fxVoices.filter(v=>v.performance.loop && v.end>v.start).map(v=>({start:v.start,gate:v.gateEnd-v.start,kind:v.performance.kind,step:v.performance.step,loop:v.src.loop,buffer:v.src.buffer._po33id}))')
    assert len(entries)>=5,(entries,errors)
    assert all(not e['loop'] and e['buffer'] and abs(e['gate']-.125/count)<1e-6 for e in entries),entries
-   assert all(e['step']==entries[0]['step'] for e in entries),entries
+   assert all(e['step']==(entries[0]['step']+(i//4*2 if kind==3 else 0))%16 for i,e in enumerate(entries)),entries
    assert all(abs(b['start']-a['start']-.125/count)<1e-5 for a,b in zip(entries,entries[1:])),entries
    play();print('PASS native per-note retriggers every',.125/count,'seconds with original PCM and no mixed-audio loop')
   configure(0,[]);pad(5);up(2);play();page.evaluate('window.originalVoice=fxVoices.at(-1)');down('fx');pad(7);page.wait_for_timeout(25)
