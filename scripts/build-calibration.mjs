@@ -62,9 +62,11 @@ if(filterTest){
  sections.sort((a,b)=>a.pattern-b.pattern);
  fs.writeFileSync(path.join(out,'filter-source.json'),JSON.stringify({frequencies,phases,peakBeforeMulaw:.16,sourceSeconds:2,parameterSeconds:.5,filterCells},null,2));
 }
-const scratchTest=process.argv.includes('--scratch-isolated');
+const scratchEdges=process.argv.includes('--scratch-boundaries');
+const scratchTest=process.argv.includes('--scratch-isolated') || scratchEdges;
+if(scratchEdges && process.argv.includes('--scratch-isolated'))throw Error('Choose one Scratch profile');
 const scratchCells=[];
-if(scratchTest){
+if(scratchTest && !scratchEdges){
  if(isolated||filterTest)throw Error('Choose one calibration profile');
  model.tempo=60;model.melodic=Array(8).fill(null);model.drums=Array(8).fill(null);model.patterns=Array.from({length:16},emptyPattern);sections.length=0;library.clear();
  const k=Math.log(16)/2,up=sound('scratch-up',2,t=>.22*(.3+.7*t/2)*Math.sin(2*Math.PI*220/k*(Math.exp(k*t)-1)));
@@ -87,10 +89,37 @@ if(scratchTest){
  for(let i=0;i<4;i++)note(16,1+i*4,9,1,i+1);const fx=Array.from({length:16},(_,i)=>i<8?11:12);writeEffects(model.patterns[15],fx);section(16,'Drum / FX11 to FX12 switch','Four different slices on steps1/5/9/13; first half FX11, second half FX12.');
  fs.writeFileSync(path.join(out,'scratch-source.json'),JSON.stringify({up:{seconds:2,startHz:220,endHz:3520,envelope:'increasing'},down:'exact reversal of up mu-law codes',tags:{count:16,periodSeconds:.125,frequencies:Array.from({length:16},(_,i)=>220+55*i)},scratchCells},null,2));
 }
+if(scratchEdges){
+ if(isolated||filterTest)throw Error('Choose one calibration profile');
+ model.tempo=60;model.melodic=Array(8).fill(null);model.drums=Array(8).fill(null);model.patterns=Array.from({length:16},emptyPattern);sections.length=0;library.clear();
+ const k=Math.log(16)/4;
+ const full=sound('boundary-chirp',4,t=>.2*(.45+.55*t/4)*Math.sin(2*Math.PI*220/k*(Math.exp(k*t)-1)));
+ model.melodic[0]=full;
+ const shared=Array.from({length:4},(_,i)=>({...full,start:Math.round(i*.5*SAMPLE_RATE),end:Math.round((i+1)*.5*SAMPLE_RATE)}));
+ const independent=shared.map((slice,i)=>{const id='independent-'+i,codes=library.get(full.sampleId).slice(slice.start,slice.end);library.set(id,codes);assert.deepEqual(codes,library.get(full.sampleId).slice(slice.start,slice.end));return {sampleId:id,start:0,end:codes.length};});
+ model.drums[0]={slices:Array.from({length:16},(_,i)=>({...shared[i%4]}))};
+ model.drums[1]={slices:Array.from({length:16},(_,i)=>({...independent[i%4]}))};
+ const offset={...full,start:Math.round(SAMPLE_RATE),end:Math.round(2*SAMPLE_RATE)};
+ model.drums[2]={slices:Array.from({length:16},()=>({...offset}))};model.melodic[1]={...offset};
+ function note(p,step,slot=1,key=5){hit(p,step,slot,key,{timing:slot<=8?15:1});scratchCells.push({pattern:p,step,slot,key,timing:slot<=8?15:1});}
+ function effect(p,kind,first,last){const fx=Array(16).fill(null);for(let step=first;step<=last;step++)fx[step-1]=kind;writeEffects(model.patterns[p-1],fx);}
+ note(1,1);section(1,'Full chirp dry','Four-second increasing chirp; establishes absolute source time and hardware clock.');
+ for(const [p,kind,first,last] of [[2,11,1,3],[3,11,1,4],[4,12,1,3],[5,11,2,4],[6,12,2,4]]){
+  note(p,1);effect(p,kind,first,last);section(p,'Release FX'+kind+' steps'+first+'-'+last,'Single full-length voice, no new notes at release; distinguishes release phase and saved-effect onset from retrigger.');
+ }
+ for(const [slot,first,label] of [[9,7,'Shared allocation'],[10,10,'Independent allocation']]){
+  for(let i=0;i<3;i++){const p=first+i;for(let n=0;n<4;n++)note(p,1+n*4,slot,n+1);if(i)effect(p,i===1?11:12,1,16);section(p,label+(i?' FX'+(i===1?11:12):' dry'),'Four half-second PCM-identical slice pairs; compare shared backing sample with separately allocated copies.');}
+ }
+ note(13,1,11,1);section(13,'Nonzero-offset drum dry','Drum11 slice1 references source seconds1-2, leaving physical audio on both sides.');
+ for(const [p,kind] of [[14,11],[15,12]]){note(p,1,11,1);effect(p,kind,3,8);section(p,'Nonzero-offset drum FX'+kind,'Effect starts at0.5 seconds while the one-second slice rings; release at2 seconds. Tests slice clamp versus full-allocation reading.');}
+ note(16,1,2);const fx=Array(16).fill(null);for(let i=2;i<8;i++)fx[i]=11;for(let i=8;i<12;i++)fx[i]=12;writeEffects(model.patterns[15],fx);section(16,'Same offset as melodic / switch','Melodic2 references the same source seconds1-2; FX11 at0.5s, FX12 at2s, release at3s.');
+ fs.writeFileSync(path.join(out,'scratch-source.json'),JSON.stringify({profile:'scratch-boundaries-v5',source:{seconds:4,startHz:220,endHz:3520},sharedSlices:shared,independentSlices:independent,offsetSlice:offset,scratchCells},null,2));
+}
 const template={globals:EMPTY_GLOBALS.map(a=>Uint8Array.from(a)),patterns:Array.from({length:16},emptyPattern),sounds:Array(136).fill(null)};
 const state=compileProject(model,id=>library.get(id),template),wav=encodePO33Backup({raw:{state}},44100),decoded=decodePO33Backup(wav);
 assert.equal(decoded.validation.checksumErrors,0);assert.equal(decoded.validation.unresolvedAudioRanges,0);assert.equal(decoded.meta.bpm,model.tempo);assert.deepEqual(decoded.patternChain,model.chain);
 const expected=model.patterns.map(readEffects);assert.deepEqual(state.patterns.map(readEffects),expected);assert.deepEqual(decoded.raw.state.patterns.map(readEffects),expected);
 if(filterTest){assert(expected.flat().every(f=>f===null));for(const cell of filterCells){const c=readCell(decoded.raw.state.patterns[cell.pattern-1],cell.step,1);assert.equal(c.filter,cell.filter);assert.equal(c.resonance,cell.resonance);assert.equal(c.volume,36);assert.equal(c.pitch,13);assert.equal(c.timing,2);}assert(decoded.patterns.every(p=>p.steps.reduce((n,s)=>n+s.triggers.length,0)===8));}else if(scratchTest){assert.deepEqual([...new Set(expected.flat().filter(Boolean))].sort((a,b)=>a-b),[11,12]);for(const c of scratchCells)assert.deepEqual(readCell(decoded.raw.state.patterns[c.pattern-1],c.step,c.slot),readCell(model.patterns[c.pattern-1],c.step,c.slot));}else assert.deepEqual([...new Set(expected.flat().filter(Boolean))].sort((a,b)=>a-b),Array.from({length:15},(_,i)=>i+1));
-const file=scratchTest?'Web-Sampler-Calibration-Scratch-v4-60BPM.po33.wav':filterTest?'Web-Sampler-Calibration-Filter-v3-60BPM.po33.wav':isolated?'Web-Sampler-Calibration-FX-v2-120BPM.po33.wav':'Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
-const report={file,bpm:model.tempo,chain:model.chain,firstPassSeconds:16*240/model.tempo,recommendedRecordingSeconds:filterTest||scratchTest?75:40,sampleSeconds:[...library.values()].reduce((n,v)=>n+v.length,0)/SAMPLE_RATE,backupSeconds:(wav.byteLength-44)/4/44100,checksumErrors:0,unresolvedAudioRanges:0,sections,nativeFX:expected};fs.writeFileSync(path.join(out,'calibration-map.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({file:path.join(out,file),bytes:wav.byteLength,sampleSeconds:report.sampleSeconds,backupSeconds:report.backupSeconds,checks:scratchTest?'checksum, audio references, reversed-source identity, tempo, chain, FX11/12 and all note cells passed':filterTest?'checksum, audio references, tempo, chain and all 128 native filter/resonance cells passed':'checksum, slice references, tempo, chain and all 15 stored FX passed'},null,2));
+if(scratchEdges)assert.deepEqual(decoded.raw.state.sounds,state.sounds);
+const file=scratchEdges?'Web-Sampler-Calibration-Scratch-Boundaries-v5-60BPM.po33.wav':scratchTest?'Web-Sampler-Calibration-Scratch-v4-60BPM.po33.wav':filterTest?'Web-Sampler-Calibration-Filter-v3-60BPM.po33.wav':isolated?'Web-Sampler-Calibration-FX-v2-120BPM.po33.wav':'Web-Sampler-Calibration-v1-120BPM.po33.wav';fs.writeFileSync(path.join(out,file),Buffer.from(wav));
+const report={file,bpm:model.tempo,chain:model.chain,firstPassSeconds:16*240/model.tempo,recommendedRecordingSeconds:filterTest||scratchTest?75:40,sampleSeconds:[...library.values()].reduce((n,v)=>n+v.length,0)/SAMPLE_RATE,backupSeconds:(wav.byteLength-44)/4/44100,checksumErrors:0,unresolvedAudioRanges:0,sections,nativeFX:expected};fs.writeFileSync(path.join(out,'calibration-map.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({file:path.join(out,file),bytes:wav.byteLength,sampleSeconds:report.sampleSeconds,backupSeconds:report.backupSeconds,checks:scratchEdges?'checksum, all sound allocation bytes, identical shared/independent PCM pairs, tempo, chain, FX11/12 and all note cells passed':scratchTest?'checksum, audio references, reversed-source identity, tempo, chain, FX11/12 and all note cells passed':filterTest?'checksum, audio references, tempo, chain and all 128 native filter/resonance cells passed':'checksum, slice references, tempo, chain and all 15 stored FX passed'},null,2));

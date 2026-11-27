@@ -57,3 +57,9 @@ Raw samples are unchanged. New filter/resonance locks re-export with the same na
 - Still pending: effect-release transients, short drum slices / boundaries, alternate pitches, trim ranges, tempo changes during a held effect, physical mobile/R1 performance, and hardware live gestures (the recording uses saved FX). The lowest filter cutoff discrepancy remains deferred by user request.
 
 This change's sync regression passed all 15 live FX in both simulated SY1 master and external-slave modes. The saved FX14 slave-grid assertion still failed (note/step offset); it is the previously documented baseline issue, not marked fixed here.
+
+### Next capture: Scratch boundaries v5
+
+Generate with `node scripts/build-calibration.mjs <output-directory> --scratch-boundaries`. The 64-second, 60 BPM chain requires no manual FX input. P01 is a four-second dry chirp; P02–06 isolate FX11/12 release and delayed onset on a single long note. P07–09 use half-second drum slices sharing one backing allocation; P10–12 use bit-identical PCM copied into independent allocations, with matching dry/FX11/FX12 patterns. P13–15 isolate a drum slice at physical source seconds 1–2, and P16 references that exact region as a melodic sample while switching 11→12→off. This can distinguish slice-boundary behavior from allocation behavior instead of fitting an arbitrary drum compensation. Native round-trip checks include all sound allocation bytes. Hardware recording/acceptance is still pending.
+
+For capture, use volume12, SY0 and the saved chain1–16, allow about75 seconds. The existing FX14 slave automation issue requires a separate sync test and is not validated by this audio-only capture. Lowest filter cutoff error remains deferred.
