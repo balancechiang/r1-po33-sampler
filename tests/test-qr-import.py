@@ -49,7 +49,7 @@ try:
   assert page.evaluate('document.body.dataset.transfer')=='success',page.locator('#transferHint').text_content()
   assert page.evaluate('cameraStops>0 && cameraStream.getTracks().every(t=>t.readyState==="ended")')
   assert page.evaluate('["scanning","downloading","decoding","success"].every(s=>states.includes(s))')
-  assert page.locator('#lcdNumber').get_attribute('data-value')=='End'
+  assert page.locator('#lcdNumber').get_attribute('data-value')=='end',(page.locator('#lcdNumber').get_attribute('data-value'),page.locator('#transferHint').text_content())
   assert page.locator('#lcdMeter rect[data-active=true]').count()==38
   assert page.locator('.pad.sampled').count()==1
   page.screenshot(path=str(root/'t/official-backup-tests/qr-import-end-preview.png'))

@@ -18,6 +18,8 @@ python tests/test-creation-qr.py
 python tests/test-garage-import.py
 python tests/test-transfer-layout.py
 python tests/test-transfer-result.py
+node tests/test-qr-transfer.mjs
+python tests/test-animated-qr.py
 python tests/test-sync-browser.py
 python tests/test-sync-fx.py
 ```
@@ -37,6 +39,8 @@ Synthetic capture and desktop browser tests validate application logic and paylo
 - `python tests/test-tone-neutral.py`: centered factory pitch/unity-gain startup and tone scale endpoints/center.
 
 - `python tests/test-pwa-safe-area.py`: stale innerHeight, delayed safe-area padding, visual viewport/body size changes and restored PWA layout.
+
+- `node tests/test-qr-transfer.mjs` and `python tests/test-animated-qr.py`: gzip/checksum reassembly, adaptive QR packet sizing, live project send/re-decode, small-screen controls and camera-frame receive/rejection path.
 
 - `node scripts/build-calibration.mjs <output-dir>` generates original automatic comparison material; validates native backup checksums, slice references, tempo, chain and all 15 stored FX. Generated WAV is a hardware backup signal, not an audition recording.
 

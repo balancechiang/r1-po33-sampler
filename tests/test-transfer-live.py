@@ -48,7 +48,7 @@ try:
   assert page.evaluate('document.body.dataset.transfer')=='success',page.locator('#transferHint').text_content()
   assert page.evaluate('testIn && testStates.includes("receiving") && testStates.includes("decoding")')
   assert page.evaluate('testBars.some(n=>n>0 && n<32)')
-  assert page.locator('#lcdNumber').get_attribute('data-value')=='End'
+  assert page.locator('#lcdNumber').get_attribute('data-value')=='end'
   assert page.locator('.pad.sampled').count()==1
   assert page.evaluate('testConstraints.audio.echoCancellation===false && testConstraints.audio.noiseSuppression===false && testConstraints.audio.autoGainControl===false')
   page.screenshot(path=str(root/'t/official-backup-tests/transfer-live-end-preview.png'))

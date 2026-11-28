@@ -4,7 +4,7 @@ The main application contains the receive/send panel; no separate backup or audi
 
 Supported project inputs include native backup WAV, stereo lossless M4A (including tested iOS Voice Memos ALAC), lossless project JSON, raw `.po33frame` and gzip-compressed `.po33.gz` frames. URL QR codes download these files; camera images are decoded locally. Stereo input files must preserve both modem channels.
 
-Exports use the TypeScript native-state serializer and offline stereo DQPSK encoder. The default hardware WAV is 44.1 kHz / 16-bit stereo with a 1.5-second silent lead-in. It is a modem signal, not listening audio. Native frames/JSON preserve raw state; new web parameter mappings may be approximate.
+Exports use the TypeScript native-state serializer and offline stereo DQPSK encoder. The default hardware WAV is 44.1 kHz / 16-bit stereo with a 1.5-second silent lead-in. It is a modem signal, not listening audio. Native frames/JSON preserve raw state; new web parameter mappings may be approximate. For device-to-device handoff, the Send panel can also transmit the validated native project frame through repeating, gzip-compressed animated QR fragments; the Receive scanner reassembles and validates these locally.
 
 Real-time backup capture uses its own AudioWorklet and unprocessed stereo input, isolated from sample-recording gain and playback coloration. File import is the fallback when a browser cannot supply independent stereo capture. Browser/driver processing and physical hardware acceptance require device testing.
 

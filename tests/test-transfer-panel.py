@@ -56,7 +56,7 @@ try:
   combo('rec')
   page.locator('#transferFileInput').set_input_files(str(root/'t/official-backup-tests/escalate.wav'))
   page.wait_for_function('document.body.dataset.transfer==="success"',timeout=60000)
-  assert page.locator('#lcdNumber').get_attribute('data-value')=='End'
+  assert page.locator('#lcdNumber').get_attribute('data-value')=='end'
   assert page.locator('#lcdMeter rect[data-active=true]').count()==32
   assert page.locator('.pad[data-led-level=bright]').count()==16
   assert page.locator('.pad.sampled').count()==16

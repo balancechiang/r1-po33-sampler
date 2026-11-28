@@ -66,7 +66,7 @@ console.log(JSON.stringify({bytes:bytes.length,bpm:p.meta.bpm,swingRaw:p.meta.sw
   subprocess.run(['node','--expose-gc','--input-type=module','-e',check,str(output)],cwd=root,check=True)
   page.wait_for_timeout(2800);combo('rec');page.locator('#transferFileInput').set_input_files(str(output))
   page.wait_for_function('document.body.dataset.transfer==="success"',timeout=90000)
-  assert page.locator('#lcdNumber').get_attribute('data-value')=='End';assert page.evaluate('PO33Transfer.hasSession');assert page.locator('.pad.sampled').count()==8
+  assert page.locator('#lcdNumber').get_attribute('data-value')=='end';assert page.evaluate('PO33Transfer.hasSession');assert page.locator('.pad.sampled').count()==8
   page.wait_for_timeout(2800);page.evaluate('musicStarts=[]')
   down('[data-act="play"]');up();page.wait_for_timeout(1100);down('[data-act="play"]');up()
   # Imported pools lack the factory tag: locate the drum starts by slice-3 and slice-5 offsets.

@@ -9,7 +9,7 @@ import {randomUUID} from 'node:crypto';
 import {hubCertificate} from './local-hub-cert.mjs';
 import {manager,bridge} from './local-hub-pages.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-export async function startHub({port=33033,host='0.0.0.0',directory=path.join(root,'my-po33-projects'),certDirectory=path.join(root,'.certs'),forceHTTP=false,log=console.log}={}){
+export async function startHub({port=33033,downloadPort=33034,host='0.0.0.0',directory=path.join(root,'my-po33-projects'),certDirectory=path.join(root,'.certs'),forceHTTP=false,log=console.log}={}){
  await fsp.mkdir(directory,{recursive:true});
  const ignore=path.join(root,'.gitignore');const text=await fsp.readFile(ignore,'utf8').catch(()=> '');
  const missing=['/my-po33-projects/','/.certs/'].filter(s=>!text.split(/\r?\n/).includes(s));if(missing.length)await fsp.appendFile(ignore,'\n'+missing.join('\n')+'\n');
@@ -27,7 +27,8 @@ export async function startHub({port=33033,host='0.0.0.0',directory=path.join(ro
    // No login; only same-origin browser pages may mutate local files. Reject
    // cross-origin browser writes without affecting the read-only bridge.
    if(['POST','DELETE'].includes(req.method) && req.headers.origin && req.headers.origin!==`${req.socket.encrypted?'https':'http'}://${req.headers.host}`)throw Object.assign(Error('Cross-origin writes are not allowed'),{status:403});
-   if(req.method==='GET' && url.pathname==='/')return send(res,200,manager,'text/html; charset=utf-8');
+   if(req.method==='GET' && url.pathname==='/')return send(res,200,manager.replaceAll('__DOWNLOAD_PORT__',String(actualDownloadPort)),'text/html; charset=utf-8');
+   if(req.method==='GET' && url.pathname==='/qrcode.min.js')return send(res,200,await fsp.readFile(path.join(root,'vendor/qrcodejs/qrcode.min.js'),'utf8'),'text/javascript; charset=utf-8');
    if(req.method==='GET' && url.pathname==='/bridge')return send(res,200,bridge,'text/html; charset=utf-8');
    if(req.method==='GET' && url.pathname==='/api/list'){
     const files=[];for(const entry of await fsp.readdir(directory)){if(!/\.(wav|m4a|json)$/i.test(entry))continue;try{const {s}=await statFile(entry);files.push({name:entry,type:path.extname(entry).slice(1).toLowerCase(),sizeBytes:s.size,updatedAt:s.mtime.toISOString()});}catch{}}
@@ -55,8 +56,24 @@ export async function startHub({port=33033,host='0.0.0.0',directory=path.join(ro
  const server=certificate?https.createServer({key:certificate.key,cert:certificate.cert},handler):http.createServer(handler);
  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,host,resolve);});
  const actual=server.address().port;
- log(`PO-33 Local Hub · no login · ${directory}\n${[...addresses,'localhost'].map(ip=>`${protocol}://${ip}:${actual}`).join('\n')}`);
+ let downloadServer=null,actualDownloadPort;
+ if(downloadPort===actual){actualDownloadPort=actual;}
+ else{
+  downloadServer=http.createServer(async(req,res)=>{
+   try{
+    const url=new URL(req.url,'http://hub.local'),hostname=new URL('http://'+req.headers.host).hostname;
+    if(![...addresses,'localhost','127.0.0.1','[::1]'].includes(hostname))throw Object.assign(Error('Use the hub LAN IP or localhost'),{status:421});
+    if(req.method!=='GET'||url.pathname!=='/api/file')throw Object.assign(Error('This HTTP port only serves QR downloads'),{status:404});
+    const {p,s}=await statFile(filename(url));if(s.size>max)throw Object.assign(Error('File exceeds 128 MB'),{status:413});
+    res.writeHead(200,{'Content-Type':'application/octet-stream','Content-Length':s.size,'Content-Disposition':"attachment; filename*=UTF-8''"+encodeURIComponent(path.basename(p)),'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});
+    const stream=fs.createReadStream(p);stream.on('error',()=>res.destroy());res.on('close',()=>stream.destroy());stream.pipe(res);
+   }catch(error){if(!res.headersSent)send(res,error.status|| (error.code==='ENOENT'?404:500),{error:error.message});else res.destroy();}
+  });
+  await new Promise((resolve,reject)=>{downloadServer.once('error',reject);downloadServer.listen(downloadPort,host,resolve);});
+  actualDownloadPort=downloadServer.address().port;
+ }
+ log(`Web Sampler Local Hub · no login · ${directory}\nManager: ${[...addresses,'localhost'].map(ip=>`${protocol}://${ip}:${actual}`).join('\n')}\nQR downloads: ${[...addresses,'localhost'].map(ip=>`http://${ip}:${actualDownloadPort}`).join('\n')}`);
  if(certificate)log('This is a self-signed local test certificate. Open the hub directly on your device and accept the certificate exception yourself if supported. Creation WebView may still refuse it; Load File remains available.');
- return {server,protocol,port:actual,addresses,directory};
+ return {server,downloadServer,protocol,port:actual,downloadPort:actualDownloadPort,addresses,directory};
 }
 if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url))startHub().catch(error=>{console.error(error.message);process.exitCode=1;});

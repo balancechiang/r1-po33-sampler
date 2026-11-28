@@ -17,11 +17,16 @@ node scripts/local-hub.mjs
 The service uses **only Node built-in modules**, without npm installation,
 openssl, external accounts or a cloud service. Use Node >=24.12 for this
 repository's codec tools. It listens on `0.0.0.0:33033` and prints all local
-IPv4 URLs. Keep this process running and put the computer and r1 on the same LAN.
+IPv4 URLs. A read-only HTTP download endpoint on port `33034` serves QR links
+to phones that cannot accept the self-signed manager certificate. Keep this
+process running and put the computer and phone/R1 on the same LAN.
 Stop it with Ctrl+C. There is no background installer or firewall modification.
 
 Open the printed HTTPS address on the computer. Drag WAV/JSON files onto the
-dark manager or use its picker. Files are stored in `my-po33-projects/`.
+dark manager or use its picker. Click **Show QR** beside a file; scan it from a
+phone on the same Wi-Fi to download that file over the isolated read-only HTTP
+port. This QR is local-network-only and works while the hub is running. Files
+are stored in `my-po33-projects/`.
 Names, file sizes and modification times are listed newest first. Delete asks
 for confirmation. Duplicate names are rejected instead of silently overwritten.
 Uploads/downloads are limited to 128 MB. Only `.wav` and `.json` names are
@@ -149,11 +154,41 @@ Page CSP violations are reported when the browser exposes them; other iframe
 failures do not provide a reliable detailed error to the parent page. No security
 restrictions or certificate checks are bypassed. Load File remains available.
 
-## Camera download
+## Offline animated QR transfer
 
-Receive → Scan QR accepts a single HTTPS project download link. Offline
-animated QR transmission/reassembly has been removed; it is no longer a
-supported import mode. WAV/JSON/compressed frame file import remains available.
+The transfer panel supports direct, offline project handoff in either direction.
+On the sending device choose **Send → Animated QR**. The current editable project
+is validated and compiled to the native project frame, gzip-compressed, split
+into checksum-protected packets and shown as a repeating QR sequence. On the
+receiving device choose **Receive → Scan QR** and keep the camera aimed at the
+sender until the complete frame has been received and verified. The usual native
+decoder then validates the frame CRC before replacing the current project.
+
+No project data is uploaded to a server. The camera permission is used only on
+the receiving device; QR decoding stays local. A missed frame is sent again on
+the next loop. Fragment capacity scales to the sender's display area (600 bytes
+on a 240 px R1 display; larger screens can use up to 1,400 bytes per frame).
+The default 200 ms cadence is a speed/reliability compromise; 120 ms is fastest,
+while 300 or 500 ms can help when camera focus or display refresh misses frames.
+Pause/resume and Stop are available. Keep both pages in the foreground. HTTPS
+(or localhost during development), camera permission,
+`CompressionStream`/`DecompressionStream`, and Web Crypto are required.
+
+On the current full factory demo, local browser verification compressed the
+native frame to about 492 KB and 820 fragments at 600 bytes each: a full loop is
+about 98 seconds at 120 ms/frame or 164 seconds at 200 ms/frame. Actual camera
+retries and device speed can increase the time; larger phone/desktop sender
+screens use larger fragments and reduce the count.
+
+The phone/R1 camera path is not considered hardware-verified until tested on the
+device. QR size and cadence can vary by display density and camera focus; start
+at 200 ms, then use 300/500 ms if the receive count stalls. Cancel/reopen the
+scanner before starting a different sender project.
+
+## Camera download link
+
+Receive → Scan QR also continues to accept a single project download URL. WAV,
+M4A, JSON and compressed native-frame file imports remain available.
 
 ## Single-QR HTTPS compressed project download
 

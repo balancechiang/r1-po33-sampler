@@ -8,6 +8,12 @@
     const scanner=root.PO33QRCamera.create(box);
     const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
     const jsonButton=document.createElement('button');jsonButton.id='transferJSON';jsonButton.textContent='Save JSON';$('transferSave').after(jsonButton);
+    const shareButton=document.createElement('button');shareButton.id='transferShare';shareButton.textContent='Share QR · own R2';jsonButton.after(shareButton);
+    shareButton.onclick=()=>{let base=new URL('./',location.href);base.pathname=base.pathname.replace(/compat\/rabbit-r1\/$/,'');window.open(new URL('share.html',base).href,'_blank','noopener');};
+    const animatedButton=document.createElement('button');animatedButton.id='transferAnimatedQR';animatedButton.textContent='Animated QR · 动态码';shareButton.after(animatedButton);
+    const animatedDialog=document.createElement('dialog');animatedDialog.id='transferAnimatedQRDialog';
+    animatedDialog.innerHTML='<h2>Animated project QR / 动态工程二维码</h2><p id="animatedQRStatus" role="status" aria-live="polite"></p><div id="animatedQRCode"></div><div class="animatedQRControls"><label>Frame time / 每帧时长 <select id="animatedQRSpeed"><option value="200">Fast · 200 ms</option><option value="120">Fastest · 120 ms</option><option value="300">Stable · 300 ms</option><option value="500">Slow · 500 ms</option></select></label><button id="animatedQRPause">Pause / 暂停</button><button id="animatedQRStop">Stop / 结束发送</button></div><p>Keep this page visible. Frames repeat so missed scans are sent again. Stop after the receiver shows End. / 保持页面前台，漏扫的分片会在循环中重发；接收端显示 End 后停止。</p>';
+    box.append(animatedDialog);
     $('transferFileInput').accept='.wav,.m4a,audio/mp4,audio/x-m4a,.json,.po33frame,.gz';$('transferFile').textContent='Load File';
     const updateButton=document.createElement('button');updateButton.id='transferUpdate';updateButton.textContent='Force update / 强制更新';box.querySelector('div').append(updateButton);
     const resetButton=document.createElement('button');resetButton.id='transferFactoryReset';resetButton.textContent='Factory reset / 恢复出厂';updateButton.after(resetButton);let resetArmedUntil=0;
@@ -28,12 +34,36 @@
     }
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
+    let animatedFrames=[],animatedIndex=0,animatedCycle=0,animatedTimer=null,animatedPaused=false;
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
     let result=null;
     function dismissResult(event){if(event && event.type!=='keydown' && !event.target?.closest?.('button,input,select,[data-pad],[data-act]'))return;if(result){result=null;hooks.paint();}}
     root.addEventListener('pointerdown',dismissResult,true);root.addEventListener('keydown',dismissResult,true);root.addEventListener('click',dismissResult,true);
     let generation=0,saveChain=Promise.resolve(),probing=false,downloadAbort=null;
     const storage=root.PO33TransferStorage;
+    function drawAnimatedFrame(){
+      clearTimeout(animatedTimer);if(!animatedFrames.length||!animatedDialog.open)return;
+      const host=$('animatedQRCode');host.replaceChildren();new root.QRCode(host,{text:animatedFrames[animatedIndex],width:360,height:360,correctLevel:root.QRCode.CorrectLevel.L});
+      $('animatedQRStatus').textContent=`Frame ${animatedIndex+1}/${animatedFrames.length} · loop ${animatedCycle+1} · ${(animatedFrames.length*Number($('animatedQRSpeed').value)/1000).toFixed(1)} s per loop`;
+      $('animatedQRPause').textContent=animatedPaused?'Resume / 继续':'Pause / 暂停';
+      if(!animatedPaused)animatedTimer=setTimeout(()=>{animatedIndex++;if(animatedIndex>=animatedFrames.length){animatedIndex=0;animatedCycle++;}drawAnimatedFrame();},Number($('animatedQRSpeed').value));
+    }
+    function stopAnimatedQR(showReady=true){
+      clearTimeout(animatedTimer);animatedTimer=null;animatedFrames=[];animatedIndex=0;animatedCycle=0;animatedPaused=false;
+      if(animatedDialog.open)animatedDialog.close();$('animatedQRCode').replaceChildren();
+      if(showReady&&view.active&&view.state==='qr-sending')set('stopped','Animated QR stopped / 动态二维码已停止',{progress:0,phase:'ready',level:0});
+    }
+    async function prepareAnimatedQR(buffer,token){
+      const side=Math.min(innerWidth*.88,innerHeight*.78,480),chunkBytes=side<220?600:side<300?800:side<400?1000:1400;
+      const transfer=await root.PO33QRTransfer.encode(new Uint8Array(buffer),{chunkBytes});
+      if(token!==generation||!view.active)return;
+      animatedFrames=transfer.frames;animatedIndex=0;animatedCycle=0;animatedPaused=false;
+      view.state='qr-sending';view.progress=0;view.phase='qr';render();
+      animatedDialog.showModal();drawAnimatedFrame();
+      $('animatedQRStatus').textContent=`Preparing ${animatedFrames.length} fragments · ${(transfer.rawBytes/1024).toFixed(0)} KB → ${(transfer.compressedBytes/1024).toFixed(0)} KB gzip`;
+      set('qr-sending',`Animated QR ready · ${animatedFrames.length} fragments · repeat until received / 动态码已就绪，等待接收端扫完`);
+      drawAnimatedFrame();
+    }
     function moveFocus(direction){
       if(!view.active || !direction)return;
       if(hub.active && hub.moveFocus(direction))return;
@@ -52,14 +82,14 @@
     function render(){
       root.PO33Runtime.setActive("transfer",view.active);
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=probing || ['updating','encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
+      const busy=probing || ['updating','encoding','qr-encoding','qr-sending','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
       updateButton.hidden=resetButton.hidden=view.mode!=='receive';updateButton.disabled=resetButton.disabled=busy;
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
       scanButton.hidden=view.mode!=='receive';scanButton.disabled=busy;
-      hubButton.hidden=view.mode!=='receive';hubButton.disabled=busy;jsonButton.hidden=view.mode!=='send';jsonButton.disabled=busy;
+      hubButton.hidden=view.mode!=='receive';hubButton.disabled=busy;jsonButton.hidden=view.mode!=='send';jsonButton.disabled=busy;shareButton.hidden=view.mode!=='send';shareButton.disabled=busy;animatedButton.hidden=view.mode!=='send';animatedButton.disabled=busy;
       $('transferSend').hidden=view.mode!=='send';$('transferSave').hidden=view.mode!=='send';
       $('transferFile').disabled=busy;$('transferRecord').disabled=busy;$('transferSend').disabled=!encoded||busy;$('transferSave').disabled=!encoded||busy;
-      $('transferStop').disabled=!['receiving','listening','sending','downloading'].includes(view.state);$('transferUndo').hidden=!undo;
+      $('transferStop').disabled=!['receiving','listening','sending','downloading','qr-encoding','qr-sending'].includes(view.state);$('transferUndo').hidden=!undo;
       $('transferUndo').disabled=busy;$('transferRefresh').disabled=busy;
       $('transferCheckInput').disabled=busy;
       $('transferInput').disabled=busy;$('transferOutput').disabled=busy;
@@ -82,7 +112,7 @@
       }
       return [error?.name && error.name!=='Error'?error.name:'',error?.message || (typeof error==='string'?error:'Operation failed')].filter(Boolean).join(': ');
     }
-    async function fail(error){generation++;terminate();await closeAudio();chunks=[];$('transferHint').dataset.errorName=error?.name || 'Error';$('transferHint').dataset.constraint=error?.constraint || '';set('error',errorText(error),{progress:0,level:0});}
+    async function fail(error){generation++;terminate();stopAnimatedQR(false);await closeAudio();chunks=[];$('transferHint').dataset.errorName=error?.name || 'Error';$('transferHint').dataset.constraint=error?.constraint || '';set('error',errorText(error),{progress:0,level:0});}
     function end(hint){clearTimeout(timer);set('success',hint,{progress:1,level:0,record:0});}
     function checkpoint(){
       if(!session||hooks.preview)return;
@@ -115,6 +145,9 @@
         }
         terminate();
         if(m.type==='decoded'){try{await accept(m.project);}catch(error){await fail(error);}}
+        if(m.type==='qr-frame'){
+          try{await prepareAnimatedQR(m.buffer,token);}catch(error){if(token===generation)await fail(error);}
+        }
         if(m.type==='json-exported'){
           const url=URL.createObjectURL(new Blob([m.buffer],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='po33-project.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Lossless JSON saved / 已保存无损 JSON');
         }
@@ -125,7 +158,7 @@
       worker.postMessage({command,...data},data.wav instanceof ArrayBuffer?[data.wav]:data.pcm?[data.pcm.left.buffer,data.pcm.right.buffer]:[]);
     }
     async function open(mode){
-      if(['encoding','decoding','receiving','listening','sending','scanning','downloading','hub'].includes(view.state))return;
+      if(['encoding','qr-encoding','qr-sending','decoding','receiving','listening','sending','scanning','downloading','hub'].includes(view.state))return;
       clearTimeout(timer);generation++;encoded=null;view={active:true,state:'waiting',mode,progress:0,level:0,record:0,phase:''};
       const opening=generation;await hooks.stop();if(opening!==generation || !view.active)return;
       set('waiting',mode==='receive'?'rcv · Choose WAV or Line in / 选择工程 WAV 或立体声输入':'Preparing current project / 正在准备当前工程');
@@ -195,7 +228,7 @@
     }
     scanButton.onclick=async()=>{
       const token=++generation;set('scanning','Scanning project QR / 扫描工程二维码',{progress:0,level:0});
-      try{const text=await scanner.open();if(token!==generation)return;if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
+      try{const text=await scanner.open();if(token!==generation)return;if(text?.buffer)loadBuffer(text.filename,text.buffer);else if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
       catch(error){if(token===generation)await fail(error);}
     };
     async function makeAudio(rate,token){
@@ -271,7 +304,7 @@
       try{set('sending','Opening stereo output / 正在打开输出',{progress:0,level:0});if(!await makeAudio(encoded.rate,token))return;set('sending','Sending stereo backup / 正在发送立体声工程');node.port.postMessage({command:'play',left:encoded.left,right:encoded.right});}
       catch(error){if(token===generation)await fail(error);}
     }
-    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
+    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;stopAnimatedQR(false);scanner.close();hub.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
     async function devices(){
       let permission;
       try{
@@ -300,8 +333,13 @@
       finally{probe?.getTracks().forEach(t=>t.stop());probing=false;render();}
     }
     $('transferFile').onclick=()=>$('transferFileInput').click();$('transferFileInput').onchange=e=>{const file=e.target.files[0];e.target.value='';readFile(file);};
-    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=async()=>{const interrupted=['encoding','decoding','listening','receiving','sending','downloading'].includes(view.state);await close();if(interrupted){result='stp';hooks.paint();}};
-    $('transferStop').onclick=async()=>{await close();view.active=true;set('stopped','Stopped / 已终止',{progress:0,level:0,record:0});};
+    animatedButton.onclick=()=>{const token=++generation;set('qr-encoding','Packing project into repeatable QR fragments / 正在压缩并拆分工程');run('export-qr',{snapshot:hooks.snapshot(),native,baseline});};
+    $('animatedQRPause').onclick=()=>{animatedPaused=!animatedPaused;drawAnimatedFrame();};
+    $('animatedQRStop').onclick=()=>stopAnimatedQR(true);
+    $('animatedQRSpeed').onchange=()=>drawAnimatedFrame();
+    animatedDialog.addEventListener('cancel',event=>{event.preventDefault();stopAnimatedQR(true);});
+    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=async()=>{const interrupted=['encoding','qr-encoding','qr-sending','decoding','listening','receiving','sending','downloading'].includes(view.state);await close();if(interrupted){result='stp';hooks.paint();}};
+    $('transferStop').onclick=async()=>{if(view.state==='qr-sending'){stopAnimatedQR(true);return;}await close();view.active=true;set('stopped','Stopped / 已终止',{progress:0,level:0,record:0});};
     $('transferSave').onclick=()=>{if(!encoded)return;const url=URL.createObjectURL(new Blob([encoded.wav],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download='po33-project-backup.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Backup WAV saved / 工程音频已保存');};
     $('transferUndo').onclick=async()=>{
       if(!undo)return;hooks.restoreSnapshot(undo.snapshot);native=undo.native;baseline=undo.baseline;session=undo.session;undo=null;
@@ -310,7 +348,7 @@
     };
     $('transferDeviceToggle').onclick=()=>{$('transferDevices').hidden=!$('transferDevices').hidden;gainSelect.value=hooks.micGain?(hooks.micGain().mode || hooks.micGain().db):0;gainLabel.hidden=!hooks.micGain;micReport.textContent=hooks.micGain?hooks.micGain().report:'';};$('transferRefresh').onclick=devices;
     $('transferCheckInput').onclick=checkInput;
-    document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));if(document.hidden && view.state==='downloading')close();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden && ['listening','receiving','sending','qr-sending'].includes(view.state))fail(Error('Transfer interrupted: keep the page visible'));if(document.hidden && view.state==='downloading')close();});
     root.addEventListener('pagehide',()=>{scanner.close();hub.close();downloadAbort?.abort();closeAudio();terminate();});
     root.addEventListener('resize',()=>{if(view.active)render();});
     navigator.mediaDevices?.addEventListener('devicechange',async()=>{
