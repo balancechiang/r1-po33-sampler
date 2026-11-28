@@ -36,8 +36,10 @@ try:
     page.set_viewport_size({'width':844,'height':390});page.wait_for_timeout(100)
     assert page.locator('#instrument').evaluate('e=>e.style.width')==oldWidth
     assert page.locator('#portraitStage').get_attribute('data-rotated')=='true'
-    camera=page.locator('#transferQRVideo').bounding_box();area=page.locator('#samplerControls').bounding_box()
-    assert camera['x']>=area['x']-1 and camera['y']>=area['y']-1 and camera['x']+camera['width']<=area['x']+area['width']+1 and camera['y']+camera['height']<=area['y']+area['height']+1
+    camera=page.locator('#transferQRVideo').bounding_box()
+    assert camera['x']<=1 and camera['y']<=1 and camera['x']+camera['width']>=844-1 and camera['y']+camera['height']>=390-1
+    assert page.evaluate('document.activeElement.id')=='transferQRCancel'
+    form=page.locator('#transferQRForm').bounding_box();assert form['y']+form['height']>=390-1
     page.locator('#transferQRCancel').click();page.set_viewport_size({'width':w,'height':h});page.wait_for_timeout(100)
    page.locator('#transferClose').click();page.wait_for_timeout(220)
    assert page.locator('#panel').evaluate('e=>getComputedStyle(e).visibility')=='visible'
@@ -47,6 +49,11 @@ try:
    page.wait_for_timeout(220)
    assert page.locator('#samplerScreen').bounding_box()==before
    assert page.locator('#transferSend').is_visible() and page.locator('#transferSave').is_visible()
+   if w==240:
+    page.locator('#transferPeerSend').click();page.wait_for_function('document.querySelector("#transferPeer")?.open===true',timeout=20000)
+    pair=page.locator('#peerQR').bounding_box();assert pair['width']>=w*.8 and pair['width']==pair['height'],pair
+    peer_dialog=page.locator('#transferPeer').bounding_box();assert peer_dialog['width']>=w-1 and peer_dialog['height']>=h-1,peer_dialog
+    page.locator('#peerCancel').click();page.wait_for_function('!document.querySelector("#transferPeer")?.open')
    page.locator('#transferClose').click();page.wait_for_timeout(220)
    assert page.locator('#portraitStage').get_attribute('data-rotated')==str(w>h and not wide).lower()
    assert not errors,errors

@@ -60,13 +60,13 @@ try:
   # Permission denial keeps manual URL import usable; invalid downloads do not restore.
   page.evaluate('cameraMode="denied";PO33Transfer.open("receive")');page.locator('#transferScan').click()
   page.wait_for_function('document.querySelector("#transferQRStatus").textContent.includes("NotAllowedError")')
-  page.locator('#transferQRURL').fill(base+'invalid.wav');page.locator('#transferQR button[type=submit]').click()
+  page.locator('#transferQRURLToggle').click();page.locator('#transferQRURL').fill(base+'invalid.wav');page.locator('#transferQR button[type=submit]').click()
   page.wait_for_function('document.body.dataset.transfer==="error"')
   assert 'not RIFF/WAV' in page.locator('#transferHint').text_content()
   assert page.locator('.pad.sampled').count()==1
   page.locator('#transferClose').click()
   page.evaluate('PO33Transfer.open("receive")');page.locator('#transferScan').click()
-  page.locator('#transferQRURL').fill(f'http://127.0.0.1:{other.server_port}/tests/fixtures/backup/po33-backup.wav')
+  page.locator('#transferQRURLToggle').click();page.locator('#transferQRURL').fill(f'http://127.0.0.1:{other.server_port}/tests/fixtures/backup/po33-backup.wav')
   page.locator('#transferQR button[type=submit]').click();page.wait_for_function('document.body.dataset.transfer==="error"')
   assert 'CORS' in page.locator('#transferHint').text_content()
   assert page.locator('.pad.sampled').count()==1

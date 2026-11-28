@@ -2,12 +2,14 @@
 (function(root){'use strict';
   function create(parent){
     const dialog=document.createElement('dialog');dialog.id='transferQR';
-    dialog.innerHTML='<p>Scan a project download QR / 扫描工程下载二维码</p><video id="transferQRVideo" autoplay muted playsinline></video><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p><form id="transferQRForm"><label>WAV URL / 下载网址<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button type="submit">Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
+    dialog.innerHTML='<header><p>Scan QR / 扫描二维码</p><p id="transferQRStatus" role="status">Opening camera / 正在打开摄像头…</p></header><video id="transferQRVideo" autoplay muted playsinline></video><form id="transferQRForm"><button id="transferQRURLToggle" type="button" aria-expanded="false">Enter URL / 输入网址</button><label id="transferQRURLLabel" hidden>WAV URL / 下载网址<input id="transferQRURL" type="url" inputmode="url" autocomplete="off" placeholder="https://…/backup.wav"></label><button id="transferQRImport" type="submit" hidden>Import URL / 导入网址</button><button id="transferQRCancel" type="button">Cancel / 取消</button></form>';
     parent.append(dialog);
     const video=dialog.querySelector('video'),status=dialog.querySelector('#transferQRStatus'),input=dialog.querySelector('input');
     let stream=null,worker=null,timer=null,finish=null,session=0,busy=false,receiver=null;
     function cleanup(){clearTimeout(timer);timer=null;if(worker)worker.terminate();worker=null;if(stream)stream.getTracks().forEach(t=>{t.onended=null;t.stop();});stream=null;video.srcObject=null;busy=false;}
     function settle(text){root.dispatchEvent(new CustomEvent('po33-scan-state',{detail:{active:false}}));session++;cleanup();if(dialog.open)dialog.close();const resolve=finish;finish=null;resolve?.(text);}
+    const urlToggle=dialog.querySelector('#transferQRURLToggle'),urlLabel=dialog.querySelector('#transferQRURLLabel'),urlImport=dialog.querySelector('#transferQRImport');
+    urlToggle.onclick=()=>{const expanded=urlToggle.getAttribute('aria-expanded')!=='true';urlToggle.setAttribute('aria-expanded',String(expanded));urlLabel.hidden=!expanded;urlImport.hidden=!expanded;if(expanded)input.focus({preventScroll:true});};
     dialog.querySelector('#transferQRCancel').onclick=()=>settle(null);
     dialog.addEventListener('cancel',e=>{e.preventDefault();settle(null);});
     dialog.querySelector('form').onsubmit=e=>{e.preventDefault();if(input.value.trim())settle(input.value.trim());};
@@ -48,7 +50,7 @@
       }catch(error){if(token!==session)return;cleanup();status.textContent=`${error.name || 'Camera'}: ${error.message || 'Unavailable'}. Paste URL below / 可在下方输入网址。`;}
     }
     return {get active(){return !!finish;},close:()=>settle(null),
-      open(){if(finish)settle(null);root.dispatchEvent(new CustomEvent('po33-scan-state',{detail:{active:true}}));const token=++session;input.value='';status.textContent='Opening camera / 正在打开摄像头…';dialog.show();const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
+      open(){if(finish)settle(null);root.dispatchEvent(new CustomEvent('po33-scan-state',{detail:{active:true}}));const token=++session;input.value='';urlToggle.setAttribute('aria-expanded','false');urlLabel.hidden=urlImport.hidden=true;status.textContent='Opening camera / 正在打开摄像头…';dialog.showModal();dialog.querySelector('#transferQRCancel').focus({preventScroll:true});const result=new Promise(resolve=>{finish=resolve;});camera(token);return result;}
     };
   }
   root.PO33QRCamera={create};
