@@ -401,3 +401,18 @@ Threshold is evaluated after the selected musical-input gain/auto-level processi
 LCD waiting uses blinking `rec`, input meter remains active and memory stays stationary. After trigger the remaining-seconds countdown starts. Physical RECORD may remain held after releasing the pad once recording has triggered. Releasing the pad while still armed cancels waiting. Single-finger latched RECORD keeps its existing pad-release-to-finish behavior and releases the microphone; pointer cancellation rolls back the active take. Releasing RECORD ends recording and microphone access. There is no silence auto-stop.
 
 Worklet tests at44.1/48kHz verify subthreshold waiting, input metering, exact crossing sample, retained silence, hard capacity, stale stop IDs and empty cancellation. Actual browser tests verify unchanged old PCM/memory while armed, blinking LCD, trigger/countdown, physical pad release with continued recording, HOLD finish/mic release, transfer draining and disconnect rollback. Sampling integration now expects three real hits rather than an extra silence-anchor slice; its four-voice assertion counts audible masks rather than dormant allocated dry voices, matching the earlier v11 admission model. Core, recording and sampling integration pass. No new hardware recording, commit, push, deployment or release package.
+
+
+### User live FX11 level report — 2026-11-28
+
+Reproduced and fixed a live-only queued-note loss: an unheard note at+80ms became a scratchContinuation at anchor zero; the current reverse phase gave it zero lifetime. Future notes are now rebuilt fresh at their own onset with the original gate, including early FX release. Browser regression confirms FX11 failed before the change and both11/12 entry/release pass afterward. Core/source and step-FX suites pass; saved source trajectory and existing termination tests stay passing. This may account for some sudden level drops but does not prove the user's entire live timbre/gain complaint is resolved. A physical live-gesture capture is still needed for that claim. Changes remain local after checkpoint0.2.22, with no commit/push in this follow-up.
+
+
+### Modifier LEDs and latched transfer outcomes — 2026-11-28
+
+PATTERN populated/queued indicators and BPM master-volume indicators now use bright LEDs; existing selected-item blink behavior remains. Completion/explicit stop/error display end/stp/err with no2.5s dismissal. Result acknowledgement runs before the transfer event gate so keyboard and hardware side-key events cannot be swallowed before clearing the code. Normal controls clear it; unused background and pointer release do not. Stop explicitly aborts transfer resources, while automatic silence completion retains its decode/validation path. Focused actual-app browser tests cover bright indicators, all three outcomes beyond the old timeout and key/control acknowledgement. Core and transfer layout tests at240×282 through iPad landscape pass. Follow-up changes remain local and unpushed.
+
+
+### Requested checkpoint0.2.23 — 2026-11-28
+
+The user requested another push and a local AI handoff. This checkpoint includes the live Scratch queued-note fix, bright PATTERN/volume indicators and latched transfer outcomes. The repository workflow now records the calibration-batch exception to the older per-change commit rule. A private local handoff and recording index are prepared outside the repository; audio remains untracked. Physical live-FX11 timbre/level validation remains open.

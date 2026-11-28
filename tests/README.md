@@ -17,6 +17,7 @@ python tests/test-first-tap-audio.py
 python tests/test-creation-qr.py
 python tests/test-garage-import.py
 python tests/test-transfer-layout.py
+python tests/test-transfer-result.py
 python tests/test-sync-browser.py
 python tests/test-sync-fx.py
 ```

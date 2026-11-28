@@ -8,6 +8,7 @@
   ["pointerdown","keydown","wheel","sideClick","longPressStart","scrollUp","scrollDown"].forEach(function(type){
     window.addEventListener(type,function(e){
       if(!startupReady){if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();return;}
+      if(hardwareTransfer && ['pointerdown','keydown','sideClick','longPressStart'].indexOf(type)>=0)hardwareTransfer.dismissResult(type==='sideClick' || type==='longPressStart'?undefined:e);
       if(!hardwareTransfer || !hardwareTransfer.view.active)return;
       if(type==="sideClick"){hardwareTransfer.activateFocus();if(e.cancelable)e.preventDefault();e.stopImmediatePropagation();return;}
       if(type==="scrollUp" || type==="scrollDown" || type==="wheel"){
@@ -994,6 +995,14 @@
     var now=ctx().currentTime;boundary=Number.isFinite(boundary)?boundary:now;
     sampleVoices.slice().forEach(function(v){
       if(v.end<=now || !v.speed || v.effect===kind || (fromPattern && v.start>now+.002))return;
+      if(v.start>now+.002){
+        // A lookahead note has no running cursor/reverse leg yet. Recreate it as
+        // a fresh event at its own onset, not a continuation of today's phase.
+        var pendingGate=v.scratch?v.scratchGate:(v.gateEnd===Infinity?undefined:v.gateEnd-v.start);
+        cancelVoice(v,now);
+        voice(v.slot,v.note,v.start,pendingGate,kind,undefined);
+        return;
+      }
       var at=Math.max(now+.003,v.start),resume=v.start>now?0:voicePosition(v,Math.max(v.start,boundary-(v.scratch?1/ctx().sampleRate:0)));
       var gate=v.scratch?v.scratchGate:(v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at));
       cancelVoice(v,now);
@@ -2439,14 +2448,14 @@
       pads[p].classList.toggle("step-edit",!!(stepEdit && stepEdit.used && stepEdit.slot===state.slot && stepEdit.step===p));
       var level="off", reason="empty";
       if(recHeld && !rec.on){level=samples[p] || p+1===state.slot?"bright":"off";reason=p+1===state.slot?"record-selected":"record-slots";}
-      else if(bpmHeld) { if(p<masterVolume){level="dim";reason="volume";} }
+      else if(bpmHeld) { if(p<masterVolume){level="bright";reason="volume";} }
       else if(state.mode==="SOUND") {
         if(samples[p]){level="dim";reason="sample";}
         if(p+1===state.slot){level="bright";reason="selected";}
       } else if(state.mode==="PATTERN") {
-        if(patternHasData(patterns[p])){level="dim";reason="pattern";}
+        if(patternHasData(patterns[p])){level="bright";reason="pattern";}
         if(p+1===(patternSelection.length?patternSelection[patternSelection.length-1]:patternNumber)){level="bright";reason="selected";}
-        else if(p+1===seq.queued){level="dim";reason="queued";}
+        else if(p+1===seq.queued){level="bright";reason="queued";}
       } else if(fxHeld || shakeFx) {
         if(p+1===fx.kind){level="bright";reason="effect";}
       } else if(stepView) {
@@ -2562,6 +2571,7 @@
   }
 
   function onPadDown(e) {
+    if(hardwareTransfer)hardwareTransfer.dismissResult();
     sliceResultUntil=0;
     e.preventDefault();
     var n = parseInt(this.getAttribute("data-pad"), 10);
@@ -2698,6 +2708,7 @@
 
   var deleteDisplay=null;
   function onCtlDown(e) {
+    if(hardwareTransfer)hardwareTransfer.dismissResult();
     var btn=e.target.closest ? e.target.closest(".cbtn") : null;
     if(!btn) return; e.preventDefault(); lastPointer=Date.now();
     if(hardwareTransfer && hardwareTransfer.view.active)return;
@@ -2926,8 +2937,10 @@
     if(deleteDisplay){if(activeKeys().has('rec') && activeKeys().has(deleteDisplay.target)){label=deleteDisplay.code==='clr'?'CLEAR':'DELETE';number=deleteDisplay.code;}else deleteDisplay=null;}
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
-    if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
-    target.classList.toggle("record-armed-blink",!!((recHeld && (!rec.on || rec.phase==="armed") && !deleteDisplay || copySession && !copySession.pasted) && !transferView && !resetBusy));
+    if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.mode==="receive"?"rcv":"Snd";}
+    var transferResult=hardwareTransfer && hardwareTransfer.result;
+    if(transferResult){label="TRANSFER";number=transferResult;}
+    target.classList.toggle("record-armed-blink",!!((recHeld && (!rec.on || rec.phase==="armed") && !deleteDisplay || copySession && !copySession.pasted) && !transferView && !transferResult && !resetBusy));
     if(!transferView && Date.now()<clipUntil)label="CLP";
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");

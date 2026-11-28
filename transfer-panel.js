@@ -29,6 +29,9 @@
     let view={active:false,state:'idle',mode:'receive',progress:0,level:0,record:0,phase:''};
     let worker=null,audio=null,node=null,stream=null,source=null,chunks=[],sequence=0,encoded=null,timeline=[];
     let native=null,baseline=null,session=false,undo=null,timer=null,saveTimer=null,waitTimer=null,signalStarted=false,lastSignal=0,captured=0;
+    let result=null;
+    function dismissResult(event){if(event && event.type!=='keydown' && !event.target?.closest?.('button,input,select,[data-pad],[data-act]'))return;if(result){result=null;hooks.paint();}}
+    root.addEventListener('pointerdown',dismissResult,true);root.addEventListener('keydown',dismissResult,true);root.addEventListener('click',dismissResult,true);
     let generation=0,saveChain=Promise.resolve(),probing=false,downloadAbort=null;
     const storage=root.PO33TransferStorage;
     function moveFocus(direction){
@@ -64,7 +67,7 @@
       document.getElementById('panel')?.toggleAttribute('inert',view.active);
       hooks.paint();
     }
-    function set(state,hint,extra={}){Object.assign(view,{state},extra);$('transferHint').textContent=hint;render();}
+    function set(state,hint,extra={}){result=({success:'end',stopped:'stp',error:'err'})[state] || null;Object.assign(view,{state},extra);$('transferHint').textContent=hint;render();}
     async function closeAudio(){
       if(waitTimer)clearInterval(waitTimer);waitTimer=null;
       if(stream){stream.getTracks().forEach(t=>{t.onended=null;t.stop();});stream=null;}
@@ -80,7 +83,7 @@
       return [error?.name && error.name!=='Error'?error.name:'',error?.message || (typeof error==='string'?error:'Operation failed')].filter(Boolean).join(': ');
     }
     async function fail(error){generation++;terminate();await closeAudio();chunks=[];$('transferHint').dataset.errorName=error?.name || 'Error';$('transferHint').dataset.constraint=error?.constraint || '';set('error',errorText(error),{progress:0,level:0});}
-    function end(hint){set('success',hint,{progress:1,level:0,record:0});clearTimeout(timer);timer=setTimeout(()=>{view.active=false;view.state='idle';render();},2500);}
+    function end(hint){clearTimeout(timer);set('success',hint,{progress:1,level:0,record:0});}
     function checkpoint(){
       if(!session||hooks.preview)return;
       clearTimeout(saveTimer);saveTimer=setTimeout(()=>writeCheckpoint(),500);
@@ -297,8 +300,8 @@
       finally{probe?.getTracks().forEach(t=>t.stop());probing=false;render();}
     }
     $('transferFile').onclick=()=>$('transferFileInput').click();$('transferFileInput').onchange=e=>{const file=e.target.files[0];e.target.value='';readFile(file);};
-    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=close;
-    $('transferStop').onclick=()=>['sending','downloading'].includes(view.state)?close():stopCapture();
+    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=async()=>{const interrupted=['encoding','decoding','listening','receiving','sending','downloading'].includes(view.state);await close();if(interrupted){result='stp';hooks.paint();}};
+    $('transferStop').onclick=async()=>{await close();view.active=true;set('stopped','Stopped / 已终止',{progress:0,level:0,record:0});};
     $('transferSave').onclick=()=>{if(!encoded)return;const url=URL.createObjectURL(new Blob([encoded.wav],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download='po33-project-backup.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Backup WAV saved / 工程音频已保存');};
     $('transferUndo').onclick=async()=>{
       if(!undo)return;hooks.restoreSnapshot(undo.snapshot);native=undo.native;baseline=undo.baseline;session=undo.session;undo=null;
@@ -316,7 +319,7 @@
       if(!id)return;
       try{const devices=await navigator.mediaDevices.enumerateDevices();if(!devices.some(d=>d.deviceId===id && d.kind===(input?'audioinput':'audiooutput')))await fail(Error('Selected audio interface disconnected'));}catch(error){await fail(error);}
     });
-    return {open,close,readFile,moveFocus,activateFocus(){const e=document.activeElement;if(box.contains(e)&&e.tagName==='BUTTON'&&!e.disabled)e.click();},get view(){return view;},get hasSession(){return session;},checkpoint,
+    return {open,close,readFile,moveFocus,dismissResult,activateFocus(){const e=document.activeElement;if(box.contains(e)&&e.tagName==='BUTTON'&&!e.disabled)e.click();},get view(){return view;},get result(){return result;},get hasSession(){return session;},checkpoint,
       flush:writeCheckpoint,
       async restore(){if(hooks.preview)return;try{const saved=await storage.get();if(saved){undo={snapshot:hooks.snapshot(),native:null,baseline:null,session:false};native=saved.native;baseline=saved.baseline;session=true;hooks.restoreSnapshot(saved.snapshot);}}catch(error){hooks.hint('CHECKPOINT UNAVAILABLE');throw error;}},
       async reset(){clearTimeout(saveTimer);await close();session=false;native=null;baseline=null;undo=null;await saveChain.catch(()=>{});if(!hooks.preview)await storage.clear();}

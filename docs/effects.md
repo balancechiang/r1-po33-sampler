@@ -145,3 +145,10 @@ This path is for saved automation. The existing live hold path is retained and s
 
 
 Dry voice admission (v11): the measured five-source cases preserve the first four audible sources and admit the fifth after a gate expires, without restarting its gate. Excess dry sources retain their original duration behind an output mask. This is not a claim about arbitrary slot priority or the separate Unison channel-allocation path.
+
+
+### Live Scratch queued-note correction (2026-11-28)
+
+A user reported live FX11 sounding different and suddenly quieter. A browser regression identifies one concrete cause: retuneScratch treated an unheard lookahead note as a ringing continuation with source anchor zero. If the current transport phase selected a reverse leg, scratchLimit ended the replacement before it started. Saved-effect callbacks already exclude such future notes, so the earlier saved Scratch calibration did not cover this path.
+
+Future live notes now remain fresh events at their own start time and retain their original gate; release before onset similarly restores a fresh dry event. A regression with an80ms queued note reproduces missing FX11 before the fix and validates FX11/12 entry and early release afterward. Existing active-source/saved trajectories are unchanged. This corrects missing-note energy, not a calibrated overall live gain or complete scratch timbre; physical live trajectory/level comparison remains open. No gain compensation was added.

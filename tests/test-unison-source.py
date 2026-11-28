@@ -25,7 +25,7 @@ try:
    class ModifiedRoute:
     def fetch(self):return route.fetch()
     def fulfill(self, response, body):
-     hook="futureUnison:()=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));window.fxVoices=[];fx.kind=0;voice(3,4,ctx().currentTime,undefined,0);const at=ctx().currentTime+.5;voice(1,4,at,.3,0);return at;},fallbackCut:async()=>{const at=ctx().currentTime+.02,c=new OfflineAudioContext(1,Math.ceil((at+.02)*48000),48000),src=c.createBufferSource(),b=c.createBuffer(1,480,48000),g=c.createGain();b.getChannelData(0).fill(1);src.buffer=b;src.loop=true;src.connect(g);g.connect(c.destination);g.gain.value=.2;Object.defineProperty(g.gain,'cancelAndHoldAtTime',{value:undefined});src.start();cutSampleVoice({start:0,end:at+.01,gain:g,src},at);const out=await c.startRendering();return out.getChannelData(0).reduce((a,b)=>Math.max(a,b),0);},lateReader:(ticks=1)=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));readerLoop=null;const period=stepDur(),boundary=ctx().currentTime-.01,t=boundary-period*ticks;prepareReaders(1,t);readerNote(1,4,t);drainReaders(boundary,true);const s=readerLoop.slots.get(1),position=s.resetPosition;readerNote(1,5,boundary);return {position,origin:s.origin,anchor:s.entry?.anchor,finite:Number.isFinite(s.entry?.anchor)};},"
+     hook="queuedScratch:n=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));window.fxVoices=[];fx.kind=0;visQueue=[];seq.step=0;seq.visualStepTime=ctx().currentTime-stepDur()*(n===11?1:.5);const at=ctx().currentTime+.08;voice(1,4,at,.4,0);fxEngage(n);return at;},futureUnison:()=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));window.fxVoices=[];fx.kind=0;voice(3,4,ctx().currentTime,undefined,0);const at=ctx().currentTime+.5;voice(1,4,at,.3,0);return at;},fallbackCut:async()=>{const at=ctx().currentTime+.02,c=new OfflineAudioContext(1,Math.ceil((at+.02)*48000),48000),src=c.createBufferSource(),b=c.createBuffer(1,480,48000),g=c.createGain();b.getChannelData(0).fill(1);src.buffer=b;src.loop=true;src.connect(g);g.connect(c.destination);g.gain.value=.2;Object.defineProperty(g.gain,'cancelAndHoldAtTime',{value:undefined});src.start();cutSampleVoice({start:0,end:at+.01,gain:g,src},at);const out=await c.startRendering();return out.getChannelData(0).reduce((a,b)=>Math.max(a,b),0);},lateReader:(ticks=1)=>{sampleVoices.slice().forEach(v=>cancelVoice(v,ctx().currentTime));readerLoop=null;const period=stepDur(),boundary=ctx().currentTime-.01,t=boundary-period*ticks;prepareReaders(1,t);readerNote(1,4,t);drainReaders(boundary,true);const s=readerLoop.slots.get(1),position=s.resetPosition;readerNote(1,5,boundary);return {position,origin:s.origin,anchor:s.entry?.anchor,finite:Number.isFinite(s.entry?.anchor)};},"
      body=body.replace('position:v=>voicePosition',hook+'position:v=>voicePosition')
      route.fulfill(response=response,body=body)
    original_instrument(ModifiedRoute())
@@ -118,6 +118,17 @@ try:
    assert abs(late['position']-late['origin'])<1e-6,(ticks,late)
    if ticks>=4:assert late['origin']>0,(ticks,late)
   print('PASS delayed Loop boundary keeps a finite source cursor instead of reusing an absent reset position')
+  for scratch_kind in [11,12]:
+   for release_early in [False,True]:
+    queued_at=page.evaluate('n=>uniTest.queuedScratch(n)',scratch_kind)
+    if release_early:page.evaluate('uniTest.off()')
+    pending=page.evaluate('fxVoices.filter(v=>v.end>v.start && (v.cutAt===undefined || v.cutAt>v.start)).map(v=>({start:v.start,gate:v.scratch?v.scratchGate:v.gateEnd-v.start,fresh:v.scratch?.fresh,effect:v.effect}))')
+    assert len(pending)==1 and abs(pending[0]['start']-queued_at)<1e-6,(scratch_kind,release_early,pending)
+    assert abs(pending[0]['gate']-.4)<1e-6,(scratch_kind,release_early,pending)
+    assert pending[0]['effect']==(0 if release_early else scratch_kind),(scratch_kind,release_early,pending)
+    if not release_early:assert pending[0]['fresh'],pending
+    page.wait_for_timeout(110);assert active(),(scratch_kind,release_early)
+  print('PASS live Scratch/Fast entry and early release preserve queued onset/gate instead of ending a fresh note at the old reverse origin')
   for target in [5,6,0]:
    page.evaluate('uniTest.stop();uniTest.native(false);window.queuedAt=uniTest.futureUnison();uniTest.on(5)')
    if target==6:page.evaluate('uniTest.on(6)')

@@ -9,3 +9,6 @@ Exports use the TypeScript native-state serializer and offline stereo DQPSK enco
 Real-time backup capture uses its own AudioWorklet and unprocessed stereo input, isolated from sample-recording gain and playback coloration. File import is the fallback when a browser cannot supply independent stereo capture. Browser/driver processing and physical hardware acceptance require device testing.
 
 The decoder reports packet checksums and unresolved sample references. A valid software round trip does not establish physical-device acceptance. See [codec implementation and provenance](../decoder/README.md), [sync](sync.md) and [remaining validation](remaining.md).
+
+
+Transfer result codes are latched: `end` for completion, `stp` for explicit termination, and `err` for failure. There is no automatic result timeout. Another control/key acknowledges the result; tapping unused background does not. Stop cancels the active operation and releases transfer audio rather than attempting to decode a partial receive. Silence-based automatic receive completion still validates and imports the captured stream normally.
