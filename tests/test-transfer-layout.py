@@ -35,7 +35,8 @@ try:
     oldWidth=page.locator('#instrument').evaluate('e=>e.style.width')
     page.set_viewport_size({'width':844,'height':390});page.wait_for_timeout(100)
     assert page.locator('#instrument').evaluate('e=>e.style.width')==oldWidth
-    assert page.locator('#portraitStage').get_attribute('data-rotated')=='true'
+    assert page.locator('#portraitStage').get_attribute('data-rotated')=='false'
+    assert page.locator('#transferQR').evaluate('e=>e.parentElement===document.body')
     camera=page.locator('#transferQRVideo').bounding_box()
     assert camera['x']<=1 and camera['y']<=1 and camera['x']+camera['width']>=844-1 and camera['y']+camera['height']>=390-1
     assert page.evaluate('document.activeElement.id')=='transferQRCancel'

@@ -63,7 +63,7 @@
     function moveFocus(direction){
       if(!view.active || !direction)return;
       if(hub.active && hub.moveFocus(direction))return;
-      const scope=hub.active?box.querySelector('#localHubPanel'):scanner.active?box.querySelector('#transferQR'):box;
+      const scope=hub.active?box.querySelector('#localHubPanel'):scanner.active?document.querySelector('#transferQR'):box;
       const choices=[...scope.querySelectorAll('button,select,input:not([type=file])')].filter(e=>!e.disabled && e.getClientRects().length);
       if(!choices.length)return;
       const previous=document.activeElement,index=choices.indexOf(previous);

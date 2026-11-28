@@ -12,7 +12,7 @@
  let scanFrozen=false;
  window.addEventListener('po33-scan-state',e=>{scanFrozen=e.detail.active;if(!scanFrozen)layout();});
  function layout(){
-  if(scanFrozen){stage.dataset.rotated=String(document.body.dataset.wide!=='true' && (matchMedia('(pointer:coarse)').matches || navigator.maxTouchPoints>0) && document.documentElement.clientWidth>window.innerHeight);return;}
+  if(scanFrozen)return;
   if(window.visualViewport?.height>0)document.body.style.setProperty("--app-viewport-height",window.visualViewport.height+"px");
   const padding=getComputedStyle(document.body),horizontal=parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),vertical=parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom);
   // CSS dvh, safe-area insets and innerHeight can settle on different frames in iOS standalone.
