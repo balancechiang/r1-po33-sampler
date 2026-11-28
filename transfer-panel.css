@@ -19,6 +19,7 @@ body.transfer-open #samplerControls #panel {width:100%;visibility:hidden;pointer
 #transferControls button,#transferControls select {font:inherit;min-height:calc(30 * var(--unit));margin:0;padding:calc(3 * var(--unit));overflow-wrap:anywhere;}
 #transferControls button[hidden] {display:none;}
 #transferFile,#transferScan,#transferRecord,#transferSend,#transferSave,#transferJSON {grid-column:span 2;}
+#transferPeerSend,#transferPeerReceive {grid-column:span 2;}
 #transferHub {grid-column:span 3;}
 #transferHint {min-height:calc(25 * var(--unit));margin:0 0 calc(5 * var(--unit));}
 #transferDevices {padding-top:calc(5 * var(--unit));}
@@ -32,3 +33,10 @@ body.transfer-open #samplerControls #panel {width:100%;visibility:hidden;pointer
 #transferUpdate,#transferFactoryReset {grid-column:span 2;}
 #transferControls #transferQR[open] {display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:calc(3 * var(--unit));overflow:auto;}
 #transferControls #transferQR video {height:100%;min-height:0;max-height:100%;min-width:0;object-fit:contain;contain:size;}
+
+#transferPeer {position:fixed;inset:0;z-index:105;box-sizing:border-box;width:min(100vw,420px);max-width:100%;height:min(100dvh,620px);max-height:100dvh;margin:auto;padding:10px;background:#111;color:#fff;border:1px solid #666;font:inherit;overflow:auto;text-align:center;}
+#transferPeer::backdrop {background:#000b}#transferPeer[open]{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(4 * var(--unit));}
+#transferPeer h2,#transferPeer p {margin:0;max-width:100%;overflow-wrap:anywhere}#transferPeer h2{font-size:1.15em}#peerQR{width:min(78vw,320px);height:min(78vw,320px);display:grid;place-items:center;background:#fff;padding:8px;box-sizing:border-box;}
+#peerQR img,#peerQR canvas{display:block;width:100%;height:100%;image-rendering:pixelated}#transferPeer button{width:100%;max-width:320px;}
+#transferPeer[open] #peerScanReply[hidden]{display:none}#transferPeer[open] #peerCancel{background:#333}#transferPeer[open] #peerStatus{min-height:2.4em}
+@media(max-height:420px){#transferPeer[open]{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,44vw);grid-template-rows:auto 1fr auto auto;text-align:left;gap:5px;}#transferPeer h2,#transferPeer p,#transferPeer button{grid-column:1}#peerQR{grid-column:2;grid-row:1/5;width:min(40vw,280px);height:min(40vw,280px);}}

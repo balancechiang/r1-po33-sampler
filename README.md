@@ -18,6 +18,6 @@ node scripts/check.mjs
 
 Open `http://localhost:8000/`. The build stamps runtime URLs using the version in `package.json`; it does not generate duplicate application pages.
 
-[Architecture](docs/architecture.md) · [Audio formats](docs/audio-backup.md) · [Sync](docs/sync.md) · [Factory preset](docs/presets.md) · [Testing](tests/README.md) · [Known limits](docs/remaining.md) · [Third-party notices](docs/third-party-notices.md)
+[Architecture](docs/architecture.md) · [Direct browser transfer](docs/peer-transfer.md) · [Audio formats](docs/audio-backup.md) · [Sync](docs/sync.md) · [Factory preset](docs/presets.md) · [Testing](tests/README.md) · [Known limits](docs/remaining.md) · [Third-party notices](docs/third-party-notices.md)
 
 Rabbit r1 Creations is an optional host: [compatibility adapter and installation code](compat/rabbit-r1/README.md).

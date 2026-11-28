@@ -9,6 +9,27 @@
     const hubButton=document.createElement('button');hubButton.id='transferHub';hubButton.textContent='LAN HUB (:33033)';scanButton.after(hubButton);
     const jsonButton=document.createElement('button');jsonButton.id='transferJSON';jsonButton.textContent='Save JSON';$('transferSave').after(jsonButton);
     const shareButton=document.createElement('button');shareButton.id='transferShare';shareButton.textContent='Share QR · own R2';jsonButton.after(shareButton);
+    const peerSendButton=document.createElement('button');peerSendButton.id='transferPeerSend';peerSendButton.textContent='Wi-Fi Send QR / 直连发送';shareButton.after(peerSendButton);
+    const peerReceiveButton=document.createElement('button');peerReceiveButton.id='transferPeerReceive';peerReceiveButton.textContent='Wi-Fi Receive QR / 直连接收';hubButton.after(peerReceiveButton);
+    const peerDialog=document.createElement('dialog');peerDialog.id='transferPeer';peerDialog.innerHTML='<h2>Direct Wi-Fi transfer / 局域网直连传工程</h2><p id="peerInstructions">Scan this pairing QR on the receiving Web Sampler.</p><div id="peerQR" aria-label="WebRTC pairing QR"></div><p id="peerStatus" role="status" aria-live="polite"></p><button id="peerScanReply" type="button">Scan reply QR / 扫描回复码</button><button id="peerCancel" type="button">Cancel / 取消</button>';box.append(peerDialog);
+    const peerQr=$('peerQR'),peerStatus=$('peerStatus'),peerInstructions=$('peerInstructions');let peer=null,peerRole=null;
+    function peerState(state,message){if(!view.active)return;if(state==='error'){peerStatus.textContent=message;peer?.close();peer=null;set('error',message,{progress:0});return;}peerStatus.textContent=message;if(state==='connected'&&peerRole==='receive')set('receiving','Connected · waiting for project / 已连接，等待工程',{progress:0});else if(state==='receiving')set('receiving',message,{progress:0});else if(state==='sending')set('sending',message,{progress:view.progress});else if(state==='success'&&peerRole==='send')end('End · Project received and checked / 接收端已校验工程');else if(message)$('transferHint').textContent=message;}
+    function createPeer(role){peer?.close();peerRole=role;peer=root.PO33PeerTransfer.create({
+      onState:peerState,
+      onProgress:(done,total)=>{if(!view.active)return;view.progress=total?done/total:0;if(peerRole==='send' && view.state==='encoding')view.state='sending';render();},
+      onOpen:()=>{if(peerRole==='send'){set('encoding','Direct link ready · preparing project / 已直连，正在准备工程',{progress:0});run('export-json',{snapshot:hooks.snapshot(),native,baseline,peer:true});}else set('receiving','Direct link ready · waiting for project / 已直连，等待工程',{progress:0});},
+      onFile:(name,buffer,complete)=>{set('decoding','Direct transfer complete · validating project / 传输完成，正在校验工程',{progress:1});loadBuffer(name,buffer,0,complete);},
+      onAck:()=>peerState('success','Receiver accepted the project.'),
+      onError:error=>peerState('error',error?.message||'Direct transfer failed.')
+    });return peer;}
+    function showPeerCode(text,role){
+      peerQr.replaceChildren();if(!root.QRCode)throw Error('Pairing QR renderer unavailable.');
+      try{new root.QRCode(peerQr,{text,width:224,height:224,correctLevel:root.QRCode.CorrectLevel.L});}
+      catch(error){throw Error('Pairing code is too dense for this display. Use Save JSON for this project.');}
+      peerRole=role;peerDialog.querySelector('#peerScanReply').hidden=role!=='send';peerInstructions.textContent=role==='send'?'Receiver: choose Direct receive and scan this QR. Then scan the reply QR here.':'Sender: scan this reply QR to finish pairing.';
+      peerStatus.textContent=role==='send'?'Offer ready. Keep this screen open while the other device scans.':'Reply ready. Keep this screen open while the sender scans.';
+      if(!peerDialog.open)peerDialog.showModal();
+    }
     shareButton.onclick=()=>{let base=new URL('./',location.href);base.pathname=base.pathname.replace(/compat\/rabbit-r1\/$/,'');window.open(new URL('share.html',base).href,'_blank','noopener');};
     $('transferFileInput').accept='.wav,.m4a,audio/mp4,audio/x-m4a,.json,.po33frame,.gz';$('transferFile').textContent='Load File';
     const updateButton=document.createElement('button');updateButton.id='transferUpdate';updateButton.textContent='Force update / 强制更新';box.querySelector('div').append(updateButton);
@@ -54,11 +75,12 @@
     function render(){
       root.PO33Runtime.setActive("transfer",view.active);
       document.body.classList.toggle('transfer-open',view.active);document.body.dataset.transfer=view.state;
-      const busy=probing || ['updating','encoding','decoding','sending','receiving','listening','scanning','downloading','hub'].includes(view.state);
+      const busy=probing || ['updating','encoding','decoding','sending','receiving','listening','scanning','downloading','hub','pairing','connecting'].includes(view.state);
       updateButton.hidden=resetButton.hidden=view.mode!=='receive';updateButton.disabled=resetButton.disabled=busy;
       $('transferFile').hidden=view.mode!=='receive';$('transferRecord').hidden=view.mode!=='receive';
       scanButton.hidden=view.mode!=='receive';scanButton.disabled=busy;
       hubButton.hidden=view.mode!=='receive';hubButton.disabled=busy;jsonButton.hidden=view.mode!=='send';jsonButton.disabled=busy;shareButton.hidden=view.mode!=='send';shareButton.disabled=busy;
+      peerSendButton.hidden=view.mode!=='send';peerSendButton.disabled=busy&&view.state!=='encoding';peerReceiveButton.hidden=view.mode!=='receive';peerReceiveButton.disabled=busy;
       $('transferSend').hidden=view.mode!=='send';$('transferSave').hidden=view.mode!=='send';
       $('transferFile').disabled=busy;$('transferRecord').disabled=busy;$('transferSend').disabled=!encoded||busy;$('transferSave').disabled=!encoded||busy;
       $('transferStop').disabled=!['receiving','listening','sending','downloading'].includes(view.state);$('transferUndo').hidden=!undo;
@@ -108,28 +130,30 @@
     }
     function run(command,data){
       terminate();worker=new Worker((root.PO33_RESOURCE?root.PO33_RESOURCE('./transfer-worker.js?v=20261120-live1'):'./transfer-worker.js?v=20261120-live1'),{type:'module'});const token=generation;
-      worker.onerror=()=>{if(token===generation)fail(Error('Codec worker unavailable. Use HTTP/HTTPS.'));};
+      worker.onerror=()=>{data.onDecoded?.(false,'Project decoder unavailable.');if(token===generation)fail(Error('Codec worker unavailable. Use HTTP/HTTPS.'));};
       worker.onmessage=async({data:m})=>{
         if(token!==generation)return;
-        if(m.type==='error'){await fail(Error(m.message));return;}
+        if(m.type==='error'){data.onDecoded?.(false,m.message);await fail(Error(m.message));return;}
         if(m.type==='progress'){
           const value=m.completed/Math.max(1,m.total);
           view.phase=m.phase;view.progress=command==='encode'?value*.9:command==='decode'&&data.filename?.endsWith('.po33frame')?(m.phase==='frame-validated'?.95:.9+.05*value):m.phase==='validated'?.96:m.phase==='demodulate'?.2+.75*value:m.phase==='clock'?.2:.1;
           render();return;
         }
         terminate();
-        if(m.type==='decoded'){try{view.progress=.95;view.phase='restore';$('transferHint').textContent='Project verified · loading samples / 工程已校验，正在载入音色';render();await accept(m.project);}catch(error){await fail(error);}}
+        if(m.type==='decoded'){try{view.progress=.95;view.phase='restore';$('transferHint').textContent='Project verified · loading samples / 工程已校验，正在载入音色';render();await accept(m.project);data.onDecoded?.(true);}catch(error){data.onDecoded?.(false,error.message);await fail(error);}}
         if(m.type==='json-exported'){
+          if(data.peer && peer){peer.sendFile(m.buffer).catch(error=>fail(error));return;}
           const url=URL.createObjectURL(new Blob([m.buffer],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='po33-project.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Lossless JSON saved / 已保存无损 JSON');
         }
         if(m.type==='encoded'){
           encoded=m;timeline=m.timeline;set('ready',`Backup ready · ${m.packets} checked packets. ${m.warnings.join(' ')} Put PO-33 in receive mode before Line out.`,{progress:0,phase:'ready'});
         }
       };
-      worker.postMessage({command,...data},data.wav instanceof ArrayBuffer?[data.wav]:data.pcm?[data.pcm.left.buffer,data.pcm.right.buffer]:[]);
+      const workerData={...data};delete workerData.onDecoded;
+      worker.postMessage({command,...workerData},data.wav instanceof ArrayBuffer?[data.wav]:data.pcm?[data.pcm.left.buffer,data.pcm.right.buffer]:[]);
     }
     async function open(mode){
-      if(['encoding','decoding','receiving','listening','sending','scanning','downloading','hub'].includes(view.state))return;
+      if(['encoding','decoding','receiving','listening','sending','scanning','downloading','hub','pairing','connecting'].includes(view.state))return;
       clearTimeout(timer);generation++;encoded=null;view={active:true,state:'waiting',mode,progress:0,level:0,record:0,phase:''};
       const opening=generation;await hooks.stop();if(opening!==generation || !view.active)return;
       set('waiting',mode==='receive'?'rcv · Choose WAV or Line in / 选择工程 WAV 或立体声输入':'Preparing current project / 正在准备当前工程');
@@ -146,16 +170,16 @@
         loadBuffer(file.name,bytes.buffer);
       }catch(error){if(token===generation)await fail(error);}
     }
-    async function loadBuffer(filename,buffer,startProgress=0){
+    async function loadBuffer(filename,buffer,startProgress=0,onDecoded){
       if(!view.active)return;
       generation++;set('decoding','Checking project / 正在校验工程',{progress:startProgress});
-      if(!/\.(wav|m4a|json|po33frame|po33\.gz)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a stereo WAV/M4A or JSON project under 128 MB'));return;}
+      if(!/\.(wav|m4a|json|po33frame|po33\.gz)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){const error=Error('Choose a stereo WAV/M4A or JSON project under 128 MB');onDecoded?.(false,error.message);fail(error);return;}
       if(/\.m4a$/i.test(filename)){
         const token=generation;
         try{const pcm=await root.PO33BackupAudio.decode(buffer);if(token===generation && view.active)run('decode',{pcm});}
         catch(error){if(token===generation)fail(error);}return;
       }
-      run('decode',{wav:buffer,filename});
+      run('decode',{wav:buffer,filename,onDecoded});
     }
     hubButton.onclick=()=>{set('hub','LAN HUB (:33033)',{progress:0,level:0});hub.open();};
     jsonButton.onclick=()=>{set('encoding','Saving lossless project JSON / 正在保存无损工程 JSON',{progress:0});run('export-json',{snapshot:hooks.snapshot(),native,baseline});};
@@ -202,6 +226,23 @@
       try{const text=await scanner.open();if(token!==generation)return;if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
       catch(error){if(token===generation)await fail(error);}
     };
+    peerSendButton.onclick=async()=>{
+      const token=++generation;terminate();set('pairing','Preparing direct Wi-Fi pairing / 正在建立局域网直连',{progress:0});
+      try{const link=createPeer('send'),offer=await link.offer();if(token!==generation)return;showPeerCode(offer,'send');}
+      catch(error){peer?.close();peer=null;if(token===generation)await fail(error);}
+    };
+    peerReceiveButton.onclick=async()=>{
+      const token=++generation;set('scanning','Scan the sender’s pairing QR / 扫描发送端配对码',{progress:0});
+      try{createPeer('receive');const text=await scanner.open();if(token!==generation)return;if(!text){peer?.close();peer=null;set('waiting','Pairing cancelled / 已取消配对',{progress:0});return;}set('pairing','Creating direct response QR / 正在生成直连回复码',{progress:0});const answer=await peer.answer(text);if(token===generation)showPeerCode(answer,'receive');}
+      catch(error){peer?.close();peer=null;if(token===generation)await fail(error);}
+    };
+    peerDialog.querySelector('#peerScanReply').onclick=async()=>{
+      const token=++generation;peerDialog.close();set('scanning','Scan the receiver’s reply QR / 扫描接收端回复码',{progress:0});
+      try{const text=await scanner.open();if(token!==generation)return;if(!text){set('pairing','Pairing cancelled · offer remains available / 已取消扫码，配对码仍有效',{progress:0});peerDialog.showModal();return;}set('connecting','Connecting directly over Wi-Fi / 正在通过 Wi-Fi 建立直连',{progress:0});await peer.acceptAnswer(text);}
+      catch(error){peer?.close();peer=null;if(token===generation)await fail(error);}
+    };
+    peerDialog.querySelector('#peerCancel').onclick=()=>{peerDialog.close();peer?.close();peer=null;peerRole=null;set('waiting','Direct transfer cancelled / 已取消点对点传输',{progress:0});};
+    peerDialog.addEventListener('cancel',()=>{peer?.close();peer=null;peerRole=null;});
     async function makeAudio(rate,token){
       const context=new (root.AudioContext||root.webkitAudioContext)({sampleRate:rate,latencyHint:'playback'});audio=context;root.PO33Runtime.register(context,true);
       if(![44100,48000].includes(context.sampleRate))throw Error('A 44.1/48 kHz stereo audio path is required');
@@ -275,7 +316,7 @@
       try{set('sending','Opening stereo output / 正在打开输出',{progress:0,level:0});if(!await makeAudio(encoded.rate,token))return;set('sending','Sending stereo backup / 正在发送立体声工程');node.port.postMessage({command:'play',left:encoded.left,right:encoded.right});}
       catch(error){if(token===generation)await fail(error);}
     }
-    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
+    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();peerDialog.close();peer?.close();peer=null;peerRole=null;clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
     async function devices(){
       let permission;
       try{
@@ -304,7 +345,7 @@
       finally{probe?.getTracks().forEach(t=>t.stop());probing=false;render();}
     }
     $('transferFile').onclick=()=>$('transferFileInput').click();$('transferFileInput').onchange=e=>{const file=e.target.files[0];e.target.value='';readFile(file);};
-    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=async()=>{const interrupted=['encoding','decoding','listening','receiving','sending','downloading'].includes(view.state);await close();if(interrupted){result='stp';hooks.paint();}};
+    $('transferRecord').onclick=record;$('transferSend').onclick=send;$('transferClose').onclick=async()=>{const interrupted=['encoding','decoding','listening','receiving','sending','downloading','pairing','connecting','scanning'].includes(view.state);await close();if(interrupted){result='stp';hooks.paint();}};
     $('transferStop').onclick=async()=>{await close();view.active=true;set('stopped','Stopped / 已终止',{progress:0,level:0,record:0});};
     $('transferSave').onclick=()=>{if(!encoded)return;const url=URL.createObjectURL(new Blob([encoded.wav],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download='po33-project-backup.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);end('End · Backup WAV saved / 工程音频已保存');};
     $('transferUndo').onclick=async()=>{

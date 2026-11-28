@@ -1,8 +1,8 @@
-import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=web-sampler-0.2.26';
-import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=web-sampler-0.2.26';
-import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=web-sampler-0.2.26';
-import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=web-sampler-0.2.26';
-import './project-compression.js?v=web-sampler-0.2.26';
+import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=web-sampler-0.2.27';
+import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=web-sampler-0.2.27';
+import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=web-sampler-0.2.27';
+import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=web-sampler-0.2.27';
+import './project-compression.js?v=web-sampler-0.2.27';
 self.onmessage=async({data:m})=>{
   try{
     if(m.command==='decode'){

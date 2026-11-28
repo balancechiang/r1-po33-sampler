@@ -8,6 +8,6 @@
 
 本地运行：在项目目录执行 `python -m http.server 8000`，打开 `http://localhost:8000/`。使用 `node scripts/build.mjs` 更新资源版本，`node scripts/check.mjs` 运行核心检查。
 
-[架构](docs/architecture.md) · [音频格式](docs/audio-backup.md) · [同步](docs/sync.md) · [预设](docs/presets.md) · [测试](tests/README.md) · [待完善项](docs/remaining.md) · [第三方许可](docs/third-party-notices.md)
+[架构](docs/architecture.md) · [浏览器直连传工程](docs/peer-transfer.md) · [音频格式](docs/audio-backup.md) · [同步](docs/sync.md) · [预设](docs/presets.md) · [测试](tests/README.md) · [待完善项](docs/remaining.md) · [第三方许可](docs/third-party-notices.md)
 
 rabbit r1 Creations 作为可选运行环境保留：[兼容说明与安装码](compat/rabbit-r1/README.md)。
