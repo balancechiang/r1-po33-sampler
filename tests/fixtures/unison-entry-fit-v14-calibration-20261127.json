@@ -1,0 +1,50 @@
+{
+  "profile": "unison-entry-fit-v14",
+  "comparisons": {
+    "before": [
+      {
+        "pattern": 9,
+        "probes": 8,
+        "medianSpectralDistanceHz": 3.8011906571887564
+      },
+      {
+        "pattern": 10,
+        "probes": 6,
+        "medianSpectralDistanceHz": 3.8216405322270015
+      },
+      {
+        "pattern": 13,
+        "probes": 8,
+        "medianSpectralDistanceHz": 3.6538684591009742
+      },
+      {
+        "pattern": 15,
+        "probes": 4,
+        "medianSpectralDistanceHz": 3.7594435307477303
+      }
+    ],
+    "after": [
+      {
+        "pattern": 9,
+        "probes": 8,
+        "medianSpectralDistanceHz": 2.9151896679939537
+      },
+      {
+        "pattern": 10,
+        "probes": 6,
+        "medianSpectralDistanceHz": 3.1706976320273794
+      },
+      {
+        "pattern": 13,
+        "probes": 8,
+        "medianSpectralDistanceHz": 3.7042878612526007
+      },
+      {
+        "pattern": 15,
+        "probes": 4,
+        "medianSpectralDistanceHz": 2.8205190345201823
+      }
+    ]
+  },
+  "scope": "Normalized spectral-distribution distance on interior rising/falling chirp windows; lower is better. Phase and gain are normalized out; no bit-exact or gain claim."
+}

@@ -1,0 +1,326 @@
+{
+  "profile": "unison-memory-v12",
+  "quality": {
+    "seconds": 104.2,
+    "peakDbFS": -15.357655444441857,
+    "clippedSamples": 0
+  },
+  "hardwareOnsetSeconds": 16.180385487528344,
+  "heldLoop3Probes": [
+    {
+      "pattern": 13,
+      "time": 1.06,
+      "frequencyHz": 316.4127722241119,
+      "amplitude": 0.020218116661960942
+    },
+    {
+      "pattern": 13,
+      "time": 1.185,
+      "frequencyHz": 316.0406097942515,
+      "amplitude": 0.01750587268238968
+    },
+    {
+      "pattern": 13,
+      "time": 1.31,
+      "frequencyHz": 316.1056763838478,
+      "amplitude": 0.019480641907680937
+    },
+    {
+      "pattern": 13,
+      "time": 1.435,
+      "frequencyHz": 316.06149603272604,
+      "amplitude": 0.01752224967455389
+    },
+    {
+      "pattern": 13,
+      "time": 1.56,
+      "frequencyHz": 330.9031365153325,
+      "amplitude": 0.019399712048004655
+    },
+    {
+      "pattern": 13,
+      "time": 1.685,
+      "frequencyHz": 330.77713709287167,
+      "amplitude": 0.017648087898548572
+    },
+    {
+      "pattern": 13,
+      "time": 1.81,
+      "frequencyHz": 330.73076286226006,
+      "amplitude": 0.016929870815921223
+    },
+    {
+      "pattern": 13,
+      "time": 1.935,
+      "frequencyHz": 330.76510378866266,
+      "amplitude": 0.017824659509200584
+    },
+    {
+      "pattern": 13,
+      "time": 2.06,
+      "frequencyHz": 345.1845514134335,
+      "amplitude": 0.02083812944676029
+    },
+    {
+      "pattern": 13,
+      "time": 2.185,
+      "frequencyHz": 344.9771624582045,
+      "amplitude": 0.018523396149787815
+    },
+    {
+      "pattern": 13,
+      "time": 2.31,
+      "frequencyHz": 344.8931615262606,
+      "amplitude": 0.018329799783251374
+    },
+    {
+      "pattern": 13,
+      "time": 2.435,
+      "frequencyHz": 344.8121318734819,
+      "amplitude": 0.01820512100006351
+    },
+    {
+      "pattern": 14,
+      "time": 0.56,
+      "frequencyHz": 266.60037543380935,
+      "amplitude": 0.019279541107394788
+    },
+    {
+      "pattern": 14,
+      "time": 0.685,
+      "frequencyHz": 266.5705138700184,
+      "amplitude": 0.017643988027744705
+    },
+    {
+      "pattern": 14,
+      "time": 0.81,
+      "frequencyHz": 266.49642094164824,
+      "amplitude": 0.01751589920825287
+    },
+    {
+      "pattern": 14,
+      "time": 0.935,
+      "frequencyHz": 266.4739181348028,
+      "amplitude": 0.017805975872469865
+    },
+    {
+      "pattern": 14,
+      "time": 1.06,
+      "frequencyHz": 277.7543335711039,
+      "amplitude": 0.02040506997771457
+    },
+    {
+      "pattern": 14,
+      "time": 1.185,
+      "frequencyHz": 277.47456817072873,
+      "amplitude": 0.018900734917174557
+    },
+    {
+      "pattern": 14,
+      "time": 1.31,
+      "frequencyHz": 277.57662940712146,
+      "amplitude": 0.01912732942983239
+    },
+    {
+      "pattern": 14,
+      "time": 1.435,
+      "frequencyHz": 277.5300805446662,
+      "amplitude": 0.019956906945584645
+    },
+    {
+      "pattern": 15,
+      "time": 0.56,
+      "frequencyHz": 376.7270941723821,
+      "amplitude": 0.018051342936260772
+    },
+    {
+      "pattern": 15,
+      "time": 0.685,
+      "frequencyHz": 376.5766240654261,
+      "amplitude": 0.014681529860998096
+    },
+    {
+      "pattern": 15,
+      "time": 0.81,
+      "frequencyHz": 376.54448930626666,
+      "amplitude": 0.014139759893205036
+    },
+    {
+      "pattern": 15,
+      "time": 0.935,
+      "frequencyHz": 376.68188451739195,
+      "amplitude": 0.017436978100874124
+    },
+    {
+      "pattern": 15,
+      "time": 1.06,
+      "frequencyHz": 393.6885943987831,
+      "amplitude": 0.02002018543499042
+    },
+    {
+      "pattern": 15,
+      "time": 1.185,
+      "frequencyHz": 392.9292542834835,
+      "amplitude": 0.011377708437485956
+    },
+    {
+      "pattern": 15,
+      "time": 1.31,
+      "frequencyHz": 392.70828448392143,
+      "amplitude": 0.010055999938728695
+    },
+    {
+      "pattern": 15,
+      "time": 1.435,
+      "frequencyHz": 392.6002160931465,
+      "amplitude": 0.0107925047841803
+    },
+    {
+      "pattern": 16,
+      "time": 0.56,
+      "frequencyHz": 376.6625507435396,
+      "amplitude": 0.0180578199253292
+    },
+    {
+      "pattern": 16,
+      "time": 0.685,
+      "frequencyHz": 376.45023085987697,
+      "amplitude": 0.01824552337536773
+    },
+    {
+      "pattern": 16,
+      "time": 0.81,
+      "frequencyHz": 376.28321978154065,
+      "amplitude": 0.014588655320084607
+    },
+    {
+      "pattern": 16,
+      "time": 0.935,
+      "frequencyHz": 376.46782718563037,
+      "amplitude": 0.017064537319400292
+    },
+    {
+      "pattern": 16,
+      "time": 1.06,
+      "frequencyHz": 393.4104763652355,
+      "amplitude": 0.020090457766661116
+    },
+    {
+      "pattern": 16,
+      "time": 1.185,
+      "frequencyHz": 392.68746875129773,
+      "amplitude": 0.01181130808210771
+    },
+    {
+      "pattern": 16,
+      "time": 1.31,
+      "frequencyHz": 392.4753044023316,
+      "amplitude": 0.01064146375407568
+    },
+    {
+      "pattern": 16,
+      "time": 1.435,
+      "frequencyHz": 393.33170641843736,
+      "amplitude": 0.018779974912975096
+    }
+  ],
+  "storagePairs": [
+    {
+      "patterns": [
+        1,
+        2
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.3777467185177514
+    },
+    {
+      "patterns": [
+        3,
+        4
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.7747980020458105
+    },
+    {
+      "patterns": [
+        5,
+        6
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.37806959090527126
+    },
+    {
+      "patterns": [
+        7,
+        8
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.4435306209151977
+    },
+    {
+      "patterns": [
+        9,
+        10
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.4055878329002182
+    },
+    {
+      "patterns": [
+        15,
+        16
+      ],
+      "medianDominantFrequencyDifferenceCents": 0.4672295967220491
+    }
+  ],
+  "comparisons": {
+    "before": [
+      {
+        "pattern": 13,
+        "hardwareProbes": 12,
+        "audibleProbes": 0,
+        "medianPitchErrorCents": null
+      },
+      {
+        "pattern": 14,
+        "hardwareProbes": 8,
+        "audibleProbes": 0,
+        "medianPitchErrorCents": null
+      },
+      {
+        "pattern": 15,
+        "hardwareProbes": 8,
+        "audibleProbes": 0,
+        "medianPitchErrorCents": null
+      },
+      {
+        "pattern": 16,
+        "hardwareProbes": 8,
+        "audibleProbes": 0,
+        "medianPitchErrorCents": null
+      }
+    ],
+    "after": [
+      {
+        "pattern": 13,
+        "hardwareProbes": 12,
+        "audibleProbes": 12,
+        "medianPitchErrorCents": 3.7128363539276714
+      },
+      {
+        "pattern": 14,
+        "hardwareProbes": 8,
+        "audibleProbes": 8,
+        "medianPitchErrorCents": 3.6591125508733136
+      },
+      {
+        "pattern": 15,
+        "hardwareProbes": 8,
+        "audibleProbes": 8,
+        "medianPitchErrorCents": 3.4625118879531165
+      },
+      {
+        "pattern": 16,
+        "hardwareProbes": 8,
+        "audibleProbes": 8,
+        "medianPitchErrorCents": 4.148433549216543
+      }
+    ]
+  },
+  "scope": "Saved60BPM held-source Loop3 interior probes and matched-content hardware pairs; not complete mixed-FX, gain/phase or live-gesture equivalence."
+}

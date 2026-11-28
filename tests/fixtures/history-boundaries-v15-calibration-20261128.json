@@ -1,0 +1,418 @@
+{
+  "profile": "history-boundaries-v15",
+  "quality": {
+    "seconds": 167.1,
+    "onsetSeconds": 14.164625850340135,
+    "peakDbFS": -20.78686436239053,
+    "clippedSamples": 0
+  },
+  "loopProbes": [
+    {
+      "cycle": 0,
+      "pattern": 2,
+      "firstSecondMarkers": [
+        {
+          "time": 0.01038548752834467,
+          "slice": 1
+        },
+        {
+          "time": 0.26113378684807254,
+          "slice": 2
+        },
+        {
+          "time": 0.5106122448979592,
+          "slice": 3
+        },
+        {
+          "time": 0.761156462585034,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 4,
+      "firstSecondMarkers": [
+        {
+          "time": 0.011360544217687075,
+          "slice": 1
+        },
+        {
+          "time": 0.2623809523809524,
+          "slice": 2
+        },
+        {
+          "time": 0.511859410430839,
+          "slice": 3
+        },
+        {
+          "time": 0.7610204081632653,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 6,
+      "firstSecondMarkers": [
+        {
+          "time": 0.01147392290249433,
+          "slice": 1
+        },
+        {
+          "time": 0.26224489795918365,
+          "slice": 2
+        },
+        {
+          "time": 0.5117460317460317,
+          "slice": 3
+        },
+        {
+          "time": 0.7624263038548753,
+          "slice": 1
+        },
+        {
+          "time": 0.9233560090702948,
+          "slice": 2
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 8,
+      "firstSecondMarkers": [
+        {
+          "time": 0.012698412698412698,
+          "slice": 1
+        },
+        {
+          "time": 0.2634920634920635,
+          "slice": 2
+        },
+        {
+          "time": 0.5129705215419501,
+          "slice": 3
+        },
+        {
+          "time": 0.7621541950113379,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 2,
+      "firstSecondMarkers": [
+        {
+          "time": 0.014829931972789116,
+          "slice": 1
+        },
+        {
+          "time": 0.26562358276643994,
+          "slice": 2
+        },
+        {
+          "time": 0.5151020408163265,
+          "slice": 3
+        },
+        {
+          "time": 0.7642857142857142,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 4,
+      "firstSecondMarkers": [
+        {
+          "time": 0.014489795918367347,
+          "slice": 1
+        },
+        {
+          "time": 0.2668707482993197,
+          "slice": 2
+        },
+        {
+          "time": 0.5163492063492063,
+          "slice": 3
+        },
+        {
+          "time": 0.7655328798185941,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 6,
+      "firstSecondMarkers": [
+        {
+          "time": 0.01596371882086168,
+          "slice": 1
+        },
+        {
+          "time": 0.26675736961451246,
+          "slice": 2
+        },
+        {
+          "time": 0.5162358276643991,
+          "slice": 3
+        },
+        {
+          "time": 0.7653968253968254,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 8,
+      "firstSecondMarkers": [
+        {
+          "time": 0.015827664399092972,
+          "slice": 1
+        },
+        {
+          "time": 0.26702947845804986,
+          "slice": 1
+        },
+        {
+          "time": 0.4280045351473923,
+          "slice": 2
+        },
+        {
+          "time": 0.5169387755102041,
+          "slice": 1
+        },
+        {
+          "time": 0.6778684807256236,
+          "slice": 2
+        },
+        {
+          "time": 0.7668027210884354,
+          "slice": 1
+        },
+        {
+          "time": 0.9277324263038549,
+          "slice": 2
+        }
+      ]
+    }
+  ],
+  "soundProbes": [
+    {
+      "cycle": 0,
+      "pattern": 10,
+      "dryPattern": 9,
+      "fx5WetDryDB": -1.2062929861400926,
+      "beforeReleaseRms": 0.015820254106829794,
+      "afterReleaseRms": 0.0195454462293648,
+      "continuesAfterRelease": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 12,
+      "dryPattern": 11,
+      "fx5WetDryDB": -1.1682816642836615,
+      "beforeReleaseRms": 0.014974041552186873,
+      "afterReleaseRms": 1.041968457626683e-05,
+      "continuesAfterRelease": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 14,
+      "dryPattern": 13,
+      "fx5WetDryDB": 0.8697288267239435,
+      "beforeReleaseRms": 0.012416293662734357,
+      "afterReleaseRms": 1.0463169642857143e-05,
+      "continuesAfterRelease": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 16,
+      "dryPattern": 15,
+      "fx5WetDryDB": 0.5757851243845581,
+      "beforeReleaseRms": 0.012445748756975997,
+      "afterReleaseRms": 1.0335230879542496e-05,
+      "continuesAfterRelease": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 10,
+      "dryPattern": 9,
+      "fx5WetDryDB": -1.311239525945925,
+      "beforeReleaseRms": 0.01577362865306706,
+      "afterReleaseRms": 0.019430613154710556,
+      "continuesAfterRelease": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 12,
+      "dryPattern": 11,
+      "fx5WetDryDB": -1.208593899794437,
+      "beforeReleaseRms": 0.014885631077491721,
+      "afterReleaseRms": 1.0348504088413741e-05,
+      "continuesAfterRelease": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 14,
+      "dryPattern": 13,
+      "fx5WetDryDB": 0.012356563073838414,
+      "beforeReleaseRms": 0.012358091182018773,
+      "afterReleaseRms": 1.0382121407349651e-05,
+      "continuesAfterRelease": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 16,
+      "dryPattern": 15,
+      "fx5WetDryDB": 0.2775541881616337,
+      "beforeReleaseRms": 0.012289344965284995,
+      "afterReleaseRms": 1.034135909287644e-05,
+      "continuesAfterRelease": false
+    }
+  ],
+  "browserComparisons": {
+    "before": {
+      "rows": [
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "fx5WetDryDB": -2.5117983524079786,
+          "gainErrorDB": -1.305505366267886,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "fx5WetDryDB": -2.5117983524079786,
+          "gainErrorDB": -1.343516688124317,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 14,
+          "fx5WetDryDB": -2.123285087032292,
+          "gainErrorDB": -2.9930139137562355,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "fx5WetDryDB": -2.1911829322731142,
+          "gainErrorDB": -2.766968056657672,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "fx5WetDryDB": -2.5117983524079786,
+          "gainErrorDB": -1.2005588264620535,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "fx5WetDryDB": -2.5117983524079786,
+          "gainErrorDB": -1.3032044526135416,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 14,
+          "fx5WetDryDB": -2.123285087032292,
+          "gainErrorDB": -2.1356416501061304,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "fx5WetDryDB": -2.1911829322731142,
+          "gainErrorDB": -2.468737120434748,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        }
+      ],
+      "medianAbsoluteGainErrorDB": 1.7395791691152236
+    },
+    "after": {
+      "rows": [
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "fx5WetDryDB": -1.3005174140088305,
+          "gainErrorDB": -0.09422442786873786,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "fx5WetDryDB": -1.3617986149558094,
+          "gainErrorDB": -0.1935169506721479,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 14,
+          "fx5WetDryDB": -1.0411826719685235,
+          "gainErrorDB": -1.910911498692467,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "fx5WetDryDB": -0.9732846846138357,
+          "gainErrorDB": -1.5490698089983939,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "fx5WetDryDB": -1.3005174140088305,
+          "gainErrorDB": 0.010722111937094603,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "fx5WetDryDB": -1.3617986149558094,
+          "gainErrorDB": -0.15320471516137246,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 14,
+          "fx5WetDryDB": -1.0411826719685235,
+          "gainErrorDB": -1.053539235042362,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "fx5WetDryDB": -0.9732846846138357,
+          "gainErrorDB": -1.2508388727754693,
+          "continuesAfterRelease": true,
+          "releasePresenceMatches": false
+        }
+      ],
+      "medianAbsoluteGainErrorDB": 0.623528092857255
+    }
+  },
+  "scope": "Two hardware passes of byte-identical probes; single-note FX5 wet/dry RMS and switch-release presence. No general phase or physical-address explanation is established."
+}

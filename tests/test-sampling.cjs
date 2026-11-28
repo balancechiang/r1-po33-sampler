@@ -41,3 +41,22 @@ console.log('PASS transient onsets at 3 rates, quiet/sustained/16-hit boundaries
 assert.equal(voices.filter(v=>v.end>0).length,4);
 for(let i=0;i<4;i++)allocate(voices,{slot:1,group:11,start:.2,end:1},cut,4);
 assert.equal(voices.filter(v=>v.end>.2).length,4);assert(voices.filter(v=>v.group===10).every(v=>v.end===.2));}
+
+// Recorded v11 dry priority: fifth tone is masked, then admitted without a new note.
+{
+ const voices=[];
+ function mask(){const events=[];return {events,gain:{cancelScheduledValues(t){for(let i=events.length-1;i>=0;i--)if(events[i][0]>=t)events.splice(i,1);},setValueAtTime(v,t){events.push([t,v]);}}};}
+ function add(slot,start,end){const v={slot,start,end,effect:0,priorityMask:mask()};allocate(voices,v,(v,t)=>{v.end=t;},4);return v;}
+ function audible(v,t){return v.start<=t&&v.end>t&&(v.priorityMask.events.filter(e=>e[0]<=t).at(-1)?.[1]===1);}
+ for(const order of [[1,2,3,4],[4,3,2,1]]){
+  voices.length=0;order.forEach((slot,i)=>add(slot,0,[1,2,3,3][i]));const fifth=add(5,.5,3.5);
+  assert(!audible(fifth,.8));assert(audible(fifth,1.3));assert.equal(fifth.start,.5);assert.equal(fifth.end,3.5);
+  assert.equal(voices.filter(v=>audible(v,.8)).length,4);assert.equal(voices.filter(v=>audible(v,1.3)).length,4);
+ }
+ voices.length=0;for(let slot=1;slot<=4;slot++)add(slot,0,3);
+ const replacement=add(1,1,2),fifth=add(5,1.5,2.5);
+ assert(!audible(fifth,1.8));assert(audible(fifth,2.3));assert(!audible(replacement,2.3));
+ voices.length=0;for(let slot=1;slot<=5;slot++)add(slot,0,1);
+ assert.equal(voices.filter(v=>audible(v,.3)).length,4);assert(!audible(voices[4],.3));
+ console.log('PASS recorded v11 dry fifth-source masking, original gate preservation, delayed admission, reverse arrival order and same-slot replacement');
+}

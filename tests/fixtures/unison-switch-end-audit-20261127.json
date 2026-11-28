@@ -1,0 +1,69 @@
+{
+  "cases": [
+    {
+      "recording": "hardware-unison-layers-vol12-20261127-231122.wav",
+      "pattern": 6,
+      "fxOffSeconds": 2.5,
+      "beforeRms": 0.01710306830694504,
+      "afterRms": [
+        0.008265928221089248,
+        0.012090197998933072,
+        1.0413602456139922e-05
+      ],
+      "afterRelativeToBefore": [
+        0.48330089506411567,
+        0.7069022810382863,
+        0.000608873347708684
+      ]
+    },
+    {
+      "recording": "hardware-unison-layers-vol12-20261127-231122.wav",
+      "pattern": 15,
+      "fxOffSeconds": 2.5,
+      "beforeRms": 0.014751140585038746,
+      "afterRms": [
+        1.0566270739952364e-05,
+        1.0301460541322128e-05,
+        1.030658437180126e-05
+      ],
+      "afterRelativeToBefore": [
+        0.0007163019482486079,
+        0.0006983501026198829,
+        0.0006986974540975258
+      ]
+    },
+    {
+      "recording": "hardware-mixed-voices-vol12-20261127-193736.wav",
+      "pattern": 5,
+      "fxOffSeconds": 3,
+      "beforeRms": 0.018811994888009182,
+      "afterRms": [
+        1.0364477420706026e-05,
+        1.0301460541322128e-05,
+        1.04119123478019e-05
+      ],
+      "afterRelativeToBefore": [
+        0.0005509504697618419,
+        0.0005476006453674037,
+        0.0005534719953830352
+      ]
+    },
+    {
+      "recording": "hardware-unison-vol12-20261127-182352.wav",
+      "pattern": 12,
+      "fxOffSeconds": 3,
+      "beforeRms": 0.019749909901526762,
+      "afterRms": [
+        0.020336089525460864,
+        0.02054785346332078,
+        0.021174146893710753
+      ],
+      "afterRelativeToBefore": [
+        1.0296801163578364,
+        1.040402389974059,
+        1.072113594405506
+      ]
+    }
+  ],
+  "conclusion": "Some sources continue and some terminate on FX5\u21926\u2192off. These recordings do not support an unconditional kill-on-second-switch rule. Gain/phase/source-boundary mechanism remains unresolved; no forced runtime rule applied."
+}

@@ -1,0 +1,229 @@
+{
+  "profile": "unison-gain-cross-audit",
+  "v6SelectedHarmonicRatios": [
+    {
+      "pattern": 2,
+      "kind": 5,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 1243.9279419162933,
+          "ratio": 0.9833927616583515,
+          "relativeAmplitude": 0.2995744478780533
+        },
+        {
+          "frequencyHz": 1257.5112941660889,
+          "ratio": 0.9941311411346794,
+          "relativeAmplitude": 0.39185649261593025
+        },
+        {
+          "frequencyHz": 1272.3511348813583,
+          "ratio": 1.0058628431503744,
+          "relativeAmplitude": 0.28873640285925645
+        },
+        {
+          "frequencyHz": 1285.9390381499563,
+          "ratio": 1.0166048204548384,
+          "relativeAmplitude": 0.2898659097839038
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "kind": 6,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 1257.495106516786,
+          "ratio": 0.9941183439165961,
+          "relativeAmplitude": 0.3758054003164199
+        },
+        {
+          "frequencyHz": 1268.6327455406183,
+          "ratio": 1.0029232539350392,
+          "relativeAmplitude": 0.4370967842154437
+        },
+        {
+          "frequencyHz": 1269.596815109253,
+          "ratio": 1.003685403416198,
+          "relativeAmplitude": 0.37534316258819067
+        },
+        {
+          "frequencyHz": 627.5484888336223,
+          "ratio": 0.4961112462494623,
+          "relativeAmplitude": 0.46832317160150944
+        }
+      ]
+    },
+    {
+      "pattern": 2,
+      "kind": 5,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 2489.110064708734,
+          "ratio": 0.9838863160161235,
+          "relativeAmplitude": 0.32836089648241723
+        },
+        {
+          "frequencyHz": 2515.046068255165,
+          "ratio": 0.9941382045699007,
+          "relativeAmplitude": 0.4382856663627986
+        },
+        {
+          "frequencyHz": 2545.93467989643,
+          "ratio": 1.0063477419244222,
+          "relativeAmplitude": 0.3270463414211184
+        },
+        {
+          "frequencyHz": 2571.8770634167927,
+          "ratio": 1.0166021523309439,
+          "relativeAmplitude": 0.32684160341172563
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "kind": 6,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 2516.276186257021,
+          "ratio": 0.9946244411113341,
+          "relativeAmplitude": 0.3634507162309044
+        },
+        {
+          "frequencyHz": 2537.2440506566245,
+          "ratio": 1.00291254180698,
+          "relativeAmplitude": 0.47268916997275207
+        },
+        {
+          "frequencyHz": 2541.0699922169433,
+          "ratio": 1.0044248459836598,
+          "relativeAmplitude": 0.34806387216035156
+        },
+        {
+          "frequencyHz": 1255.0536965524318,
+          "ratio": 0.49609303156623763,
+          "relativeAmplitude": 0.43343341733817836
+        }
+      ]
+    },
+    {
+      "pattern": 2,
+      "kind": 5,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 3730.5763715383882,
+          "ratio": 0.9840333439413006,
+          "relativeAmplitude": 0.3514112280438484
+        },
+        {
+          "frequencyHz": 3768.8727153249424,
+          "ratio": 0.994134967788092,
+          "relativeAmplitude": 0.46636927739233397
+        },
+        {
+          "frequencyHz": 3814.5761056044203,
+          "ratio": 1.0061903864384876,
+          "relativeAmplitude": 0.3507910285566927
+        },
+        {
+          "frequencyHz": 3854.106804620015,
+          "ratio": 1.0166176025216183,
+          "relativeAmplitude": 0.3518446286855973
+        }
+      ]
+    },
+    {
+      "pattern": 3,
+      "kind": 6,
+      "harmonic": 23,
+      "partials": [
+        {
+          "frequencyHz": 3770.145557826824,
+          "ratio": 0.9944707120106183,
+          "relativeAmplitude": 0.34341577599365075
+        },
+        {
+          "frequencyHz": 3802.2285209630686,
+          "ratio": 1.0029334004411155,
+          "relativeAmplitude": 0.4732810176213972
+        },
+        {
+          "frequencyHz": 3807.1640414372064,
+          "ratio": 1.004235268097092,
+          "relativeAmplitude": 0.3604207123978869
+        },
+        {
+          "frequencyHz": 1881.3504036769173,
+          "ratio": 0.4962534859169984,
+          "relativeAmplitude": 0.4499581636673502
+        }
+      ]
+    }
+  ],
+  "v14Fixed997Hz": [
+    {
+      "pattern": 2,
+      "startSeconds": 0.2,
+      "spectralAmplitudeRatiosToDry": [
+        1.3440695698122773,
+        1.297065957954568,
+        0.48581687306764243,
+        1.2743599397301308
+      ]
+    },
+    {
+      "pattern": 3,
+      "startSeconds": 0.2,
+      "spectralAmplitudeRatiosToDry": [
+        1.482104492238621,
+        1.2839328860286092,
+        0.6307475303394386,
+        1.2647943865105415
+      ]
+    },
+    {
+      "pattern": 4,
+      "startSeconds": 0.7,
+      "spectralAmplitudeRatiosToDry": [
+        0.5246154212588723,
+        0.6817168965476765,
+        0.7557459998905075,
+        0.5074007467850711
+      ]
+    },
+    {
+      "pattern": 5,
+      "startSeconds": 0.7,
+      "spectralAmplitudeRatiosToDry": [
+        0.7693145040557426,
+        0.5218488846172682,
+        0.7675334341627268,
+        0.4957991776220366
+      ]
+    },
+    {
+      "pattern": 6,
+      "startSeconds": 0.7,
+      "spectralAmplitudeRatiosToDry": [
+        0.5278727615579919,
+        0.695552476925351,
+        0.7730007147108806,
+        0.5155717825997128
+      ]
+    },
+    {
+      "pattern": 6,
+      "startSeconds": 1.7,
+      "spectralAmplitudeRatiosToDry": [
+        0.7635584650497698,
+        0.536711837156488,
+        0.6536238209096034
+      ]
+    }
+  ],
+  "conclusion": "Selected high-harmonic and pure-tone spectral ratios do not support one universal gain rescaling. Spectral maxima may include modulation/cross-components; no global runtime gain fit retained."
+}

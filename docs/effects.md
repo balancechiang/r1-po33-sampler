@@ -8,9 +8,9 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | --- | --- | --- |
 | 01 | Loop 16 | Saved: repeat a one-step source-read window four times, then advance it; live legacy hold still requires verification. |
 | 02 | Loop 12 | Saved: repeat a 4/3-step read window three times, then advance it; live legacy hold remains uncalibrated. |
-| 03 | Loop short | Saved: four half-step hits, recapture after two steps. Live: held-step approximation, not hardware-verified. |
+| 03 | Loop short | Saved: one source reader for held tails and new-note spans; four half-step resets per window, with new-note capture at each window boundary. Live remains unverified. |
 | 04 | Loop shorter | Saved: repeat a third-step source-read window eight times, then advance it. Live legacy hold remains uncalibrated. |
-| 05 | Unison | Four source layers with measured slight detuning and fitted gains; each layer consumes a voice. |
+| 05 | Unison | Four source layers with measured slight detuning and fitted gains; each layer consumes a voice. Ringing-source entry has a separately calibrated four-rate profile (v14) and a1.15dB gain correction cross-checked on v15; fresh-note tuning remains unchanged. Active multi-source entry selects the lowest sounding slot in the measured v13 cases; discarded slots do not revive on release. Release restores the selected source’s dry read timeline instead of a detuned layer cursor. For native-PCM saved5→6→off only, the v16-tested non-first melodic-slot tail terminates; live and non-native paths retain normal release. |
 | 06 | Unison low | Three measured near-original layers plus one near-half-rate layer; relative phase remains approximate. |
 | 07 | Octave up | Reset to base rate and advance through semitones toward double rate over about260ms; preserve the source cursor. |
 | 08 | Octave down | Same measured progression toward half rate; release returns promptly to base. |
@@ -20,7 +20,7 @@ recreates the effect families below; it is not a measured or bit-exact firmware 
 | 12 | Scratch fast | Same source-reader family at twice the oscillation rate. |
 | 13 | 6/8 quantize | Play the first three steps of each beat at thirds; suppress each fourth step while keeping the bar clock. |
 | 14 | Retrigger pattern | A manual rising edge queues step zero at the next nominal sixteenth boundary. Holding does not repeat the command. Cancel only unheard lookahead; existing tails use normal slot choke and four-voice stealing. Preserve the chain index. WRITE stores one jump flag at the pressed step, not a span; saved flags jump on every visit. |
-| 15 | Reverse | Play each sound backwards from the end of its own trimmed region, preserving pitch, slice selection and step duration. Cached reversed audio is derived only; original samples remain unchanged. |
+| 15 | Reverse | New notes start at the end of their trimmed region. Entering on a ringing note reverses from its current cursor and stops at the region start; leaving before that point resumes forward at the current cursor. Cached reversed audio is derived only; original samples remain unchanged. |
 | 16 / 00 | No effect | Bypass/release. In write mode the existing FX+16 action clears saved pattern effects. |
 
 The loop sizes, stutter divisions, detuning, grain window, scratch trajectory and
@@ -142,3 +142,6 @@ Saved FX1/2/4 now reset each active voice's read position rather than replacing 
 Intervening notes are ordered against reset ticks. A reset of an active same-slot voice can retain the captured start while a new note updates its end; a voice already finished can accept a fresh start. This fits the v8 independent marker windows as well as v9 single-source durations. Sources share immutable native bank buffers, so this operates on bounded views without copying or rewriting samples. Four-voice stealing and same-slot choke still apply. Reset events are scheduled on the audio clock; tempo changes rescale future intervals without rescaling already-consumed chunks.
 
 This path is for saved automation. The existing live hold path is retained and still needs hardware gesture verification. Mixed mode switches, pitch/tempo edits while active, cross-bank web samples, parameter locks, and external-sync timing are not fully calibrated. The v8 mixed-switch segment still differs.
+
+
+Dry voice admission (v11): the measured five-source cases preserve the first four audible sources and admit the fifth after a gate expires, without restarting its gate. Excess dry sources retain their original duration behind an output mask. This is not a claim about arbitrary slot priority or the separate Unison channel-allocation path.

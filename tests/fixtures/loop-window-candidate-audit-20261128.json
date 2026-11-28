@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-28",
+  "status": "rejected",
+  "hypothesis": "Retain the Loop1 read origin across incoming short notes and prioritize it on the last reset of each four-reset window.",
+  "controls": {
+    "before": [
+      {
+        "pattern": 2,
+        "matchedFraction": 1.0
+      },
+      {
+        "pattern": 6,
+        "matchedFraction": 1.0
+      },
+      {
+        "pattern": 15,
+        "matchedFraction": 0.9310344827586207
+      }
+    ],
+    "after": [
+      {
+        "pattern": 2,
+        "matchedFraction": 0.375
+      },
+      {
+        "pattern": 6,
+        "matchedFraction": 0.375
+      },
+      {
+        "pattern": 15,
+        "matchedFraction": 1.0
+      }
+    ]
+  },
+  "conclusion": "Candidate fixes the mixed two-marker case but breaks independent Loop1. Not retained in runtime. Comparison uses the same production envelope behavior for both candidates."
+}

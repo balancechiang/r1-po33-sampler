@@ -1,0 +1,712 @@
+{
+  "profile": "unison-order-v13",
+  "quality": {
+    "seconds": 129.95,
+    "peakDbFS": -16.193434442622404,
+    "clippedSamples": 0
+  },
+  "probes": {
+    "hardware": [
+      {
+        "pattern": 2,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.15484619140625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0058117820915151
+      },
+      {
+        "pattern": 2,
+        "time": 1.5,
+        "dominantFrequencyHz": 231.81838989257812,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0799427547437985
+      },
+      {
+        "pattern": 2,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9976545288562473
+      },
+      {
+        "pattern": 3,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.15484619140625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0147663756139986
+      },
+      {
+        "pattern": 3,
+        "time": 1.5,
+        "dominantFrequencyHz": 231.81838989257812,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0860760181553657
+      },
+      {
+        "pattern": 3,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9985763939378094
+      },
+      {
+        "pattern": 4,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.15484619140625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.022410149261102
+      },
+      {
+        "pattern": 4,
+        "time": 1.5,
+        "dominantFrequencyHz": 231.81838989257812,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0874263515820637
+      },
+      {
+        "pattern": 4,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.997354478393742
+      },
+      {
+        "pattern": 5,
+        "time": 1.1,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9286788745761879
+      },
+      {
+        "pattern": 5,
+        "time": 1.5,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9215074236316841
+      },
+      {
+        "pattern": 5,
+        "time": 2.1,
+        "dominantFrequencyHz": 486.8522644042969,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 1.0343890474902862
+      },
+      {
+        "pattern": 6,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.15484619140625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.025724459465213
+      },
+      {
+        "pattern": 6,
+        "time": 1.5,
+        "dominantFrequencyHz": 231.81838989257812,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0901753595938937
+      },
+      {
+        "pattern": 6,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.999042002444276
+      },
+      {
+        "pattern": 7,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0924152034655346
+      },
+      {
+        "pattern": 7,
+        "time": 1.5,
+        "dominantFrequencyHz": 234.173583984375,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.5827718348005456
+      },
+      {
+        "pattern": 7,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9989149600185832
+      },
+      {
+        "pattern": 8,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0922196847216543
+      },
+      {
+        "pattern": 8,
+        "time": 1.5,
+        "dominantFrequencyHz": 234.173583984375,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.5844564350194277
+      },
+      {
+        "pattern": 8,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0001140676627596
+      },
+      {
+        "pattern": 9,
+        "time": 1.1,
+        "dominantFrequencyHz": 234.173583984375,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0244179092005112
+      },
+      {
+        "pattern": 9,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.83712768554688,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0364177071269147
+      },
+      {
+        "pattern": 9,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.8277587890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9886523059950085
+      },
+      {
+        "pattern": 10,
+        "time": 1.1,
+        "dominantFrequencyHz": 234.173583984375,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0264015000231015
+      },
+      {
+        "pattern": 10,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.83712768554688,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.044398240539046
+      },
+      {
+        "pattern": 10,
+        "time": 2.1,
+        "dominantFrequencyHz": 690.0718688964844,
+        "dominantToneSlot": null,
+        "relativeAmplitude": 2.2077066133734847e-05
+      },
+      {
+        "pattern": 15,
+        "time": 1.1,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9055532792300518
+      },
+      {
+        "pattern": 15,
+        "time": 1.5,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9040809119292433
+      },
+      {
+        "pattern": 15,
+        "time": 2.1,
+        "dominantFrequencyHz": 486.8522644042969,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 1.0320108384464168
+      },
+      {
+        "pattern": 16,
+        "time": 1.1,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.898569236247676
+      },
+      {
+        "pattern": 16,
+        "time": 1.5,
+        "dominantFrequencyHz": 483.4877014160156,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.8983650582209906
+      },
+      {
+        "pattern": 16,
+        "time": 2.1,
+        "dominantFrequencyHz": 486.8522644042969,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 1.03020930037537
+      }
+    ],
+    "before": [
+      {
+        "pattern": 2,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.2165072062505793
+      },
+      {
+        "pattern": 2,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.5439453125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9675054630850839
+      },
+      {
+        "pattern": 2,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.999891267812905
+      },
+      {
+        "pattern": 3,
+        "time": 1.1,
+        "dominantFrequencyHz": 348.6328125,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.2525254581141516
+      },
+      {
+        "pattern": 3,
+        "time": 1.5,
+        "dominantFrequencyHz": 343.1396484375,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.5799202948857197
+      },
+      {
+        "pattern": 3,
+        "time": 2.1,
+        "dominantFrequencyHz": 348.9990234375,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.9995362714669963
+      },
+      {
+        "pattern": 4,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.189292174264252
+      },
+      {
+        "pattern": 4,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.5439453125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9290682541382179
+      },
+      {
+        "pattern": 4,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9998888162624784
+      },
+      {
+        "pattern": 5,
+        "time": 1.1,
+        "dominantFrequencyHz": 480.46875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.6553332848089843
+      },
+      {
+        "pattern": 5,
+        "time": 1.5,
+        "dominantFrequencyHz": 484.86328125,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.825737136560724
+      },
+      {
+        "pattern": 5,
+        "time": 2.1,
+        "dominantFrequencyHz": 487.060546875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9987712787438344
+      },
+      {
+        "pattern": 6,
+        "time": 1.1,
+        "dominantFrequencyHz": 646.3623046875,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.5788977764651514
+      },
+      {
+        "pattern": 6,
+        "time": 1.5,
+        "dominantFrequencyHz": 667.236328125,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.23227055715498193
+      },
+      {
+        "pattern": 6,
+        "time": 2.1,
+        "dominantFrequencyHz": 652.9541015625,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.9978430792215974
+      },
+      {
+        "pattern": 7,
+        "time": 1.1,
+        "dominantFrequencyHz": 233.2763671875,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.005311480107277
+      },
+      {
+        "pattern": 7,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.642578125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.5456179241886698
+      },
+      {
+        "pattern": 7,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9999314747828669
+      },
+      {
+        "pattern": 8,
+        "time": 1.1,
+        "dominantFrequencyHz": 349.7314453125,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.670062735099363
+      },
+      {
+        "pattern": 8,
+        "time": 1.5,
+        "dominantFrequencyHz": 343.8720703125,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.15814906047243132
+      },
+      {
+        "pattern": 8,
+        "time": 2.1,
+        "dominantFrequencyHz": 348.9990234375,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.9995260511755865
+      },
+      {
+        "pattern": 9,
+        "time": 1.1,
+        "dominantFrequencyHz": 233.642578125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.33951955144067947
+      },
+      {
+        "pattern": 9,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.2763671875,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.595549301773053
+      },
+      {
+        "pattern": 9,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9999898050361953
+      },
+      {
+        "pattern": 10,
+        "time": 1.1,
+        "dominantFrequencyHz": 646.3623046875,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.6739413336181946
+      },
+      {
+        "pattern": 10,
+        "time": 1.5,
+        "dominantFrequencyHz": 645.99609375,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.4679400729438143
+      },
+      {
+        "pattern": 10,
+        "time": 2.1,
+        "dominantFrequencyHz": 652.9541015625,
+        "dominantToneSlot": 4,
+        "relativeAmplitude": 0.9975823695613674
+      },
+      {
+        "pattern": 15,
+        "time": 1.1,
+        "dominantFrequencyHz": 480.46875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.65533328377928
+      },
+      {
+        "pattern": 15,
+        "time": 1.5,
+        "dominantFrequencyHz": 484.86328125,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.8257371354539215
+      },
+      {
+        "pattern": 15,
+        "time": 2.1,
+        "dominantFrequencyHz": 487.060546875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9987766077158495
+      },
+      {
+        "pattern": 16,
+        "time": 1.1,
+        "dominantFrequencyHz": 336.9140625,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.3118296142993361
+      },
+      {
+        "pattern": 16,
+        "time": 1.5,
+        "dominantFrequencyHz": 404.296875,
+        "dominantToneSlot": 2,
+        "relativeAmplitude": 0.4227514511386828
+      },
+      {
+        "pattern": 16,
+        "time": 2.1,
+        "dominantFrequencyHz": 530.6396484375,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.8176220872065124
+      }
+    ],
+    "after": [
+      {
+        "pattern": 2,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.216507204071829
+      },
+      {
+        "pattern": 2,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.5439453125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9675054619633263
+      },
+      {
+        "pattern": 2,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.999889148727503
+      },
+      {
+        "pattern": 3,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.2166353423090361
+      },
+      {
+        "pattern": 3,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.5439453125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9675963246664863
+      },
+      {
+        "pattern": 3,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9998270166084111
+      },
+      {
+        "pattern": 4,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.2873170336713726
+      },
+      {
+        "pattern": 4,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.0819370828974442
+      },
+      {
+        "pattern": 4,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.999891267812905
+      },
+      {
+        "pattern": 5,
+        "time": 1.1,
+        "dominantFrequencyHz": 480.46875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.65533328377928
+      },
+      {
+        "pattern": 5,
+        "time": 1.5,
+        "dominantFrequencyHz": 484.86328125,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.8257371354539215
+      },
+      {
+        "pattern": 5,
+        "time": 2.1,
+        "dominantFrequencyHz": 487.060546875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9987712787438344
+      },
+      {
+        "pattern": 6,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 1.1894277266168642
+      },
+      {
+        "pattern": 6,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.5439453125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9291465634409916
+      },
+      {
+        "pattern": 6,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9998271271914164
+      },
+      {
+        "pattern": 7,
+        "time": 1.1,
+        "dominantFrequencyHz": 233.2763671875,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9567152136749397
+      },
+      {
+        "pattern": 7,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.642578125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.46747420062235967
+      },
+      {
+        "pattern": 7,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9999321145632414
+      },
+      {
+        "pattern": 8,
+        "time": 1.1,
+        "dominantFrequencyHz": 233.2763671875,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9828761353542967
+      },
+      {
+        "pattern": 8,
+        "time": 1.5,
+        "dominantFrequencyHz": 233.642578125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.5069990905353507
+      },
+      {
+        "pattern": 8,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9998763413316236
+      },
+      {
+        "pattern": 9,
+        "time": 1.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.33946226344409464
+      },
+      {
+        "pattern": 9,
+        "time": 1.5,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.6158745098709509
+      },
+      {
+        "pattern": 9,
+        "time": 2.1,
+        "dominantFrequencyHz": 232.91015625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.9999896937362096
+      },
+      {
+        "pattern": 10,
+        "time": 1.1,
+        "dominantFrequencyHz": 235.4736328125,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.4216248264471658
+      },
+      {
+        "pattern": 10,
+        "time": 1.5,
+        "dominantFrequencyHz": 234.0087890625,
+        "dominantToneSlot": 1,
+        "relativeAmplitude": 0.6965570229492345
+      },
+      {
+        "pattern": 10,
+        "time": 2.1,
+        "dominantFrequencyHz": 200.3173828125,
+        "dominantToneSlot": null,
+        "relativeAmplitude": 0.0
+      },
+      {
+        "pattern": 15,
+        "time": 1.1,
+        "dominantFrequencyHz": 480.46875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.6553332848089843
+      },
+      {
+        "pattern": 15,
+        "time": 1.5,
+        "dominantFrequencyHz": 484.86328125,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.825737136560724
+      },
+      {
+        "pattern": 15,
+        "time": 2.1,
+        "dominantFrequencyHz": 487.060546875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9987708960945353
+      },
+      {
+        "pattern": 16,
+        "time": 1.1,
+        "dominantFrequencyHz": 480.8349609375,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.6866212858532801
+      },
+      {
+        "pattern": 16,
+        "time": 1.5,
+        "dominantFrequencyHz": 482.2998046875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.7357340412864194
+      },
+      {
+        "pattern": 16,
+        "time": 2.1,
+        "dominantFrequencyHz": 487.060546875,
+        "dominantToneSlot": 3,
+        "relativeAmplitude": 0.9988590691768943
+      }
+    ]
+  },
+  "scope": "Dominant fixed-tone source identity in P02\u201310/15\u201316, during and after saved FX. Does not establish per-layer phase, gain, all reader positions or live hardware behavior.",
+  "beforeSourceMatches": 19,
+  "afterSourceMatches": 33
+}

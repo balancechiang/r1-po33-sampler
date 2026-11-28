@@ -1,6 +1,8 @@
 class PO33SyncProcessor extends AudioWorkletProcessor {
   constructor(){super();this.mode=0;this.run=false;this.next=Infinity;this.width=0;this.gain=.7;this.bpm=120;this.high=false;this.last=-Infinity;this.period=sampleRate*.25;this.seen=false;
-    this.port.onmessage=({data:d})=>{if(d.type==='config'){this.mode=d.mode;this.bpm=d.bpm;this.gain=d.gain;}if(d.type==='start'){this.run=true;this.next=d.time*sampleRate;this.last=-Infinity;this.seen=false;this.high=false;}if(d.type==='stop'){this.run=false;this.width=0;this.next=Infinity;}};
+    // Before two input edges establish tempo, interpolate using the current BPM.
+    // Reset on every start so a previous connection cannot seed the new run.
+    this.port.onmessage=({data:d})=>{if(d.type==='config'){this.mode=d.mode;this.bpm=d.bpm;this.gain=d.gain;}if(d.type==='start'){this.period=sampleRate*30/this.bpm;this.run=true;this.next=d.time*sampleRate;this.last=-Infinity;this.seen=false;this.high=false;}if(d.type==='stop'){this.run=false;this.width=0;this.next=Infinity;}};
   }
   process(inputs,outputs){const out=outputs[0],input=inputs[0]||[],left=input[0],right=input[1];
     for(let i=0;i<out[0].length;i++){const frame=currentFrame+i;let pulse=0;

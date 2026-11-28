@@ -1,0 +1,916 @@
+{
+  "profile": "ownership-phase-v16",
+  "quality": {
+    "seconds": 166.55,
+    "programOnsetSeconds": 16.482335600907028,
+    "peakDbFS": -15.834960819369002,
+    "clippedSamples": 0
+  },
+  "sourceCases": [
+    {
+      "slot": 1,
+      "owner": 0,
+      "start": "zero"
+    },
+    {
+      "slot": 2,
+      "owner": 0,
+      "start": "zero"
+    },
+    {
+      "slot": 3,
+      "owner": 0,
+      "start": "later"
+    },
+    {
+      "slot": 4,
+      "owner": 0,
+      "start": "later"
+    },
+    {
+      "slot": 5,
+      "owner": 4,
+      "start": "zero"
+    },
+    {
+      "slot": 6,
+      "owner": 4,
+      "start": "zero"
+    }
+  ],
+  "hardwareRelease": [
+    {
+      "cycle": 0,
+      "pattern": 2,
+      "slot": 1,
+      "beforeRms": 0.015520338734026601,
+      "afterRms": 0.019004233373568435,
+      "continues": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 3,
+      "slot": 2,
+      "beforeRms": 0.01501487994387843,
+      "afterRms": 1.0320917564502363e-05,
+      "continues": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 4,
+      "slot": 3,
+      "beforeRms": 0.014905354076082846,
+      "afterRms": 1.0416643960110576e-05,
+      "continues": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 5,
+      "slot": 4,
+      "beforeRms": 0.014809901589689737,
+      "afterRms": 1.042373735144002e-05,
+      "continues": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 6,
+      "slot": 5,
+      "beforeRms": 0.014735730761053743,
+      "afterRms": 1.0352584728985746e-05,
+      "continues": false
+    },
+    {
+      "cycle": 0,
+      "pattern": 7,
+      "slot": 6,
+      "beforeRms": 0.014783961404137595,
+      "afterRms": 1.0436898002101629e-05,
+      "continues": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 2,
+      "slot": 1,
+      "beforeRms": 0.015857453347631285,
+      "afterRms": 0.019645868126590846,
+      "continues": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 3,
+      "slot": 2,
+      "beforeRms": 0.015078294722915374,
+      "afterRms": 1.0368891232069162e-05,
+      "continues": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 4,
+      "slot": 3,
+      "beforeRms": 0.014896548955549684,
+      "afterRms": 1.040447260955447e-05,
+      "continues": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 5,
+      "slot": 4,
+      "beforeRms": 0.014885927575625355,
+      "afterRms": 1.036787282699554e-05,
+      "continues": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 6,
+      "slot": 5,
+      "beforeRms": 0.014736818506843873,
+      "afterRms": 1.0491388606642976e-05,
+      "continues": false
+    },
+    {
+      "cycle": 1,
+      "pattern": 7,
+      "slot": 6,
+      "beforeRms": 0.014715547133174644,
+      "afterRms": 1.0379069786824018e-05,
+      "continues": false
+    }
+  ],
+  "loopWindows": [
+    {
+      "cycle": 0,
+      "pattern": 9,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.01126984126984127,
+          "slice": 1
+        },
+        {
+          "time": 0.2620408163265306,
+          "slice": 2
+        },
+        {
+          "time": 0.5115192743764172,
+          "slice": 3
+        },
+        {
+          "time": 0.7607029478458049,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 9,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.009795918367346938,
+          "slice": 9
+        },
+        {
+          "time": 0.2610204081632653,
+          "slice": 10
+        },
+        {
+          "time": 0.5111791383219955,
+          "slice": 11
+        },
+        {
+          "time": 0.7609977324263039,
+          "slice": 12
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 10,
+      "start": 0.25,
+      "markers": [
+        {
+          "time": 0.011315192743764172,
+          "slice": 2
+        },
+        {
+          "time": 0.26215419501133785,
+          "slice": 3
+        },
+        {
+          "time": 0.5113151927437641,
+          "slice": 4
+        },
+        {
+          "time": 0.7610657596371883,
+          "slice": 5
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 10,
+      "start": 2.25,
+      "markers": [
+        {
+          "time": 0.010272108843537416,
+          "slice": 10
+        },
+        {
+          "time": 0.26151927437641725,
+          "slice": 10
+        },
+        {
+          "time": 0.42179138321995463,
+          "slice": 11
+        },
+        {
+          "time": 0.5113832199546485,
+          "slice": 10
+        },
+        {
+          "time": 0.6716780045351474,
+          "slice": 11
+        },
+        {
+          "time": 0.7612471655328799,
+          "slice": 10
+        },
+        {
+          "time": 0.9215419501133787,
+          "slice": 11
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 11,
+      "start": 0.5,
+      "markers": [
+        {
+          "time": 0.011405895691609977,
+          "slice": 3
+        },
+        {
+          "time": 0.26058956916099774,
+          "slice": 4
+        },
+        {
+          "time": 0.5117006802721088,
+          "slice": 5
+        },
+        {
+          "time": 0.7620634920634921,
+          "slice": 6
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 11,
+      "start": 2.5,
+      "markers": [
+        {
+          "time": 0.011043083900226758,
+          "slice": 11
+        },
+        {
+          "time": 0.2608843537414966,
+          "slice": 12
+        },
+        {
+          "time": 0.5104308390022676,
+          "slice": 13
+        },
+        {
+          "time": 0.7620408163265306,
+          "slice": 11
+        },
+        {
+          "time": 0.9219954648526077,
+          "slice": 12
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 12,
+      "start": 0.75,
+      "markers": [
+        {
+          "time": 0.011201814058956917,
+          "slice": 4
+        },
+        {
+          "time": 0.26095238095238094,
+          "slice": 5
+        },
+        {
+          "time": 0.5113151927437641,
+          "slice": 6
+        },
+        {
+          "time": 0.7621768707482993,
+          "slice": 4
+        },
+        {
+          "time": 0.922063492063492,
+          "slice": 5
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 12,
+      "start": 2.75,
+      "markers": [
+        {
+          "time": 0.011519274376417234,
+          "slice": 12
+        },
+        {
+          "time": 0.26104308390022674,
+          "slice": 13
+        },
+        {
+          "time": 0.5114285714285715,
+          "slice": 14
+        },
+        {
+          "time": 0.7609977324263039,
+          "slice": 15
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 14,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.01163265306122449,
+          "slice": 1
+        },
+        {
+          "time": 0.2624489795918367,
+          "slice": 2
+        },
+        {
+          "time": 0.5126984126984127,
+          "slice": 1
+        },
+        {
+          "time": 0.6736734693877551,
+          "slice": 2
+        },
+        {
+          "time": 0.7626303854875284,
+          "slice": 1
+        },
+        {
+          "time": 0.9235374149659864,
+          "slice": 2
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 14,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.011541950113378685,
+          "slice": 9
+        },
+        {
+          "time": 0.26140589569161,
+          "slice": 10
+        },
+        {
+          "time": 0.5115646258503401,
+          "slice": 11
+        },
+        {
+          "time": 0.762517006802721,
+          "slice": 9
+        },
+        {
+          "time": 0.9225170068027211,
+          "slice": 10
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 16,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.01290249433106576,
+          "slice": 1
+        },
+        {
+          "time": 0.26369614512471656,
+          "slice": 2
+        },
+        {
+          "time": 0.5131746031746032,
+          "slice": 3
+        },
+        {
+          "time": 0.7623356009070295,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 0,
+      "pattern": 16,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.012789115646258504,
+          "slice": 9
+        },
+        {
+          "time": 0.2626530612244898,
+          "slice": 10
+        },
+        {
+          "time": 0.51281179138322,
+          "slice": 11
+        },
+        {
+          "time": 0.7626530612244898,
+          "slice": 12
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 9,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.014444444444444444,
+          "slice": 1
+        },
+        {
+          "time": 0.2656009070294785,
+          "slice": 1
+        },
+        {
+          "time": 0.42657596371882084,
+          "slice": 2
+        },
+        {
+          "time": 0.5155102040816326,
+          "slice": 1
+        },
+        {
+          "time": 0.6764399092970521,
+          "slice": 2
+        },
+        {
+          "time": 0.7653968253968254,
+          "slice": 1
+        },
+        {
+          "time": 0.9263265306122449,
+          "slice": 2
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 9,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.014308390022675737,
+          "slice": 9
+        },
+        {
+          "time": 0.264172335600907,
+          "slice": 10
+        },
+        {
+          "time": 0.5154195011337869,
+          "slice": 9
+        },
+        {
+          "time": 0.6754195011337868,
+          "slice": 10
+        },
+        {
+          "time": 0.7652834467120181,
+          "slice": 9
+        },
+        {
+          "time": 0.9252834467120181,
+          "slice": 10
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 10,
+      "start": 0.25,
+      "markers": [
+        {
+          "time": 0.015827664399092972,
+          "slice": 2
+        },
+        {
+          "time": 0.2653061224489796,
+          "slice": 3
+        },
+        {
+          "time": 0.5144897959183673,
+          "slice": 4
+        },
+        {
+          "time": 0.7656009070294785,
+          "slice": 5
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 10,
+      "start": 2.25,
+      "markers": [
+        {
+          "time": 0.014807256235827664,
+          "slice": 10
+        },
+        {
+          "time": 0.26494331065759635,
+          "slice": 11
+        },
+        {
+          "time": 0.5147845804988662,
+          "slice": 12
+        },
+        {
+          "time": 0.7643310657596372,
+          "slice": 13
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 11,
+      "start": 0.5,
+      "markers": [
+        {
+          "time": 0.015941043083900226,
+          "slice": 3
+        },
+        {
+          "time": 0.26510204081632655,
+          "slice": 4
+        },
+        {
+          "time": 0.5148526077097506,
+          "slice": 5
+        },
+        {
+          "time": 0.7652154195011338,
+          "slice": 6
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 11,
+      "start": 2.5,
+      "markers": [
+        {
+          "time": 0.015578231292517007,
+          "slice": 11
+        },
+        {
+          "time": 0.2654195011337869,
+          "slice": 12
+        },
+        {
+          "time": 0.5149433106575964,
+          "slice": 13
+        },
+        {
+          "time": 0.765328798185941,
+          "slice": 14
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 12,
+      "start": 0.75,
+      "markers": [
+        {
+          "time": 0.015736961451247165,
+          "slice": 4
+        },
+        {
+          "time": 0.26546485260770974,
+          "slice": 5
+        },
+        {
+          "time": 0.5158503401360545,
+          "slice": 6
+        },
+        {
+          "time": 0.765578231292517,
+          "slice": 7
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 12,
+      "start": 2.75,
+      "markers": [
+        {
+          "time": 0.016031746031746032,
+          "slice": 12
+        },
+        {
+          "time": 0.265578231292517,
+          "slice": 13
+        },
+        {
+          "time": 0.5159410430839002,
+          "slice": 14
+        },
+        {
+          "time": 0.7655102040816326,
+          "slice": 15
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 14,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.01616780045351474,
+          "slice": 1
+        },
+        {
+          "time": 0.2669614512471655,
+          "slice": 2
+        },
+        {
+          "time": 0.5164399092970522,
+          "slice": 3
+        },
+        {
+          "time": 0.7656235827664399,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 14,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.016054421768707482,
+          "slice": 9
+        },
+        {
+          "time": 0.2659183673469388,
+          "slice": 10
+        },
+        {
+          "time": 0.5160770975056689,
+          "slice": 11
+        },
+        {
+          "time": 0.7659183673469387,
+          "slice": 12
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 16,
+      "start": 0,
+      "markers": [
+        {
+          "time": 0.017414965986394557,
+          "slice": 1
+        },
+        {
+          "time": 0.2682086167800454,
+          "slice": 2
+        },
+        {
+          "time": 0.5176870748299319,
+          "slice": 3
+        },
+        {
+          "time": 0.7668707482993198,
+          "slice": 4
+        }
+      ]
+    },
+    {
+      "cycle": 1,
+      "pattern": 16,
+      "start": 2,
+      "markers": [
+        {
+          "time": 0.015941043083900226,
+          "slice": 9
+        },
+        {
+          "time": 0.26718820861678005,
+          "slice": 9
+        },
+        {
+          "time": 0.42718820861678003,
+          "slice": 10
+        },
+        {
+          "time": 0.5170521541950114,
+          "slice": 9
+        },
+        {
+          "time": 0.6770521541950113,
+          "slice": 10
+        },
+        {
+          "time": 0.7669160997732426,
+          "slice": 9
+        },
+        {
+          "time": 0.9269160997732426,
+          "slice": 10
+        }
+      ]
+    }
+  ],
+  "browserComparisons": {
+    "before": {
+      "releaseCases": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "continues": true,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 6,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "continues": true,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 6,
+          "continues": true,
+          "matches": false
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "continues": true,
+          "matches": false
+        }
+      ],
+      "releaseMatches": 2,
+      "totalReleaseCases": 12
+    },
+    "after": {
+      "releaseCases": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "continues": true,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 6,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "continues": true,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 6,
+          "continues": false,
+          "matches": true
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "continues": false,
+          "matches": true
+        }
+      ],
+      "releaseMatches": 12,
+      "totalReleaseCases": 12
+    }
+  },
+  "scope": "Two passes, one native saved5\u21926\u2192off route; not a proven general firmware mechanism or live/edited-project rule. Program onset uses the first sustained1s+ signal to reject a short pre-play transient."
+}

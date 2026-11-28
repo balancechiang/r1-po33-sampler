@@ -10,3 +10,17 @@ for(const rate of [44100,48000]){assert.equal(filterShape(0,rate).bypass,true);a
 assert.equal(quantize(0),0);for(const x of [.01,.1,.5,1,2]){assert.equal(quantize(x),-quantize(-x));assert.ok(Math.abs(quantize(x))<=1.000001);}
 const l=new Latches(),base={pitch:0,volume:100,filter:0,resonance:0};l.schedule(1,{pitch:7,volume:30,start:99},1);assert.equal(l.at(1,base,.9).pitch,0);assert.equal(l.at(1,base,1).pitch,7);assert.equal(l.at(1,base,2).volume,30);assert.equal(l.at(1,base,2).start,undefined);l.flush(1.5);l.manual(1,'pitch',2,1.6);assert.equal(l.at(1,base,1.6).pitch,2);l.schedule(1,{pitch:-3},2);assert.equal(l.at(1,base,2).pitch,-3);assert.equal(l.at(1,base,2).volume,30);l.stop(1.9);assert.equal(l.at(1,base,3).pitch,2);assert.equal(l.at(2,base,3).volume,100);l.reset();assert.equal(l.at(1,base,3).pitch,0);
 console.log('PASS exact scale, independent overlapping/clamped frame trims, bypass/LP/HP curve, block-stable 23.4375 kHz mu-law coloration with immutable PCM, and timed/manual/partial latches.');
+
+{
+ const d=JSON.parse(fs.readFileSync('tests/fixtures/filter-endpoint-calibration-20261127.json'));
+ for(const rate of [44100,48000,96000]){
+  const s=filterShape(-100,rate,0),errors=d.frequenciesHz.map((f,i)=>{
+   const ratio=Math.tan(Math.PI*f/rate)/Math.tan(Math.PI*s.frequency/rate);
+   const db=-10*Math.log10((1-ratio*ratio)**2+(ratio/s.q)**2)+20*Math.log10(s.gain);
+   return db-d.targetDB[i];
+  });
+  assert(Math.sqrt(errors.reduce((a,b)=>a+b*b,0)/errors.length)<.85);
+ }
+ assert(d.holdouts.every(v=>v.rmsDB<1.6));
+ console.log('PASS measured lowest-filter endpoint at44.1/48/96kHz and withheld-frequency fit checks');
+}

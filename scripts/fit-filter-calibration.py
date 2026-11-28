@@ -22,10 +22,12 @@ for rate in [44100,48000,96000]:
    fc,q=np.exp(x[:2]);ratio=np.tan(np.pi*f/rate)/np.tan(np.pi*fc/rate)
    den=(1-ratio**2)**2+(ratio/q)**2
    return 20*np.log10((1 if low else ratio**2)/np.sqrt(den))+(x[2] if len(x)>2 else 0)
+  # The deepest measured endpoint requires attenuation as well as pole shape.
+  fit_gain=res>1 or code==1
   best=None
   for fc in [100,500,1500,5000,15000]:
-   start=np.log([min(fc,rate*.45),.15]).tolist()+([0] if res>1 else [])
-   bounds=(np.log([1,.002]).tolist()+([-6] if res>1 else []),np.log([rate*.49,15]).tolist()+([3] if res>1 else []))
+   start=np.log([min(fc,rate*.45),.15]).tolist()+([0] if fit_gain else [])
+   bounds=(np.log([1,.002]).tolist()+([-48 if code==1 else -6] if fit_gain else []),np.log([rate*.49,15]).tolist()+([3] if fit_gain else []))
    fit=least_squares(lambda x:response(x)-db,start,bounds=bounds,max_nfev=200)
    rms=float(np.sqrt(np.mean((response(fit.x)-db)**2)))
    if best is None or rms<best[0]:best=(rms,fit.x)
@@ -34,7 +36,9 @@ for rate in [44100,48000,96000]:
  tables[str(rate)]=table
 payload=json.dumps(tables,separators=(',',':'))
 module='''/* Measured 2026-11-27 magnitude fit. Offline source: scripts/fit-filter-calibration.py.
-   Tested 60 Hz–7.04 kHz bins only; not a firmware or phase-identical model. */
+   Tested 60 Hz–7.04 kHz bins only; lowest code1/resonance1 uses80–660Hz.
+   Endpoint attenuation is measured; other resonance interpolation remains approximate.
+   Not a firmware or phase-identical model. */
 (function(root){'use strict';
 const tables=DATA;
 const resonance=[1,9,18,27,36,45,54,63];

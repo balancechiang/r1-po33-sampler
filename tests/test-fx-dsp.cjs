@@ -92,3 +92,35 @@ for(const kind of [1,2,4]){const spec=readerSpec(kind,.25),errors=[];
  }errors.sort((a,b)=>a-b);assert(errors[Math.floor(errors.length/2)]<35,JSON.stringify({kind,median:errors[Math.floor(errors.length/2)]}));
 }
 console.log('PASS measured Loop1/2/4 advancing read windows across four source lengths');}
+
+{
+ const {readerSpec,readerPosition}=require('../effects.js'),d=require('./fixtures/unison-memory-v12-calibration-20261127.json'),spec=readerSpec(3,.25);
+ assert.deepEqual(spec,{period:.125,repeats:4});
+ for(const pattern of [13,14,15,16]){
+  const start=pattern===13?1:.5,offset=pattern>=15?1:0;
+  const errors=d.heldLoop3Probes.filter(p=>p.pattern===pattern).map(p=>{
+   const position=offset+start+readerPosition(p.time-start,1,spec.period,spec.repeats);
+   return Math.abs(1200*Math.log2((220*Math.pow(4,position/4))/p.frequencyHz));
+  }).sort((a,b)=>a-b);
+  assert(errors[Math.floor(errors.length/2)]<15,JSON.stringify({pattern,errors}));
+ }
+ console.log('PASS recorded v12 held-source Loop3 trajectories for full, zero-offset, nonzero-offset and independent matching PCM');
+}
+
+{
+ const {unisonLayers}=require('../effects.js'),d=require('./fixtures/unison-layers-v14-observations-20261127.json');
+ const base=d.fixedToneWindows[0].peaks[0].frequencyHz;
+ for(const row of d.fixedToneWindows.filter(v=>v.pattern===4 || (v.pattern===6 && v.startSeconds<1))){
+  const rates=unisonLayers(5,true);assert.equal(row.peaks.length,4);
+  rates.forEach((rate,i)=>assert(Math.abs(base*rate-row.peaks[i].frequencyHz)<.12,JSON.stringify({rate,peak:row.peaks[i]})));
+ }
+ assert.deepEqual(unisonLayers(5,false),[.98388644,.99413750,1.00627777,1.01660276]);
+ console.log('PASS v14 active Unison frequencies in two recorded windows; fresh-note tuning remains separate');
+}
+
+{
+ const {unisonGains}=require('../effects.js'),base=unisonGains(5,false),active=unisonGains(5,true);
+ for(let i=0;i<4;i++)assert(Math.abs(20*Math.log10(active[i]/base[i])-1.15)<1e-9);
+ assert.deepEqual(unisonGains(6,true),unisonGains(6,false));
+ console.log('PASS active-FX5 gain correction is isolated from fresh-note and FX6 profiles');
+}

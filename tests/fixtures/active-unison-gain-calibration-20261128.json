@@ -1,0 +1,32 @@
+{
+  "profile": "active-unison-gain-v15",
+  "training": [
+    {
+      "source": "v12 P05 shared-offset chirp",
+      "neededDB": 1.03
+    },
+    {
+      "source": "v12 P06 independent chirp",
+      "neededDB": 0.82
+    },
+    {
+      "source": "v14 P09 rising chirp",
+      "neededDB": 1.16
+    },
+    {
+      "source": "v14 P13 falling chirp",
+      "neededDB": 1.7
+    },
+    {
+      "source": "v6 P10 held harmonic source",
+      "neededDB": 1.56
+    }
+  ],
+  "chosenCorrectionDB": 1.15,
+  "method": "Robust median of pre-v15 active-FX5 gain discrepancies, rounded to0.05dB. V15 is a held-out two-pass check. CW remains a known residual; no per-layer or FX6 gain fit.",
+  "heldOutResults": {
+    "before": 1.7395791691152236,
+    "after": 0.623528092857255
+  },
+  "scope": "Active FX5 gain only; fresh-note/FX6 unchanged. Rounded pre-v15 training measurements; V15 two hardware passes held out. Source termination not fixed."
+}

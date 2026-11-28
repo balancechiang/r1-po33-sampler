@@ -1,0 +1,4804 @@
+{
+  "profile": "clock-phase-v17",
+  "tempos": [
+    {
+      "bpm": 90,
+      "quality": {
+        "seconds": 153.65,
+        "clippedSamples": 0
+      },
+      "clock": {
+        "firstMarkerPeakSeconds": 14.210824655363634,
+        "measuredStepSeconds": 0.1666773127772337,
+        "measuredBPM": 89.99425146749088,
+        "dryFitMaxResidualMs": 1.4981414979331475,
+        "dryFitPoints": 64
+      },
+      "windows": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.592,
+            -0.235,
+            -0.313,
+            0.311
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.445,
+            0.066,
+            0.372,
+            0.271
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.428,
+            -0.529,
+            0.095,
+            -0.165
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            0.53,
+            0.157,
+            0.055,
+            -0.318
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            3
+          ],
+          "peakOffsetMs": [
+            -0.722,
+            -0.12,
+            -0.358,
+            0.334
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.036,
+            -0.138,
+            -0.511,
+            -0.59
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            -0.313,
+            0.787,
+            0.232,
+            0.108
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.376,
+            -0.727,
+            -0.284,
+            -0.657
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.92,
+            0.093,
+            0.014,
+            0.616
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.118,
+            -0.31,
+            -0.683,
+            -0.762
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.704,
+            -0.123,
+            -0.202,
+            0.423
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.333,
+            -0.503,
+            0.847,
+            0.746
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.477,
+            1.305,
+            0.818,
+            0.014
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.641,
+            0.517,
+            0.71,
+            0.586
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            2
+          ],
+          "peakOffsetMs": [
+            1.089,
+            0.603,
+            -0.202,
+            2.146
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            0.324,
+            0.495,
+            0.371,
+            -0.048
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "peakOffsetMs": [
+            0.387,
+            1.669,
+            1.545,
+            1.443
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            0.302,
+            0.155,
+            -0.264,
+            0.134
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.75,
+            0.535,
+            0.933,
+            0.696
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.038,
+            -0.479,
+            -0.059,
+            -0.478
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.487,
+            1.61,
+            1.123,
+            0.341
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.415,
+            -0.516,
+            -0.323,
+            0.664
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.589,
+            1.417,
+            0.907,
+            0.126
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.63,
+            0.651,
+            -5.459,
+            -5.56
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.024,
+            -0.851,
+            -0.93,
+            -0.306
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.321,
+            0.129,
+            -0.244,
+            -0.345
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            -1.067,
+            -1.146,
+            0.091,
+            -0.01
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.086,
+            -0.46,
+            -0.561,
+            -0.935
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            0.022,
+            0.646,
+            0.386,
+            -0.169
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.675,
+            -0.777,
+            -1.128,
+            -0.707
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.431,
+            0.17,
+            -0.384,
+            -0.508
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.993,
+            -1.343,
+            0.233,
+            0.109
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.303,
+            -0.524,
+            -0.602,
+            -0.001
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.734,
+            -0.223,
+            -0.325,
+            -0.041
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.088,
+            -0.739,
+            -0.818,
+            -0.194
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.95,
+            0.241,
+            -0.132,
+            -0.256
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            1
+          ],
+          "peakOffsetMs": [
+            -0.14,
+            0.689,
+            0.179,
+            0.894
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.024,
+            -0.1,
+            0.094,
+            -0.03
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            0.473,
+            -0.082,
+            -5.467,
+            -5.568
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.293,
+            -0.122,
+            -0.246,
+            -0.665
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            1.131,
+            0.349,
+            0.112,
+            0.532
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            11
+          ],
+          "peakOffsetMs": [
+            -0.315,
+            -0.462,
+            -0.88,
+            0.764
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.134,
+            -0.081,
+            0.316,
+            0.079
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.655,
+            0.582,
+            -6.209,
+            -6.31
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.13,
+            0.993,
+            0.507,
+            -0.275
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -1.031,
+            0.228,
+            0.421,
+            0.275
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.028,
+            0.778,
+            0.291,
+            -0.491
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.114,
+            0.012,
+            0.206,
+            0.082
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "differentBetweenPasses": [
+        {
+          "pattern": 2,
+          "startStep": 9,
+          "pass0": [
+            9,
+            9,
+            11,
+            12
+          ],
+          "pass1": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "pattern": 3,
+          "startStep": 2,
+          "pass0": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "pass1": [
+            2,
+            3,
+            2,
+            2
+          ]
+        },
+        {
+          "pattern": 4,
+          "startStep": 3,
+          "pass0": [
+            3,
+            4,
+            5,
+            3
+          ],
+          "pass1": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "pattern": 5,
+          "startStep": 12,
+          "pass0": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "pass1": [
+            12,
+            13,
+            12,
+            12
+          ]
+        },
+        {
+          "pattern": 7,
+          "startStep": 9,
+          "pass0": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "pass1": [
+            9,
+            9,
+            9,
+            12
+          ]
+        },
+        {
+          "pattern": 8,
+          "startStep": 9,
+          "pass0": [
+            9,
+            10,
+            9,
+            9
+          ],
+          "pass1": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "pattern": 10,
+          "startStep": 1,
+          "pass0": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "pass1": [
+            1,
+            2,
+            3,
+            1
+          ]
+        },
+        {
+          "pattern": 11,
+          "startStep": 2,
+          "pass0": [
+            2,
+            3,
+            4,
+            2
+          ],
+          "pass1": [
+            2,
+            2,
+            2,
+            2
+          ]
+        },
+        {
+          "pattern": 12,
+          "startStep": 3,
+          "pass0": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "pass1": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "pattern": 12,
+          "startStep": 11,
+          "pass0": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "pass1": [
+            11,
+            12,
+            13,
+            11
+          ]
+        },
+        {
+          "pattern": 13,
+          "startStep": 12,
+          "pass0": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "pass1": [
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        {
+          "pattern": 15,
+          "startStep": 9,
+          "pass0": [
+            9,
+            10,
+            11,
+            9
+          ],
+          "pass1": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "pattern": 16,
+          "startStep": 9,
+          "pass0": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "pass1": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "browserClock": {
+        "firstMarkerPeakSeconds": 0.016790374253092922,
+        "measuredStepSeconds": 0.16666729318461268,
+        "measuredBPM": 89.99966168158093,
+        "dryFitMaxResidualMs": 1.0865117472569352,
+        "dryFitPoints": 64
+      },
+      "browserWindows": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.45,
+            -0.28,
+            -0.281,
+            0.427
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.132,
+            0.048,
+            -0.244,
+            -0.245
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.29,
+            -0.291,
+            0.417,
+            0.229
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            0.038,
+            -0.254,
+            -0.255,
+            -0.526
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.301,
+            0.407,
+            0.219,
+            -0.24
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.264,
+            -0.265,
+            -0.536,
+            0.005
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.397,
+            0.209,
+            -0.25,
+            -0.293
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.275,
+            -0.546,
+            -0.005,
+            -0.277
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.399,
+            -0.33,
+            -0.331,
+            0.377
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.082,
+            -0.002,
+            -0.294,
+            -0.295
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.389,
+            -0.34,
+            -0.341,
+            0.367
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.072,
+            -0.012,
+            -0.304,
+            -0.305
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.578,
+            -0.34,
+            1.076,
+            0.347
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.052,
+            0.051,
+            0.321,
+            0.3
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.35,
+            1.066,
+            0.337,
+            0.211
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            0.041,
+            0.311,
+            0.29,
+            -0.044
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            1.056,
+            0.327,
+            0.201,
+            -0.07
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            0.301,
+            0.28,
+            -0.054,
+            -0.055
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.317,
+            0.191,
+            -0.08,
+            0.544
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            0.27,
+            -0.064,
+            -0.065,
+            0.143
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.653,
+            -0.39,
+            1.026,
+            0.297
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.002,
+            0.001,
+            0.271,
+            0.25
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.518,
+            -0.4,
+            1.016,
+            0.287
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.008,
+            -0.009,
+            0.261,
+            0.24
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.289,
+            -0.441,
+            -0.441,
+            0.266
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.028,
+            -0.112,
+            -0.405,
+            -0.405
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.451,
+            -0.451,
+            0.256,
+            0.068
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.122,
+            -0.415,
+            -0.415,
+            -0.687
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.461,
+            0.246,
+            0.058,
+            -0.401
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.425,
+            -0.425,
+            -0.697,
+            -0.156
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.236,
+            0.048,
+            -0.411,
+            -0.453
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.435,
+            -0.707,
+            -0.166,
+            -0.437
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.239,
+            -0.491,
+            -0.491,
+            0.216
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.078,
+            -0.162,
+            -0.455,
+            -0.455
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.229,
+            -0.501,
+            -0.501,
+            0.206
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.088,
+            -0.172,
+            -0.465,
+            -0.465
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.417,
+            -0.5,
+            0.916,
+            0.186
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.108,
+            -0.109,
+            0.161,
+            0.14
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.51,
+            0.906,
+            0.176,
+            0.051
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.119,
+            0.151,
+            0.13,
+            -0.204
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            0.896,
+            0.166,
+            0.041,
+            -0.231
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            0.141,
+            0.12,
+            -0.214,
+            -0.215
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.156,
+            0.031,
+            -0.241,
+            0.384
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            0.11,
+            -0.224,
+            -0.225,
+            -0.017
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.492,
+            -0.55,
+            0.866,
+            0.136
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.159,
+            -0.159,
+            0.111,
+            0.09
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.357,
+            -0.56,
+            0.856,
+            0.126
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.169,
+            -0.169,
+            0.101,
+            0.079
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "browserAgreement": [
+        {
+          "sliceDurationMs": 55,
+          "stepSourcesMatching": 86,
+          "totalStepSources": 96
+        },
+        {
+          "sliceDurationMs": 160,
+          "stepSourcesMatching": 80,
+          "totalStepSources": 96
+        }
+      ]
+    },
+    {
+      "bpm": 137,
+      "quality": {
+        "seconds": 99.5,
+        "clippedSamples": 0
+      },
+      "clock": {
+        "firstMarkerPeakSeconds": 16.713849762173325,
+        "measuredStepSeconds": 0.10949835869300868,
+        "measuredBPM": 136.9883547026877,
+        "dryFitMaxResidualMs": 2.0411047505497493,
+        "dryFitPoints": 64
+      },
+      "windows": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.979,
+            -0.016,
+            -0.262,
+            0.194
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.042,
+            -0.379,
+            0.44,
+            0.171
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            2
+          ],
+          "peakOffsetMs": [
+            -0.175,
+            -0.422,
+            0.012,
+            0.377
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.539,
+            0.28,
+            -0.012,
+            -0.53
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.604,
+            -0.148,
+            0.807,
+            0.084
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            0.121,
+            -0.171,
+            -0.69,
+            -0.937
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            1.053,
+            0.647,
+            -0.098,
+            -0.39
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.331,
+            -0.872,
+            0.559,
+            0.244
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.158,
+            -0.837,
+            0.277,
+            0.733
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.52,
+            0.16,
+            -0.381,
+            -0.65
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            -0.002,
+            1.044,
+            0.82,
+            0.551
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.338,
+            0.001,
+            -0.541,
+            -0.833
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            -0.162,
+            0.929,
+            0.682,
+            0.413
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            0.019,
+            -0.251,
+            -0.497,
+            0.594
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            1.699,
+            1.43,
+            1.16,
+            0.914
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "peakOffsetMs": [
+            -0.41,
+            0.681,
+            0.434,
+            0.165
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "peakOffsetMs": [
+            0.885,
+            0.615,
+            1.684,
+            1.437
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            11,
+            11,
+            11
+          ],
+          "peakOffsetMs": [
+            0.816,
+            0.547,
+            0.277,
+            0.008
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.247,
+            0.866,
+            0.597,
+            0.328
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            0.342,
+            0.072,
+            -0.197,
+            0.917
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.4,
+            0.131,
+            -0.139,
+            0.953
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            0.581,
+            0.312,
+            0.042,
+            -0.227
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.218,
+            -0.029,
+            1.062,
+            0.793
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            0.399,
+            0.129,
+            -0.117,
+            -0.387
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.283,
+            0.082,
+            -0.164,
+            0.292
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            9
+          ],
+          "peakOffsetMs": [
+            0.057,
+            -0.281,
+            -0.822,
+            0.632
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.077,
+            -0.347,
+            0.11,
+            -0.296
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.441,
+            -1.005,
+            0.109,
+            -0.432
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.506,
+            -0.05,
+            -0.478,
+            0.16
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -1.164,
+            -0.073,
+            -0.592,
+            -0.317
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.21,
+            -0.434,
+            0.612,
+            0.343
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.233,
+            -0.774,
+            -1.021,
+            -1.018
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            1
+          ],
+          "peakOffsetMs": [
+            0.256,
+            -0.739,
+            -0.985,
+            0.786
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.765,
+            0.259,
+            -0.283,
+            -0.575
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.074,
+            -0.898,
+            -1.168,
+            0.649
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.436,
+            0.099,
+            -0.443,
+            -0.735
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            -0.064,
+            1.005,
+            0.781,
+            0.511
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            0.117,
+            -0.152,
+            -0.399,
+            -0.668
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            1.797,
+            1.528,
+            1.259,
+            0.989
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "peakOffsetMs": [
+            -0.312,
+            -0.581,
+            0.51,
+            0.263
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "peakOffsetMs": [
+            0.983,
+            0.713,
+            0.444,
+            0.175
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            11,
+            11,
+            11
+          ],
+          "peakOffsetMs": [
+            -0.469,
+            0.645,
+            0.376,
+            0.106
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.149,
+            -0.419,
+            0.695,
+            0.426
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            0.44,
+            0.171,
+            -0.099,
+            -0.368
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.475,
+            0.229,
+            -0.041,
+            -0.31
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.704,
+            0.387,
+            0.14,
+            -0.129
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.316,
+            0.069,
+            -0.2,
+            0.868
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.864,
+            0.227,
+            -0.042,
+            -0.289
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "differentBetweenPasses": [
+        {
+          "pattern": 2,
+          "startStep": 9,
+          "pass0": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "pass1": [
+            9,
+            10,
+            11,
+            9
+          ]
+        },
+        {
+          "pattern": 3,
+          "startStep": 2,
+          "pass0": [
+            2,
+            3,
+            4,
+            2
+          ],
+          "pass1": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "pattern": 5,
+          "startStep": 4,
+          "pass0": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "pass1": [
+            4,
+            4,
+            4,
+            4
+          ]
+        },
+        {
+          "pattern": 5,
+          "startStep": 12,
+          "pass0": [
+            12,
+            13,
+            12,
+            12
+          ],
+          "pass1": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "pattern": 7,
+          "startStep": 1,
+          "pass0": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "pass1": [
+            1,
+            2,
+            3,
+            1
+          ]
+        },
+        {
+          "pattern": 8,
+          "startStep": 1,
+          "pass0": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "pass1": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "browserClock": {
+        "firstMarkerPeakSeconds": 0.01679540219536824,
+        "measuredStepSeconds": 0.10948972125048266,
+        "measuredBPM": 136.99916146177856,
+        "dryFitMaxResidualMs": 1.0825019085523024,
+        "dryFitPoints": 64
+      },
+      "browserWindows": [
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.452,
+            -0.266,
+            -0.298,
+            0.421
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.118,
+            0.024,
+            -0.236,
+            -0.268
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.29,
+            -0.3,
+            0.398,
+            0.241
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            0.022,
+            -0.26,
+            -0.27,
+            -0.531
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.323,
+            0.395,
+            0.218,
+            -0.251
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.262,
+            -0.272,
+            -0.554,
+            -0.002
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.393,
+            0.216,
+            -0.232,
+            -0.305
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.295,
+            -0.556,
+            -0.025,
+            -0.285
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -0.996,
+            -0.34,
+            -0.351,
+            0.368
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.065,
+            -0.029,
+            -0.289,
+            -0.321
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.377,
+            -0.342,
+            -0.353,
+            0.345
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            0.063,
+            -0.031,
+            -0.312,
+            -0.323
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.56,
+            -1.117,
+            0.539,
+            -1.118
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            0.038,
+            -0.723,
+            -0.733,
+            -0.723
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            -0.37,
+            -0.401,
+            -0.412,
+            -0.401
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "peakOffsetMs": [
+            0.004,
+            -0.736,
+            -0.725,
+            -0.736
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "peakOffsetMs": [
+            1.055,
+            -0.497,
+            -0.508,
+            -0.518
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            11,
+            11,
+            11
+          ],
+          "peakOffsetMs": [
+            0.304,
+            -0.352,
+            -0.363,
+            -0.374
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "peakOffsetMs": [
+            0.313,
+            -1.031,
+            -1.02,
+            -1.031
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            0.25,
+            -0.407,
+            -0.397,
+            -0.407
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.528,
+            -1.17,
+            -1.16,
+            -1.191
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.015,
+            -0.775,
+            -0.786,
+            -0.776
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.505,
+            -1.172,
+            -1.183,
+            -1.173
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 0,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.017,
+            -0.798,
+            -0.788,
+            -0.799
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.271,
+            -0.448,
+            -0.458,
+            0.24
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 2,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.042,
+            -0.136,
+            -0.418,
+            -0.428
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            3,
+            4,
+            5
+          ],
+          "peakOffsetMs": [
+            -0.45,
+            -0.481,
+            0.237,
+            0.06
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 3,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            11,
+            12,
+            13
+          ],
+          "peakOffsetMs": [
+            -0.159,
+            -0.42,
+            -0.43,
+            -0.712
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            4,
+            5,
+            6
+          ],
+          "peakOffsetMs": [
+            -0.483,
+            0.214,
+            0.058,
+            -0.39
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 4,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            12,
+            13,
+            14
+          ],
+          "peakOffsetMs": [
+            -0.443,
+            -0.453,
+            -0.714,
+            -0.183
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            5,
+            6,
+            7
+          ],
+          "peakOffsetMs": [
+            0.212,
+            0.035,
+            -0.434,
+            -0.465
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 5,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            13,
+            14,
+            15
+          ],
+          "peakOffsetMs": [
+            -0.456,
+            -0.737,
+            -0.185,
+            -0.466
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            -1.156,
+            -0.5,
+            -0.511,
+            0.187
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 7,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.095,
+            -0.189,
+            -0.47,
+            -0.481
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "peakOffsetMs": [
+            0.216,
+            -0.503,
+            -0.534,
+            0.185
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 8,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            10,
+            11,
+            12
+          ],
+          "peakOffsetMs": [
+            -0.118,
+            -0.212,
+            -0.473,
+            -0.504
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.399,
+            -1.278,
+            -1.288,
+            -1.278
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 10,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.123,
+            -0.904,
+            -0.894,
+            -0.904
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 2,
+          "sourceIDs": [
+            2,
+            2,
+            2,
+            2
+          ],
+          "peakOffsetMs": [
+            -0.53,
+            -0.582,
+            -0.572,
+            -0.582
+          ],
+          "expectedIDs": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 11,
+          "startStep": 10,
+          "sourceIDs": [
+            10,
+            10,
+            10,
+            10
+          ],
+          "peakOffsetMs": [
+            -0.156,
+            -0.896,
+            -0.906,
+            -0.917
+          ],
+          "expectedIDs": [
+            10,
+            11,
+            12,
+            13
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 3,
+          "sourceIDs": [
+            3,
+            3,
+            3,
+            3
+          ],
+          "peakOffsetMs": [
+            0.874,
+            -0.678,
+            -0.668,
+            -0.679
+          ],
+          "expectedIDs": [
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 12,
+          "startStep": 11,
+          "sourceIDs": [
+            11,
+            11,
+            11,
+            11
+          ],
+          "peakOffsetMs": [
+            0.123,
+            -0.534,
+            -0.544,
+            -0.534
+          ],
+          "expectedIDs": [
+            11,
+            12,
+            13,
+            14
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 4,
+          "sourceIDs": [
+            4,
+            4,
+            4,
+            4
+          ],
+          "peakOffsetMs": [
+            0.132,
+            -1.191,
+            -1.202,
+            -1.191
+          ],
+          "expectedIDs": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 13,
+          "startStep": 12,
+          "sourceIDs": [
+            12,
+            12,
+            12,
+            12
+          ],
+          "peakOffsetMs": [
+            0.068,
+            -0.567,
+            -0.578,
+            -0.588
+          ],
+          "expectedIDs": [
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.347,
+            -1.33,
+            -1.341,
+            -1.331
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 15,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.175,
+            -0.957,
+            -0.946,
+            -0.957
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 1,
+          "sourceIDs": [
+            1,
+            1,
+            1,
+            1
+          ],
+          "peakOffsetMs": [
+            0.324,
+            -1.354,
+            -1.343,
+            -1.375
+          ],
+          "expectedIDs": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "cycle": 1,
+          "pattern": 16,
+          "startStep": 9,
+          "sourceIDs": [
+            9,
+            9,
+            9,
+            9
+          ],
+          "peakOffsetMs": [
+            -0.198,
+            -0.959,
+            -0.969,
+            -0.959
+          ],
+          "expectedIDs": [
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      "browserAgreement": [
+        {
+          "sliceDurationMs": 55,
+          "stepSourcesMatching": 85,
+          "totalStepSources": 96
+        },
+        {
+          "sliceDurationMs": 160,
+          "stepSourcesMatching": 96,
+          "totalStepSources": 96
+        }
+      ]
+    }
+  ],
+  "scope": "Measured source identities at step-boundary peaks; timing fit uses dry reference bars. Does not prove firmware reset ordering."
+}

@@ -11,3 +11,32 @@ assert.equal(q.messages.filter(x=>x.type==='pulse').length,4);assert.equal(peaks
 console.log('PASS SY2–SY5 clock detection, clock-only suppression, right audio pass-through, clock forwarding and stop silence');
 
 const timeout=new Processor();send(timeout,{type:'config',mode:2,bpm:120,gain:.7});send(timeout,{type:'start',time:0});for(let b=0;b<600;b++){env.currentFrame=b*128;let input=new Float32Array(128);if(b===0)input.fill(.7,0,100);timeout.process([[input,new Float32Array(128)]],[[new Float32Array(128),new Float32Array(128)]]);}assert.equal(timeout.messages.filter(e=>e.type==='timeout').length,1);console.log('PASS missing-clock watchdog reports once without fabricating new pulses');
+
+// External tempo can vary; every received edge owns an exact even-step index.
+{
+ const context={window:{}};vm.createContext(context);vm.runInContext(fs.readFileSync('sync.js','utf8'),context);
+ const Timeline=context.window.PO33SyncTimeline,clock=new Timeline(0,240,1,true),order=[1,1,2,3];let time=.04;
+ for(let i=0;i<160;i++){
+  const period=.125+.008*Math.sin(i*.17);clock.pulse(time,period);
+  for(let k=0;k<2;k++){
+   const index=i*2+k,point=clock.point(index,order),frame=clock.frame(time+k*period/2+1e-8,order);
+   assert(Math.abs(point.time-(time+k*period/2))<1e-10);
+   assert.equal(frame.index,index);assert.equal(frame.step,index%16);assert.equal(frame.pattern,order[Math.floor(index/16)%4]);
+  }
+  assert(Math.abs(clock.next(time+.0001,order)-(time+period/2))<1e-10);
+  time+=period;
+ }
+ console.log('PASS changing external pulse periods preserve step indices, repeated chain order and next-grid restoration');
+}
+
+// The first slave half-step uses current tempo, never constructor/stale120BPM.
+for(const bpm of [60,132,240]){
+ const q=new Processor();send(q,{type:'config',mode:2,bpm,gain:.7});
+ for(let run=0;run<2;run++){
+  q.period=48000*.37;send(q,{type:'start',time:0});env.currentFrame=0;
+  q.process([[new Float32Array(128).fill(.7),new Float32Array(128)]],[[new Float32Array(128),new Float32Array(128)]]);
+  const pulse=q.messages.filter(e=>e.type==='pulse').at(-1);assert(Math.abs(pulse.period-30/bpm)<1e-12);
+  send(q,{type:'stop'});
+ }
+}
+console.log('PASS first slave pulse and restarted input seed interpolation from configured BPM, not stale120BPM');

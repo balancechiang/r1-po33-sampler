@@ -38,9 +38,26 @@
  function choke(voices,slot,time,cut,group){
   voices.forEach(function(v){if(v.slot===slot && !(group!==undefined && v.group===group) && v.start<=time && v.end>time){v.end=time;cut(v,time);}});
  }
+ // Dry hardware admission preserves sounding slots. A masked fifth source keeps
+ // its original gate and becomes audible when a channel is released (v11).
+ function rebalance(voices,from,limit){
+  limit=limit || 4;
+  const times=[...new Set([from,...voices.flatMap(v=>[v.start,v.end]).filter(t=>Number.isFinite(t)&&t>from)])].sort((a,b)=>a-b);
+  for(const v of voices)if(v.priorityMask)v.priorityMask.gain.cancelScheduledValues(from);
+  for(const time of times){
+   const selected=voices.filter(v=>v.start<=time&&v.end>time).sort((a,b)=>a.start-b.start).slice(0,limit);
+   for(const v of voices)if(v.priorityMask&&v.end>from)v.priorityMask.gain.setValueAtTime(selected.includes(v)?1:0,time);
+  }
+ }
  function allocate(voices,incoming,cut,limit){
   limit=limit || 4;var t=incoming.start;
   choke(voices,incoming.slot,t,cut,incoming.group);
+  if(incoming.priorityMask && incoming.effect===0){
+   // Preserve a later same-slot retrigger already queued by lookahead.
+   const next=voices.filter(v=>v.slot===incoming.slot&&v.start>t&&v.start<incoming.end).sort((a,b)=>a.start-b.start)[0];
+   if(next){incoming.end=next.start;cut(incoming,next.start);}
+   voices.push(incoming);rebalance(voices,t,limit);return;
+  }
   var active=voices.filter(function(v){return v.start<=t && v.end>t;}).sort(function(a,b){return a.start-b.start;});
   while(active.length>=limit){var victim=active.shift();victim.end=t;cut(victim,t);}
   // A live hit can arrive before voices already scheduled by the lookahead sequencer.
@@ -78,6 +95,6 @@
   manual(slot,key,value,now){this.flush(now);this.held[slot-1][key]=value;}
   stop(now){this.flush(now);this.events=[];}
  }
- var api={volumeGain:volumeGain,gainVolume:gainVolume,MAX_VOLUME_GAIN:MAX_VOLUME_GAIN,AUTO_SLICE_DEFAULTS:AUTO_SLICE_DEFAULTS,MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate};root.PO33Sampling=api;
+ var api={volumeGain:volumeGain,gainVolume:gainVolume,MAX_VOLUME_GAIN:MAX_VOLUME_GAIN,AUTO_SLICE_DEFAULTS:AUTO_SLICE_DEFAULTS,MELODIC_OFFSETS:MELODIC_OFFSETS,trimFrames:trimFrames,filterShape:filterShape,Latches:Latches,transientSlices:transientSlices,choke:choke,allocate:allocate,rebalance:rebalance};root.PO33Sampling=api;
  if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);

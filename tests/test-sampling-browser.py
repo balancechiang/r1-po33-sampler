@@ -35,7 +35,7 @@ try:
   """)
   page.goto(f'http://127.0.0.1:{server.server_port}/index.html');page.wait_for_timeout(600)
   page.mouse.click(10,10)
-  page.evaluate("""()=>{const original=PO33Sampling.transientSlices;PO33Sampling.transientSlices=(data,rate)=>{const r=original(data,rate);window.detected=r;window.recordRate=rate;window.recordPeak=data.reduce((a,v)=>Math.max(a,Math.abs(v)),0);return r;};const alloc=PO33Sampling.allocate;PO33Sampling.allocate=(voices,v,cut,n)=>{alloc(voices,v,cut,n);window.allocation=voices.map(x=>({slot:x.slot,start:x.start,end:x.end}));};}""")
+  page.evaluate("""()=>{const original=PO33Sampling.transientSlices;PO33Sampling.transientSlices=(data,rate)=>{const r=original(data,rate);window.detected=r;window.recordRate=rate;window.recordPeak=data.reduce((a,v)=>Math.max(a,Math.abs(v)),0);return r;};const alloc=PO33Sampling.allocate;PO33Sampling.allocate=(voices,v,cut,n)=>{alloc(voices,v,cut,n);window.voiceList=voices;window.allocation=voices.map(x=>({slot:x.slot,start:x.start,end:x.end}));};}""")
   def down(sel,i=1):page.locator(sel).dispatch_event('pointerdown',{'pointerId':i,'button':0,'bubbles':True})
   def up(i=1):page.evaluate('i=>window.dispatchEvent(new PointerEvent("pointerup",{pointerId:i,bubbles:true}))',i)
   def tap(sel,i=1):down(sel,i);up(i)
@@ -45,17 +45,18 @@ try:
   page.wait_for_function('document.body.classList.contains("recording")');page.wait_for_timeout(1600);up(2);up()
   page.wait_for_function('!document.body.classList.contains("recording") && !!window.detected')
   assert .5<page.evaluate('recordPeak')<.65 # no post-capture normalization to .9
-  assert page.locator('[data-led-reason="slice-result"][data-led-level="bright"]').count()==4
-  detected=page.evaluate('detected.filter(Boolean)');assert len(detected)==4,detected
-  assert abs((detected[2]['start']-detected[1]['start'])/page.evaluate('recordRate')-.37)<.015
+  assert page.locator('[data-led-reason="slice-result"][data-led-level="bright"]').count()==3
+  detected=page.evaluate('detected.filter(Boolean)');assert len(detected)==3,detected
+  assert abs((detected[1]['start']-detected[0]['start'])/page.evaluate('recordRate')-.37)<.015
   select(9);page.evaluate('notes=[];voiceStops=[]');pad(1);page.wait_for_timeout(25);pad(2)
   notes=page.evaluate('notes');stops=page.evaluate('voiceStops');assert len(notes)==2,notes
   assert any(x['id']==notes[0]['id'] and abs(x['time']-notes[1]['args'][0]-.002)<.015 for x in stops),stops
   second=notes[1]['args'][1];pad(16);assert len(page.evaluate('notes'))==2 # unused pad is silent but chokes
   for slot in [1,2,3,4]:select(slot);pad(1)
   select(9);pad(1)
-  entries=page.evaluate('allocation');t=max(x['start'] for x in entries)
-  assert len([x for x in entries if x['start']<=t and x['end']>t])<=4
+  page.wait_for_timeout(30)
+  audible=page.evaluate('voiceList.filter(v=>v.start<=v.src.context.currentTime && v.end>v.src.context.currentTime && (!v.priorityMask || v.priorityMask.gain.value>0)).length')
+  assert audible<=4,audible
   select(1);pad(1)
   down('[data-act="sound"]');down('[data-act="write"]',2);tap('[data-pad="13"]',3);up(2);up()
   select(13);page.evaluate('notes=[]');pad(1);pad(2)
@@ -66,6 +67,6 @@ try:
   select(9);page.evaluate('notes=[]');pad(2)
   assert abs(page.evaluate('notes.at(-1).args[1]')-second)<.0001
   assert not errors,errors
-  browser.close();print('PASS real synthetic microphone take -> zero anchor + 3 irregular slices, unused-pad choke, live same-slot cut, global voice cap, equal melodic-copy slices, persisted slice offsets on reload.')
+  browser.close();print('PASS real synthetic microphone take -> threshold-aligned first hit + 2 irregular slices, unused-pad choke, live same-slot cut, global voice cap, equal melodic-copy slices, persisted slice offsets on reload.')
 finally:server.shutdown();server.server_close()
 

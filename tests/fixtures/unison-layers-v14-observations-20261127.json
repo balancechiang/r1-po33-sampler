@@ -1,0 +1,197 @@
+{
+  "profile": "unison-layers-v14",
+  "quality": {
+    "seconds": 113.95,
+    "sampleRate": 44100,
+    "channels": 2,
+    "peakDbFS": -19.95452680251965,
+    "clippedSamples": 0
+  },
+  "onsetSeconds": 14.657687074829932,
+  "fixedToneWindows": [
+    {
+      "pattern": 1,
+      "startSeconds": 0.2,
+      "endSeconds": 2.7,
+      "rms": 0.011870787894374771,
+      "peaks": [
+        {
+          "frequencyHz": 996.9620704650879,
+          "windowedAmplitude": 0.0163673789548789,
+          "ratioToDryFrequency": 1.0
+        }
+      ],
+      "rmsRelativeToDry": 1.0
+    },
+    {
+      "pattern": 2,
+      "startSeconds": 0.2,
+      "endSeconds": 2.7,
+      "rms": 0.02701406516680527,
+      "peaks": [
+        {
+          "frequencyHz": 980.8962821960449,
+          "windowedAmplitude": 0.021998895990838603,
+          "ratioToDryFrequency": 0.9838852562750474
+        },
+        {
+          "frequencyHz": 991.1161422729492,
+          "windowedAmplitude": 0.021229570063315436,
+          "ratioToDryFrequency": 0.9941362581733811
+        },
+        {
+          "frequencyHz": 1001.3360023498535,
+          "windowedAmplitude": 0.007951548864172405,
+          "ratioToDryFrequency": 1.0043872600717147
+        },
+        {
+          "frequencyHz": 1013.4904861450195,
+          "windowedAmplitude": 0.020857932058479686,
+          "ratioToDryFrequency": 1.0165787808479223
+        }
+      ],
+      "rmsRelativeToDry": 2.2756758361091154
+    },
+    {
+      "pattern": 3,
+      "startSeconds": 0.2,
+      "endSeconds": 2.7,
+      "rms": 0.02846036253669105,
+      "peaks": [
+        {
+          "frequencyHz": 494.59075927734375,
+          "windowedAmplitude": 0.024258165875197885,
+          "ratioToDryFrequency": 0.49609786964775365
+        },
+        {
+          "frequencyHz": 991.5787696838379,
+          "windowedAmplitude": 0.02101461609826159,
+          "ratioToDryFrequency": 0.994600295296351
+        },
+        {
+          "frequencyHz": 997.9293823242188,
+          "windowedAmplitude": 0.010323683853919569,
+          "ratioToDryFrequency": 1.000970259438937
+        },
+        {
+          "frequencyHz": 1001.3360023498535,
+          "windowedAmplitude": 0.02070136902402161,
+          "ratioToDryFrequency": 1.0043872600717147
+        }
+      ],
+      "rmsRelativeToDry": 2.397512514748714
+    },
+    {
+      "pattern": 4,
+      "startSeconds": 0.7,
+      "endSeconds": 2.3,
+      "rms": 0.014465527825283398,
+      "peaks": [
+        {
+          "frequencyHz": 980.8962821960449,
+          "windowedAmplitude": 0.008586579405317395,
+          "ratioToDryFrequency": 0.9838852562750474
+        },
+        {
+          "frequencyHz": 991.1161422729492,
+          "windowedAmplitude": 0.011157918785739797,
+          "ratioToDryFrequency": 0.9941362581733811
+        },
+        {
+          "frequencyHz": 1001.3360023498535,
+          "windowedAmplitude": 0.012369581173841805,
+          "ratioToDryFrequency": 1.0043872600717147
+        },
+        {
+          "frequencyHz": 1011.5558624267578,
+          "windowedAmplitude": 0.00830482030461981,
+          "ratioToDryFrequency": 1.0146382619700485
+        }
+      ],
+      "rmsRelativeToDry": 1.2185819470448294
+    },
+    {
+      "pattern": 5,
+      "startSeconds": 0.7,
+      "endSeconds": 2.3,
+      "rms": 0.01560609183334437,
+      "peaks": [
+        {
+          "frequencyHz": 494.59075927734375,
+          "windowedAmplitude": 0.01259166202336506,
+          "ratioToDryFrequency": 0.49609786964775365
+        },
+        {
+          "frequencyHz": 991.5787696838379,
+          "windowedAmplitude": 0.008541298451711702,
+          "ratioToDryFrequency": 0.994600295296351
+        },
+        {
+          "frequencyHz": 997.9293823242188,
+          "windowedAmplitude": 0.012562510577480944,
+          "ratioToDryFrequency": 1.000970259438937
+        },
+        {
+          "frequencyHz": 999.4013786315918,
+          "windowedAmplitude": 0.008114933025657188,
+          "ratioToDryFrequency": 1.002446741193841
+        }
+      ],
+      "rmsRelativeToDry": 1.3146635229443913
+    },
+    {
+      "pattern": 6,
+      "startSeconds": 0.7,
+      "endSeconds": 1.4,
+      "rms": 0.014513558488240291,
+      "peaks": [
+        {
+          "frequencyHz": 980.8962821960449,
+          "windowedAmplitude": 0.008639893528378084,
+          "ratioToDryFrequency": 0.9838852562750474
+        },
+        {
+          "frequencyHz": 991.1161422729492,
+          "windowedAmplitude": 0.011384370972841883,
+          "ratioToDryFrequency": 0.9941362581733811
+        },
+        {
+          "frequencyHz": 1001.3360023498535,
+          "windowedAmplitude": 0.012651995630065216,
+          "ratioToDryFrequency": 1.0043872600717147
+        },
+        {
+          "frequencyHz": 1011.5558624267578,
+          "windowedAmplitude": 0.008438558744251938,
+          "ratioToDryFrequency": 1.0146382619700485
+        }
+      ],
+      "rmsRelativeToDry": 1.222628069626099
+    },
+    {
+      "pattern": 6,
+      "startSeconds": 1.7,
+      "endSeconds": 2.3,
+      "rms": 0.015030451924625895,
+      "peaks": [
+        {
+          "frequencyHz": 494.59075927734375,
+          "windowedAmplitude": 0.012497450751675238,
+          "ratioToDryFrequency": 0.49609786964775365
+        },
+        {
+          "frequencyHz": 991.6208267211914,
+          "windowedAmplitude": 0.008784566028309492,
+          "ratioToDryFrequency": 0.9946424804893482
+        },
+        {
+          "frequencyHz": 999.6116638183594,
+          "windowedAmplitude": 0.010698108770763378,
+          "ratioToDryFrequency": 1.0026576671588272
+        }
+      ],
+      "rmsRelativeToDry": 1.2661713829246666
+    }
+  ],
+  "scope": "997Hz hardware observations at 60BPM/volume12. FFT peaks are spectral components, not proof of one independent layer each. RMS includes beating and capture gain. No fitted global gain/rate update; chirp per-layer phase and rate remain unresolved."
+}

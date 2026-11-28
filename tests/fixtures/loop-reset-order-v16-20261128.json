@@ -1,0 +1,451 @@
+{
+  "profile": "loop-reset-order-v16",
+  "windows": [
+    {
+      "cycle": 0,
+      "pattern": 9,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 9,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 10,
+      "start": 0.25,
+      "quarterSourceIDs": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 10,
+      "start": 2.25,
+      "quarterSourceIDs": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "firstRetainedOriginTick": 1,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 11,
+      "start": 0.5,
+      "quarterSourceIDs": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 11,
+      "start": 2.5,
+      "quarterSourceIDs": [
+        11,
+        12,
+        13,
+        11
+      ],
+      "firstRetainedOriginTick": 3,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 12,
+      "start": 0.75,
+      "quarterSourceIDs": [
+        4,
+        5,
+        6,
+        4
+      ],
+      "firstRetainedOriginTick": 3,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 12,
+      "start": 2.75,
+      "quarterSourceIDs": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 14,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "firstRetainedOriginTick": 2,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 14,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        10,
+        11,
+        9
+      ],
+      "firstRetainedOriginTick": 3,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 16,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 0,
+      "pattern": 16,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 9,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "firstRetainedOriginTick": 1,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 9,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        10,
+        9,
+        9
+      ],
+      "firstRetainedOriginTick": 2,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 10,
+      "start": 0.25,
+      "quarterSourceIDs": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 10,
+      "start": 2.25,
+      "quarterSourceIDs": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 11,
+      "start": 0.5,
+      "quarterSourceIDs": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 11,
+      "start": 2.5,
+      "quarterSourceIDs": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 12,
+      "start": 0.75,
+      "quarterSourceIDs": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 12,
+      "start": 2.75,
+      "quarterSourceIDs": [
+        12,
+        13,
+        14,
+        15
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 14,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 14,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 16,
+      "start": 0,
+      "quarterSourceIDs": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "firstRetainedOriginTick": null,
+      "retainedOriginPersists": true
+    },
+    {
+      "cycle": 1,
+      "pattern": 16,
+      "start": 2,
+      "quarterSourceIDs": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "firstRetainedOriginTick": 1,
+      "retainedOriginPersists": true
+    }
+  ],
+  "pairedWindows": 12,
+  "differentBetweenPasses": 8,
+  "variations": [
+    {
+      "pattern": 9,
+      "start": 0,
+      "pass0": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "pass1": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "pattern": 9,
+      "start": 2,
+      "pass0": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "pass1": [
+        9,
+        10,
+        9,
+        9
+      ]
+    },
+    {
+      "pattern": 10,
+      "start": 2.25,
+      "pass0": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "pass1": [
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "pattern": 11,
+      "start": 2.5,
+      "pass0": [
+        11,
+        12,
+        13,
+        11
+      ],
+      "pass1": [
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "pattern": 12,
+      "start": 0.75,
+      "pass0": [
+        4,
+        5,
+        6,
+        4
+      ],
+      "pass1": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "pattern": 14,
+      "start": 0,
+      "pass0": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "pass1": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "pattern": 14,
+      "start": 2,
+      "pass0": [
+        9,
+        10,
+        11,
+        9
+      ],
+      "pass1": [
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "pattern": 16,
+      "start": 2,
+      "pass0": [
+        9,
+        10,
+        11,
+        12
+      ],
+      "pass1": [
+        9,
+        9,
+        9,
+        9
+      ]
+    }
+  ],
+  "allWindowsRetainOriginAfterFirstOverride": true,
+  "scope": "Source IDs near four quarter-step boundaries, not microsecond reset order. Supports an ordering/phase hypothesis but does not identify a deterministic timer model; no random scheduling rule added."
+}

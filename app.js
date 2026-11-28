@@ -854,15 +854,14 @@
     var previous=fx.kind;fx.kind=kind;
     var stream=[9,10].indexOf(kind)>=0;fx.engine.engage(stream?kind:0,stepDur());
     rampGain(dryGain,stream?0:1,now);rampGain(fx.wet,stream?1:0,now);
-    if(previous===15 && kind!==15)refreshVoices(kind,true);
+    if(previous===15 || kind===15)retuneReverse(kind,fromPattern,boundary);
     if((previous===7 || previous===8) && kind!==7 && kind!==8)glideOctave(0,fromPattern,boundary);
     if(loopHold && !(kind>=1 && kind<=4))releaseLoop();
     if(previous===11 || previous===12 || kind===11 || kind===12)retuneScratch(kind,fromPattern,boundary);
     if(previous===5 || previous===6 || kind===5 || kind===6)retuneUnison(kind===5||kind===6?kind:0,fromPattern);
     if(kind===7 || kind===8)glideOctave(kind,fromPattern,boundary);
-    if(kind>=1 && kind<=4 && seq.playing && (!fromPattern || kind===3))holdLoop(kind,!!fromPattern);
+    if(kind>=1 && kind<=4 && seq.playing && !fromPattern)holdLoop(kind,!!fromPattern);
     if(!fromPattern && kind===14 && seq.playing)restartPatternFx();
-    if(!fromPattern && kind===15)refreshVoices(15,true);
 
   }
   function fxRelease(fromPattern,boundary) {
@@ -873,7 +872,7 @@
     if(previous===5 || previous===6)retuneUnison(0,fromPattern);
     if(previous===7 || previous===8)glideOctave(0,fromPattern,boundary);
     if(loopHold)releaseLoop();
-    if(previous===15 && !fromPattern)refreshVoices(0,false);
+    if(previous===15)retuneReverse(0,fromPattern,boundary);
   }
   function reverseBuffer(buffer) {
     var reversed=reversedBuffers.get(buffer);if(reversed)return reversed;
@@ -892,22 +891,26 @@
   }
   function cutSampleVoice(v,at) {
     // Tiny release avoids clicks. Keep scheduled future voices in the timeline.
-    v.cutAt=Math.min(v.cutAt===undefined?Infinity:v.cutAt,at);
+    v.cutAt=Math.min(v.cutAt===undefined?Infinity:v.cutAt,at);v.end=Math.min(v.end,at);
     var when=Math.max(ctx().currentTime,at),gain=v.gain.gain;
     try {
       if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(when);
-      else {gain.cancelScheduledValues(when);gain.setValueAtTime(when<=v.start?0:.95,when);}
+      else {var level=gain.value;gain.cancelScheduledValues(when);gain.setValueAtTime(when<=v.start?0:level,when);}
       gain.linearRampToValueAtTime(0,when+.002);v.src.stop(when+.002);
     } catch(err) {}
+    if(v.priorityMask && v.effect===0)window.PO33Sampling.rebalance(sampleVoices,when,4);
   }
-  function cancelVoice(v,now) {
+  function cancelVoice(v,now,readerReset) {
     v.cutAt=now;v.end=Math.min(v.end,now);
     try{
-      v.gain.gain.cancelScheduledValues(now);
-      v.gain.gain.setValueAtTime(v.start>now?0:.95,now);
-      v.gain.gain.linearRampToValueAtTime(0,now+RAMP);v.src.stop(now+RAMP);
+      var gain=v.gain.gain;
+      if(readerReset){gain.cancelScheduledValues(now);gain.setValueAtTime(v.start>now?0:.95,now);}
+      else if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(now);
+      else {var level=gain.value;gain.cancelScheduledValues(now);gain.setValueAtTime(v.start>=now?0:level,now);}
+      gain.linearRampToValueAtTime(0,now+RAMP);v.src.stop(now+RAMP);
     }catch(err){}
     var index=sampleVoices.indexOf(v);if(index>=0)sampleVoices.splice(index,1);
+    if(v.priorityMask && v.effect===0)window.PO33Sampling.rebalance(sampleVoices,Math.max(ctx().currentTime,now),4);
   }
   function refreshVoices(effect,includeActive) {
     var now=ctx().currentTime;
@@ -918,15 +921,41 @@
     });
   }
   function sourceRate(semitones,pitch,effect){return Math.pow(2,(semitones+pitch)/12)*(effect===8?.5:effect===7?2:1);}
-  function retuneUnison(kind,fromPattern){
-    var now=ctx().currentTime,seen=new Set(),voices=sampleVoices.slice();
-    voices.forEach(function(v){
-      if(v.end<=now || !v.speed || v.effect===kind || (fromPattern && v.start>now+.002))return;
-      var key=v.group===undefined?v:v.group;if(seen.has(key))return;seen.add(key);
-      var at=Math.max(now+.003,v.start),resume=(v.anchor-(v.sourceStart===undefined?v.anchor:v.sourceStart))+(v.start>now?0:v.speed.state(at).position),gate=v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at);
-      voices.filter(function(old){return v.group===undefined?old===v:old.group===v.group;}).forEach(function(old){cancelVoice(old,now);});
-      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume});
+  function retuneQueuedUnison(kind,pending,now){
+    // Lookahead notes are fresh events, not ringing voices competing for today's slot.
+    var batches=[];
+    pending.sort(function(a,b){return a.start-b.start || a.slot-b.slot;}).forEach(function(v){
+      var batch=batches[batches.length-1];
+      if(!batch || Math.abs(batch.time-v.start)>.000001){batch={time:v.start,voices:[]};batches.push(batch);}
+      batch.voices.push(v);
     });
+    batches.forEach(function(batch){
+      if(batch.voices.every(function(v){return v.effect===kind;}))return;
+      var selected=kind===5 || kind===6?[batch.voices[0]]:batch.voices.filter(function(v,i,a){return v.group===undefined || a.findIndex(function(old){return old.group===v.group;})===i;});
+      batch.voices.forEach(function(v){cancelVoice(v,now);});
+      selected.forEach(function(v){voice(v.slot,v.note,v.start,v.gateEnd===Infinity?undefined:v.gateEnd-v.start,kind,undefined,{sourcePad:v.sourcePad});});
+    });
+  }
+  function retuneUnison(kind,fromPattern){
+    var now=ctx().currentTime;
+    var pending=fromPattern?[]:sampleVoices.filter(function(v){return v.start>now+.002 && v.end>v.start && v.speed;});
+    var voices=sampleVoices.filter(function(v){return v.end>now && v.speed && v.start<=now+.002;});
+    if(!voices.length){retuneQueuedUnison(kind,pending,now);return;}
+    // V13 reverses arrival order: active Unison selects the lowest sound slot,
+    // not the most recently created voice. Other ringing slots do not return.
+    voices.sort(function(a,b){return a.slot-b.slot || a.start-b.start;});
+    var v=voices[0];if(voices.every(function(old){return old.effect===kind;})){retuneQueuedUnison(kind,pending,now);return;}
+    var at=Math.max(now+.003,v.start),resume=voicePosition(v,at),dryCursor=v.performance && v.performance.dryCursor;
+    if(kind===0 && dryCursor)resume=dryCursor.position+dryCursor.speed.state(at).position;
+    if(!dryCursor && v.effect===0)dryCursor={position:resume,speed:new window.PO33LiveVoice.Speed(at,v.speed.state(at).rate)};
+    var gate=v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at);
+    var lowSwitch=kind===6 && v.effect===5 || v.effect===6 && v.performance && v.performance.unisonLowSwitched;
+    voices.forEach(function(old){cancelVoice(old,now);});
+    // Native saved 5→6→off: v15/v16 isolate a melodic-slot-dependent release.
+    // Keep this compatibility quirk out of live controls and non-native projects.
+    if(fromPattern && nativeAudition && kind===0 && v.effect===6 && lowSwitch && v.slot>1 && v.slot<=8){window.PO33Sampling.rebalance(sampleVoices,now,4);return;}
+    voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,sourcePad:v.sourcePad,unisonEntry:true,dryCursor:dryCursor,unisonLowSwitched:kind===6 && !!lowSwitch});
+    retuneQueuedUnison(kind,pending,now);
   }
   function glideOctave(kind,fromPattern,boundary){
     var now=ctx().currentTime;
@@ -938,7 +967,23 @@
   }
   function voicePosition(v,time){
     var elapsed=v.speed.state(time).position;
-    return v.scratch?window.PO33LiveVoice.scratchCursor(elapsed+(v.scratchPhase || 0),v.scratch.half,v.scratch.anchor,v.scratch.span,v.scratch.fresh,v.scratch.kind,v.scratch.negative):(v.anchor-v.sourceStart)+elapsed;
+    return v.scratch?window.PO33LiveVoice.scratchCursor(elapsed+(v.scratchPhase || 0),v.scratch.half,v.scratch.anchor,v.scratch.span,v.scratch.fresh,v.scratch.kind,v.scratch.negative):(v.anchor-v.sourceStart)+(v.reverse?v.span-elapsed:elapsed);
+  }
+  // Changing direction on a ringing source starts at its current cursor, not its end.
+  function retuneReverse(kind,fromPattern,boundary){
+    var now=ctx().currentTime;boundary=Number.isFinite(boundary)?boundary:now;
+    sampleVoices.slice().forEach(function(v){
+      if(v.end<=now || !v.speed || v.effect===kind || (fromPattern && v.start>now+.002))return;
+      var at=Math.max(now+.003,v.start),position=v.sourceStart+voicePosition(v,Math.max(v.start,boundary));
+      position+=(kind===15?-1:1)*v.speed.state(at).rate*Math.max(0,at-boundary);
+      var view=readerView(v.slot,v.sourcePad===undefined?v.note:v.sourcePad,at);
+      var gate=v.gateEnd===Infinity?undefined:Math.max(.001,v.gateEnd-at);
+      cancelVoice(v,now);
+      if(!view || position<=view.start || position>=view.end)return;
+      voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{
+        sourcePad:v.sourcePad,readerRegion:{buffer:view.buffer,start:kind===15?view.start:position,end:kind===15?position:view.end}
+      });
+    });
   }
   function scratchNegative(kind,time){
     var point=audibleStepAt(time),fraction=point.step+Math.max(0,(time-point.start)/stepDur());
@@ -957,7 +1002,7 @@
       voice(v.slot,v.note,at,gate,kind,Object.assign({},v.tweak,effectiveTweak(v.slot,at)),{resumeSeconds:resume,sourcePad:v.sourcePad,scratchContinuation:true,scratchNegative:scratchNegative(kind,boundary),scratchAgeSeconds:Math.max(0,at-boundary)});
     });
   }
-  function readerEffect(kind){return kind===1 || kind===2 || kind===4;}
+  function readerEffect(kind){return kind>=1 && kind<=4;}
   function readerView(slot,note,time){
     var sample=samples[slot-1],view=slot>8?rawSlice(sample,note):sample;if(!view)return null;
     var values=effectiveTweak(slot,time),trim=slot>8?(values.slices[note] || {start:0,length:100}):values;
@@ -966,7 +1011,8 @@
     return {buffer:view.buffer,start:region.start/view.buffer.sampleRate,end:region.end/view.buffer.sampleRate};
   }
   function emitReader(state,time,position){
-    if(state.entry)cancelVoice(state.entry,time);
+    // Keep the calibrated window-retrigger transition separate from ordinary stops.
+    if(state.entry)cancelVoice(state.entry,time,true);
     if(position>=state.end || (state.gateEnd!==Infinity && time>=state.gateEnd)){state.entry=null;return;}
     state.entry=voice(state.slot,state.note,time,state.gateEnd===Infinity?undefined:state.gateEnd-time,readerLoop.kind,undefined,{reader:true,sourcePad:state.sourcePad,readerRegion:{buffer:state.buffer,start:position,end:state.end}});
     if(state.entry)state.rate=state.entry.speed.rate;
@@ -977,11 +1023,14 @@
       var time=h.next;h.tick++;h.next=h.start+(h.tick+1)*h.period;
       for(var state of h.slots.values()){
         state.resetAt=time;state.resetAlive=!!(state.entry && state.entry.start<time && state.entry.end>time);
-        if(!state.resetAlive || time<ctx().currentTime-.002)continue;
+        if(!state.resetAlive)continue;
         var chunk=Math.floor((h.tick-state.originTick)/h.repeats);
         state.origin+=(chunk-state.chunk)*h.period*state.rate;state.chunk=chunk;
         var position=state.origin;
-        state.resetPosition=position;emitReader(state,time,position);
+        // A late callback may skip sound emission, but the source clock still advances.
+        // readerNote at this boundary must never consume a missing/stale reset position.
+        state.resetPosition=position;
+        if(time>=ctx().currentTime-.002)emitReader(state,time,position);
       }
     }
   }
@@ -996,16 +1045,19 @@
     var spec=window.PO33FX.readerSpec(kind,stepDur()),period=spec.period;
     readerLoop={kind:kind,start:time,next:time+period,tick:0,period:period,repeats:spec.repeats,slots:new Map()};
     sampleVoices.forEach(function(v){
-      if(v.start>=time || v.end<=time || !v.speed || readerLoop.slots.has(v.slot) || v.scratch)return;
+      if(v.start>=time || v.end<=time+1/ctx().sampleRate || !v.speed || readerLoop.slots.has(v.slot) || v.scratch)return;
       readerLoop.slots.set(v.slot,{slot:v.slot,note:v.note,sourcePad:v.sourcePad,buffer:v.src.buffer,origin:v.anchor+v.speed.state(time).position,originTick:0,chunk:0,end:v.anchor+v.span,rate:v.speed.state(time).rate,gateEnd:v.gateEnd,entry:v});
     });
   }
   function readerNote(slot,note,time,gate){
     var h=readerLoop,view=readerView(slot,note,time);if(!h)return;
     if(!view){var old=h.slots.get(slot);if(old && old.entry)cancelVoice(old.entry,time);h.slots.delete(slot);return;}
+    // Saved Loop3 captures notes only at the start of each four-reset window.
+    // Between captures, existing tails continue through the same source reader.
+    if(h.kind===3 && (h.tick%h.repeats!==0 || Math.abs(time-(h.start+h.tick*h.period))>.00001))return;
     var state=h.slots.get(slot),onTick=state && Math.abs(state.resetAt-time)<.00001;
-    var ignoreStart=onTick && state.resetAlive && state.buffer===view.buffer;
-    var recapture=!state || state.buffer!==view.buffer || (onTick && !state.resetAlive);
+    var ignoreStart=h.kind!==3 && onTick && state.resetAlive && state.buffer===view.buffer;
+    var recapture=h.kind===3 || !state || state.buffer!==view.buffer || Math.abs(time-h.start)<.00001 || (onTick && !state.resetAlive);
     if(!state)state={slot:slot};
     if(recapture){state.origin=view.start;state.originTick=h.tick;state.chunk=0;}
     state.note=note;state.sourcePad=note;state.buffer=view.buffer;state.end=view.end;state.gateEnd=gate?time+gate:Infinity;
@@ -1107,7 +1159,8 @@
   function replanVoice(v){
     var now=ctx().currentTime,desired=Math.min(v.scratch?v.end:v.speed.end(v.span,now),v.gateEnd,v.cutAt===undefined?Infinity:v.cutAt);
     if(desired<=now){v.end=now;cutSampleVoice(v,now);return;}
-    window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
+    if(v.priorityMask && v.effect===0){v.end=desired;window.PO33Sampling.rebalance(sampleVoices,now,4);}
+    else window.PO33LiveVoice.protect(sampleVoices,v,desired,Math.max(now,v.start),cutSampleVoice);
     var end=v.end,gain=v.gain.gain,time=Math.max(now,v.start),release=Math.min(.003,Math.max(0,end-time)*.3);
     if(gain.cancelAndHoldAtTime)gain.cancelAndHoldAtTime(time);else{gain.cancelScheduledValues(time);gain.setValueAtTime(.95,time);}
     if(time<=v.start){gain.setValueAtTime(0,time);gain.linearRampToValueAtTime(.95,time+Math.min(.002,(end-time)*.3));}else gain.setTargetAtTime(.95,time,.001);
@@ -1118,6 +1171,8 @@
     var values=effectiveTweak(v.slot,time);v.tweak=JSON.parse(JSON.stringify(effectiveTweak(v.slot,now)));
     setVoiceControls(v.controls,values,time,false);
     if(Number.isFinite(patch.pitch)){
+      var dryCursor=v.performance && v.performance.dryCursor;
+      if(dryCursor)dryCursor.speed.target(time,sourceRate(v.semitones,values.pitch,0),.015,now);
       v.speed.target(time,sourceRate(v.semitones,values.pitch,v.effect)*(v.performance.unisonLayer || 1),.015,now);
       v.speed.apply(v.src.playbackRate,now);replanVoice(v);
     }
@@ -1299,11 +1354,12 @@
     g.gain.linearRampToValueAtTime(0.95, t + attack);
     g.gain.setValueAtTime(0.95, t + Math.max(attack, dur - release));
     g.gain.linearRampToValueAtTime(0, t + dur);
-    var controls=connectVoice(g,slotNumForVoice,when);controls.input.gain.value=performance.unisonGain===undefined?1:performance.unisonGain;
-    src.connect(controls.input);
+    var priorityMask=c.createGain();
+    var controls=connectVoice(g,slotNumForVoice,when);controls.priority=priorityMask;controls.input.gain.value=performance.unisonGain===undefined?1:performance.unisonGain;
+    src.connect(priorityMask);priorityMask.connect(controls.input);
     if(scratch)src.start(t,(rate*(performance.scratchAgeSeconds || 0))%scratch.buffer.duration);else src.start(t,off,avail);
     src.stop(t + dur + 0.03);
-    return trackVoice(src,g,t,t+dur,{controls:controls,speed:speed,performance:performance,sourcePad:s.sourcePad,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
+    return trackVoice(src,g,t,t+dur,{controls:controls,priorityMask:priorityMask,speed:speed,performance:performance,sourcePad:s.sourcePad,reverse:voiceEffect===15 || !!performance.reverse,scratch:scratch,scratchPhase:rate*(performance.scratchAgeSeconds || 0),scratchGate:s.gateSeconds,span:scratch?Infinity:avail,semitones:semitones,gateEnd:!scratch && s.gateSeconds?t+s.gateSeconds:Infinity,anchor:s.offset,sourceStart:s.sourceStart,cutAt:undefined});
   }
 
   // Resolve independent per-pad metadata into a bounded view of the original asset.
@@ -1311,7 +1367,9 @@
     var kind=effect===undefined?fx.kind:effect;
     if((kind===5 || kind===6) && !(performance && performance.unisonGroup!==undefined)){
       var group=++unisonSerial;
-      window.PO33FX.unisonLayers(kind).forEach(function(ratio,index){voice(slotNum,padIndex,when,gateSeconds,kind,override,Object.assign({},performance,{unisonGroup:group,unisonLayer:ratio,unisonGain:window.PO33FX.unisonGains(kind)[index]}));});return;
+      performance=Object.assign({},performance);
+      if(!performance.dryCursor){var time=when===undefined?ctx().currentTime:when,values=override || effectiveTweak(slotNum,time);performance.dryCursor={position:performance.resumeSeconds || 0,speed:new window.PO33LiveVoice.Speed(time,sourceRate(slotNum<=8?window.PO33Sampling.MELODIC_OFFSETS[padIndex]:0,values.pitch || 0,0))};}
+      window.PO33FX.unisonLayers(kind,performance && performance.unisonEntry).forEach(function(ratio,index){voice(slotNum,padIndex,when,gateSeconds,kind,override,Object.assign({},performance,{unisonGroup:group,unisonLayer:ratio,unisonGain:window.PO33FX.unisonGains(kind,performance && performance.unisonEntry)[index]}));});return;
     }
     slotNumForVoice=slotNum;voiceNote=padIndex;voiceGate=gateSeconds;voiceEffect=effect===undefined?fx.kind:effect;
     var at=when===undefined?ctx().currentTime:when;
@@ -1341,10 +1399,10 @@
   }
 
   // ---------- memory pool ----------
-  function usedSeconds() {
+  function usedSeconds(skipSlot) {
     var u = 0, seen=[];
     function count(s){if(s && seen.indexOf(s.buffer)<0){seen.push(s.buffer);u+=s.buffer.duration;}}
-    for (var i = 0; i < TOTAL_SLOTS; i++) if (samples[i]) {
+    for (var i = 0; i < TOTAL_SLOTS; i++) if (i+1!==skipSlot && samples[i]) {
       count(samples[i]);if(samples[i].sliceViews)samples[i].sliceViews.forEach(count);
     }
     return u;
@@ -1385,8 +1443,8 @@
     for (var i = 0; i < TOTAL_SLOTS; i++) {
       var lock=extra && extra.locks[i+":"+step];if(lock){parameterLatches.schedule(i+1,lock,when);updateLiveSlot(i+1,lock,when);}
       var v = pat.lanes[i][step];
-      // A queued Loop takes ownership at its audible onset; do not double-trigger it.
-      if (v >= 0 && !(effect===13 && step%4===3) && !(!loopEvent && effect===3)) {
+      // Saved source readers handle capture and reset timing below.
+      if (v >= 0 && !(effect===13 && step%4===3)) {
         // Saved Unison allocates all four voices to the first simultaneous slot.
         if((effect===5 || effect===6) && unisonTriggered)continue;
         if(effect===5 || effect===6)unisonTriggered=true;
@@ -1944,7 +2002,7 @@
   }
 
   var rec = {
-    on: false,
+    on: false,phase:"idle",
     id:0,rate:0,stopping:false,done:null,resolve:null,stopTimer:null,
     slot: 0,
     start: 0,
@@ -2028,7 +2086,8 @@
     var m=event.data;
     if(m.type==='meter'){inputLevel=m.rms;inputPeak=m.peak;if(m.clipped && (recHeld||rec.on))clipUntil=Date.now()+150;return;}
     if(!rec.on || m.id!==rec.id)return;
-    if(m.type==='started'){d.body.dataset.captureState=rec.stopping?"stopping":"recording";return;}
+    if(m.type==='armed'){d.body.dataset.captureState=rec.stopping?'stopping':'armed';return;}
+    if(m.type==='started'){rec.phase='recording';samples[rec.slot-1]=null;d.body.dataset.captureState=rec.stopping?'stopping':'recording';paint();return;}
     if(m.type==='chunk'){
       var data=new Float32Array(m.data);
       if(m.frames!==rec.frames+data.length || m.frames>rec.maxFrames){abortRecording("CAPTURE DATA ERROR");return;}
@@ -2044,7 +2103,7 @@
     clearTimeout(rec.stopTimer);clearInterval(rec.timer);rec.timer=rec.stopTimer=null;
     samples[rec.slot-1]=rec.replacing;savedSig[rec.slot-1]=rec.replacingStored;
     if(pads[rec.slot-1])pads[rec.slot-1].classList.remove('rec-target');
-    rec.on=false;rec.stopping=false;rec.chunks=[];rec.replacing=null;rec.slot=0;
+    rec.on=false;rec.phase="idle";rec.stopping=false;rec.chunks=[];rec.replacing=null;rec.slot=0;
     d.body.classList.remove('recording');d.body.dataset.captureState=micReady()?'monitoring':'idle';
     var resolve=rec.resolve;rec.resolve=null;resolve?.(false);paint();if(message)flashHint(message);
   }
@@ -2073,11 +2132,8 @@
 
     rec.replacing = samples[slotNum - 1];
     rec.replacingStored = savedSig[slotNum - 1];
-    samples[slotNum - 1] = null;
-    pendingTrim[slotNum - 1] = 0;
-    pendingPitch[slotNum - 1] = 0;
-
-    var avail = MEM_TOTAL - usedSeconds();
+    // Reserve replacement capacity without deleting the old sound while waiting.
+    var avail = MEM_TOTAL - usedSeconds(slotNum);
     if (avail < 0.06) {
       samples[slotNum - 1] = rec.replacing;
       savedSig[slotNum - 1] = rec.replacingStored;
@@ -2088,7 +2144,7 @@
     }
 
     sliceResultUntil=0;clearTimeout(sliceResultTimer);
-    rec.on = true;rec.id++;rec.rate=c.sampleRate;rec.stopping=false;
+    rec.on = true;rec.phase="armed";rec.id++;rec.rate=c.sampleRate;rec.stopping=false;
     rec.done=new Promise(function(resolve){rec.resolve=resolve;});
     rec.slot = slotNum;
     rec.start = c.currentTime;
@@ -2096,8 +2152,8 @@
     rec.chunks = [];
     rec.frames = 0;
     rec.maxFrames = Math.floor(avail * c.sampleRate);
-    d.body.dataset.captureState="starting";
-    mic.proc.port.postMessage({type:"start",id:rec.id,maxFrames:rec.maxFrames});
+    d.body.dataset.captureState="armed";
+    mic.proc.port.postMessage({type:"arm",id:rec.id,maxFrames:rec.maxFrames});
     document.body.classList.add("recording");
     pads[slotNum - 1].classList.add("rec-target");
     rec.timer = setInterval(tickRec, 50);
@@ -2108,7 +2164,7 @@
     if (!rec.on) return;
     // The worklet, not the UI timer, owns the exact capacity boundary.
     elMem.textContent = memLeft().toFixed(1) + "s";
-    elHint.textContent = "REC " + recElapsed().toFixed(1) + "s";
+    elHint.textContent = rec.phase==="armed"?"WAIT FOR SOUND":"REC " + recElapsed().toFixed(1) + "s";
   }
 
   function finishRec() {
@@ -2127,7 +2183,7 @@
     // Resolve after synchronous commit code below finishes; promise continuations run later.
     if(resolve)resolve(true);
     d.body.dataset.captureState="monitoring";
-    rec.on = false;
+    var wasArmed=rec.phase==="armed";rec.on = false;rec.phase="idle";
     if (rec.timer) { clearInterval(rec.timer); rec.timer = null; }
     document.body.classList.remove("recording");
 
@@ -2156,10 +2212,11 @@
       savedSig[slotNum - 1] = rec.replacingStored;
       rec.replacing = null;
       paint();
-      flashHint(want === 0 ? "NO MIC INPUT" : "TOO SHORT");
+      if(!wasArmed || want)flashHint(want === 0 ? "NO MIC INPUT" : "TOO SHORT");
       return;
     }
 
+    pendingTrim[slotNum-1]=0;pendingPitch[slotNum-1]=0;
     tweaks[slotNum-1]={pitch:0,volume:100,filter:0,resonance:0,start:0,length:100,slices:{}};
     ['pitch','volume','filter','resonance'].forEach(function(key){parameterLatches.manual(slotNum,key,tweaks[slotNum-1][key],c.currentTime);});
     var takePeak=0,takeEnergy=0;for(var k=0;k<data.length;k++){takePeak=Math.max(takePeak,Math.abs(data[k]));takeEnergy+=data[k]*data[k];}
@@ -2328,7 +2385,7 @@
       return "REC BEAT: BAR " + bar + "/" + EXPORT_BARS;
     }
     if (fx.kind) return "FX: " + FX_NAMES[fx.kind];
-    if (rec.on) return "REC " + recElapsed().toFixed(1) + "s";
+    if (rec.on) return rec.phase==="armed"?"WAIT FOR SOUND":"REC " + recElapsed().toFixed(1) + "s";
     if (mic.error) return mic.error;
     if(recHeld && mic.warning)return mic.warning;
     if (patternHeld) return recHeld ? "TAP PAD = COPY" : (soundHeld ? "TAP PAD = CLEAR" : "TAP PAD = SWITCH");
@@ -2689,7 +2746,7 @@
     if(stepEdit && stepEdit.pointer===pid(e))endStepEdit(e.type==="pointercancel");
     if(fxPadPointer!==undefined && pid(e)===fxPadPointer){fxPadPointer=undefined;if(fxHeld)fxRelease();}
     if(padPointer!==undefined && pid(e)===padPointer) {
-      if(recHeld && recUsedPad && !shiftHolds.rec){if(rec.on)finishRec();pendingRecSlot=0;if(latchedKeys.has('rec'))dropLatch('rec');}
+      if(recHeld && recUsedPad && !shiftHolds.rec){if(rec.on){if(e.type==='pointercancel')abortRecording();else if(rec.phase==='armed' || latchedKeys.has('rec'))finishRec();}pendingRecSlot=0;if(latchedKeys.has('rec'))dropLatch('rec');}
       padPointer=undefined; heldPad=0;
     }
     Object.keys(modifierPointers).forEach(function(act){
@@ -2860,7 +2917,7 @@
     if(displayValue && Date.now()<displayUntil && (state.mode!=="SOUND" && state.mode!=="PATTERN")){label=displayValue.label;number=String(displayValue.value);}
     if(seq.playing && state.mode!=="SOUND" && state.mode!=="PATTERN" && !bpmHeld && !(displayValue && Date.now()<displayUntil)){label="PATTERN";number="P"+String(seq.visualPattern || seq.pattern).padStart(2,"0");}
     if(!startupReady){label="LOADING";number="LoAd";}
-    if(rec.on){label="REC";number=memLeft().toFixed(1);}
+    if(rec.on){label=rec.phase==="armed"?"REC READY":"REC";number=rec.phase==="armed"?"rec":memLeft().toFixed(1);}
     else if(recHeld){label="REC READY";number="rec";}
     if(activeKeys().has("sound") && activeKeys().has("bpm")){label="FREE";number=memLeft().toFixed(1);}
     if(copySession && writeHeld && (soundHeld||patternHeld)){label="COPY";number="CPy";}
@@ -2870,7 +2927,7 @@
     if(resetBusy || resetFailure || Date.now()<resetUntil){label=resetFailure?"RESET ERROR":"RESET";number=resetFailure?"err":"RST";}
     var transferView=hardwareTransfer && hardwareTransfer.view.active?hardwareTransfer.view:null;
     if(transferView){label=transferView.state==="decoding"?"CHECK":transferView.mode==="receive"?"RECEIVE":"SEND";number=transferView.state==="error"?"err":transferView.state==="success"?"End":transferView.mode==="receive"?"rcv":"Snd";}
-    target.classList.toggle("record-armed-blink",!!((recHeld && !rec.on && !deleteDisplay || copySession && !copySession.pasted) && !transferView && !resetBusy));
+    target.classList.toggle("record-armed-blink",!!((recHeld && (!rec.on || rec.phase==="armed") && !deleteDisplay || copySession && !copySession.pasted) && !transferView && !resetBusy));
     if(!transferView && Date.now()<clipUntil)label="CLP";
     d.getElementById("lcdMode").textContent=label;
     d.getElementById("lcdRecord").querySelector("rect").setAttribute("fill",(state.mode==="STEP" || writeHeld || ((soundHeld||patternHeld)&&previousMode==="STEP"))?"#fff":"#222");
@@ -3211,7 +3268,7 @@
       bpmHeld=fxHeld=writeHeld=soundHeld=patternHeld=false;modifierPointers={};modifierUsed={};patternSelection=[];
       endStepEdit(true);pendingCopy=null;pendingRecSlot=0;
       sideRecArmed=sideRecHeld=recHeld=false;
-      rec.on=false;rec.chunks=[];rec.replacing=null;
+      rec.on=false;rec.phase="idle";rec.chunks=[];rec.replacing=null;
       clearTimeout(rec.stopTimer);rec.stopTimer=null;rec.stopping=false;if(rec.resolve)rec.resolve(false);rec.resolve=null;
       sliceResultUntil=0;clearTimeout(sliceResultTimer);
       if(rec.timer){clearInterval(rec.timer);rec.timer=null;}

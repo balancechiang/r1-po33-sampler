@@ -1,0 +1,34 @@
+{
+  "profile": "loop-mixed-v10",
+  "comparisons": {
+    "before": [
+      {
+        "pattern": 2,
+        "probes": 35,
+        "audibleProbes": 35,
+        "medianPitchErrorCents": 1.7108049571951953
+      },
+      {
+        "pattern": 3,
+        "probes": 35,
+        "audibleProbes": 0,
+        "medianPitchErrorCents": null
+      }
+    ],
+    "after": [
+      {
+        "pattern": 2,
+        "probes": 35,
+        "audibleProbes": 35,
+        "medianPitchErrorCents": 2.1101454925568475
+      },
+      {
+        "pattern": 3,
+        "probes": 35,
+        "audibleProbes": 35,
+        "medianPitchErrorCents": 4.971307469344829
+      }
+    ]
+  },
+  "scope": "Single held chirp entering saved Loop1\u21922 and Loop3\u21924. Interior frequency/coverage only; not arbitrary mixed notes, live gestures or waveform equivalence."
+}
