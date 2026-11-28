@@ -12,8 +12,11 @@
     const peerSendButton=document.createElement('button');peerSendButton.id='transferPeerSend';peerSendButton.textContent='Wi-Fi Send QR / 直连发送';shareButton.after(peerSendButton);
     const peerReceiveButton=document.createElement('button');peerReceiveButton.id='transferPeerReceive';peerReceiveButton.textContent='Wi-Fi Receive QR / 直连接收';hubButton.after(peerReceiveButton);
     const peerDialog=document.createElement('dialog');peerDialog.id='transferPeer';peerDialog.innerHTML='<h2>Direct Wi-Fi transfer / 局域网直连传工程</h2><p id="peerInstructions">Scan this pairing QR on the receiving Web Sampler.</p><div id="peerQR" aria-label="WebRTC pairing QR"></div><p id="peerStatus" role="status" aria-live="polite"></p><button id="peerScanReply" type="button">Scan reply QR / 扫描回复码</button><button id="peerCancel" type="button">Cancel / 取消</button>';box.append(peerDialog);
-    const peerQr=$('peerQR'),peerStatus=$('peerStatus'),peerInstructions=$('peerInstructions');let peer=null,peerRole=null;
-    function peerState(state,message){if(!view.active)return;if(state==='error'){peerStatus.textContent=message;peer?.close();peer=null;set('error',message,{progress:0});return;}peerStatus.textContent=message;if(state==='connected'&&peerRole==='receive')set('receiving','Connected · waiting for project / 已连接，等待工程',{progress:0});else if(state==='receiving')set('receiving',message,{progress:0});else if(state==='sending')set('sending',message,{progress:view.progress});else if(state==='success'&&peerRole==='send')end('End · Project received and checked / 接收端已校验工程');else if(message)$('transferHint').textContent=message;}
+    const peerQr=$('peerQR'),peerStatus=$('peerStatus'),peerInstructions=$('peerInstructions');let peer=null,peerRole=null,peerQrFrames=[],peerQrFrame=0,peerQrTimer=null;
+    function stopPeerQr(){clearInterval(peerQrTimer);peerQrTimer=null;}
+    function showPeerFrame(index){if(!peerQrFrames.length)return;peerQrFrame=index%peerQrFrames.length;peerQr.replaceChildren();new root.QRCode(peerQr,{text:peerQrFrames[peerQrFrame],width:640,height:640,correctLevel:root.QRCode.CorrectLevel.M});peerQr.dataset.signalFrame=peerQrFrames[peerQrFrame];peerStatus.textContent=`Pairing QR ${peerQrFrame+1}/${peerQrFrames.length} · keep camera steady / 配对码 ${peerQrFrame+1}/${peerQrFrames.length}，保持取景稳定`;}
+    function startPeerQr(){stopPeerQr();showPeerFrame(peerQrFrame);if(peerQrFrames.length>1)peerQrTimer=setInterval(()=>showPeerFrame(peerQrFrame+1),1100);}
+    function peerState(state,message){if(!view.active)return;if(state==='error'){stopPeerQr();peerStatus.textContent=message;peer?.close();peer=null;set('error',message,{progress:0});return;}peerStatus.textContent=message;if(state==='connected'){stopPeerQr();if(peerRole==='receive')set('receiving','Connected · waiting for project / 已连接，等待工程',{progress:0});}else if(state==='receiving')set('receiving',message,{progress:0});else if(state==='sending')set('sending',message,{progress:view.progress});else if(state==='success'&&peerRole==='send'){stopPeerQr();end('End · Project received and checked / 接收端已校验工程');}else if(message)$('transferHint').textContent=message;}
     function createPeer(role){peer?.close();peerRole=role;peer=root.PO33PeerTransfer.create({
       onState:peerState,
       onProgress:(done,total)=>{if(!view.active)return;view.progress=total?done/total:0;if(peerRole==='send' && view.state==='encoding')view.state='sending';render();},
@@ -23,12 +26,12 @@
       onError:error=>peerState('error',error?.message||'Direct transfer failed.')
     });return peer;}
     function showPeerCode(text,role){
-      peerQr.replaceChildren();if(!root.QRCode)throw Error('Pairing QR renderer unavailable.');
-      try{new root.QRCode(peerQr,{text,width:224,height:224,correctLevel:root.QRCode.CorrectLevel.L});}
-      catch(error){throw Error('Pairing code is too dense for this display. Use Save JSON for this project.');}
-      peerRole=role;peerDialog.querySelector('#peerScanReply').hidden=role!=='send';peerInstructions.textContent=role==='send'?'Receiver: choose Direct receive and scan this QR. Then scan the reply QR here.':'Sender: scan this reply QR to finish pairing.';
-      peerStatus.textContent=role==='send'?'Offer ready. Keep this screen open while the other device scans.':'Reply ready. Keep this screen open while the sender scans.';
+      if(!root.QRCode)throw Error('Pairing QR renderer unavailable.');
+      try{peerQrFrames=root.PO33PeerTransfer.fragmentSignal(text,220);}
+      catch(error){throw Error((error?.message||'Pairing code could not be split.')+' Keep both devices on the same Wi-Fi and retry.');}
+      peerRole=role;peerQrFrame=0;peerDialog.querySelector('#peerScanReply').hidden=role!=='send';peerInstructions.textContent=role==='send'?'On the other device, scan every frame / 在另一设备扫描全部帧':'Sender: scan every reply frame / 发送端需扫描全部回复帧';
       if(!peerDialog.open)peerDialog.showModal();
+      startPeerQr();
     }
     shareButton.onclick=()=>{let base=new URL('./',location.href);base.pathname=base.pathname.replace(/compat\/rabbit-r1\/$/,'');window.open(new URL('share.html',base).href,'_blank','noopener');};
     $('transferFileInput').accept='.wav,.m4a,audio/mp4,audio/x-m4a,.json,.po33frame,.gz';$('transferFile').textContent='Load File';
@@ -233,16 +236,16 @@
     };
     peerReceiveButton.onclick=async()=>{
       const token=++generation;set('scanning','Scan the sender’s pairing QR / 扫描发送端配对码',{progress:0});
-      try{createPeer('receive');const text=await scanner.open();if(token!==generation)return;if(!text){peer?.close();peer=null;set('waiting','Pairing cancelled / 已取消配对',{progress:0});return;}set('pairing','Creating direct response QR / 正在生成直连回复码',{progress:0});const answer=await peer.answer(text);if(token===generation)showPeerCode(answer,'receive');}
+      try{createPeer('receive');const text=await scanner.open({pairing:true});if(token!==generation)return;if(!text){peer?.close();peer=null;set('waiting','Pairing cancelled / 已取消配对',{progress:0});return;}set('pairing','Creating direct response QR / 正在生成直连回复码',{progress:0});const answer=await peer.answer(text);if(token===generation)showPeerCode(answer,'receive');}
       catch(error){peer?.close();peer=null;if(token===generation)await fail(error);}
     };
     peerDialog.querySelector('#peerScanReply').onclick=async()=>{
-      const token=++generation;peerDialog.close();set('scanning','Scan the receiver’s reply QR / 扫描接收端回复码',{progress:0});
-      try{const text=await scanner.open();if(token!==generation)return;if(!text){set('pairing','Pairing cancelled · offer remains available / 已取消扫码，配对码仍有效',{progress:0});peerDialog.showModal();return;}set('connecting','Connecting directly over Wi-Fi / 正在通过 Wi-Fi 建立直连',{progress:0});await peer.acceptAnswer(text);}
+      const token=++generation;stopPeerQr();peerDialog.close();set('scanning','Scan the receiver’s reply QR / 扫描接收端回复码',{progress:0});
+      try{const text=await scanner.open({pairing:true});if(token!==generation)return;if(!text){set('pairing','Pairing cancelled · offer remains available / 已取消扫码，配对码仍有效',{progress:0});peerDialog.showModal();startPeerQr();return;}set('connecting','Connecting directly over Wi-Fi / 正在通过 Wi-Fi 建立直连',{progress:0});await peer.acceptAnswer(text);}
       catch(error){peer?.close();peer=null;if(token===generation)await fail(error);}
     };
-    peerDialog.querySelector('#peerCancel').onclick=()=>{peerDialog.close();peer?.close();peer=null;peerRole=null;set('waiting','Direct transfer cancelled / 已取消点对点传输',{progress:0});};
-    peerDialog.addEventListener('cancel',()=>{peer?.close();peer=null;peerRole=null;});
+    peerDialog.querySelector('#peerCancel').onclick=()=>{stopPeerQr();peerDialog.close();peer?.close();peer=null;peerRole=null;set('waiting','Direct transfer cancelled / 已取消点对点传输',{progress:0});};
+    peerDialog.addEventListener('cancel',()=>{stopPeerQr();peer?.close();peer=null;peerRole=null;});
     async function makeAudio(rate,token){
       const context=new (root.AudioContext||root.webkitAudioContext)({sampleRate:rate,latencyHint:'playback'});audio=context;root.PO33Runtime.register(context,true);
       if(![44100,48000].includes(context.sampleRate))throw Error('A 44.1/48 kHz stereo audio path is required');
@@ -316,7 +319,7 @@
       try{set('sending','Opening stereo output / 正在打开输出',{progress:0,level:0});if(!await makeAudio(encoded.rate,token))return;set('sending','Sending stereo backup / 正在发送立体声工程');node.port.postMessage({command:'play',left:encoded.left,right:encoded.right});}
       catch(error){if(token===generation)await fail(error);}
     }
-    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();peerDialog.close();peer?.close();peer=null;peerRole=null;clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
+    async function close(){generation++;downloadAbort?.abort();downloadAbort=null;scanner.close();hub.close();stopPeerQr();peerDialog.close();peer?.close();peer=null;peerRole=null;clearTimeout(timer);terminate();await closeAudio();chunks=[];view.active=false;view.state='idle';render();}
     async function devices(){
       let permission;
       try{

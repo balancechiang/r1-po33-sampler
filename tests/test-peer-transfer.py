@@ -25,6 +25,9 @@ try:
         b.evaluate("window.peerResult={};window.peerB=PO33PeerTransfer.create({onOpen:()=>peerResult.open=true,onFile:(name,buffer,complete)=>{peerResult.name=name;peerResult.bytes=Array.from(new Uint8Array(buffer));complete(true);}});")
         offer=a.evaluate('peerA.offer()')
         assert offer.startswith('WS1:') and len(offer)<5000
+        fragments=a.evaluate('s=>PO33PeerTransfer.fragmentSignal(s,220)',offer)
+        assembled=a.evaluate('frames=>{const rx=PO33PeerTransfer.createSignalAssembler();let result;for(const frame of frames.slice().reverse())result=rx.add(frame);return result.text}',fragments)
+        assert assembled==offer and len(fragments)<=16
         qr_decode="""async text=>{const box=document.createElement('div');document.body.append(box);new QRCode(box,{text,width:200,height:200,correctLevel:QRCode.CorrectLevel.L});await new Promise(r=>setTimeout(r,100));const c=box.querySelector('canvas');if(!c)throw Error('QR canvas missing');const image=c.getContext('2d').getImageData(0,0,c.width,c.height);const worker=new Worker('./qr-camera-worker.js');return await new Promise((resolve,reject)=>{worker.onmessage=e=>{worker.terminate();box.remove();e.data.error?reject(Error(e.data.error)):resolve(e.data.text)};worker.onerror=e=>{worker.terminate();reject(Error(e.message))};worker.postMessage({width:c.width,height:c.height,pixels:image.data.buffer},[image.data.buffer]);});}"""
         assert a.evaluate('('+qr_decode+')('+json.dumps(offer)+')')==offer
         answer=b.evaluate('(async value=>peerB.answer(value))',offer)
@@ -55,9 +58,19 @@ try:
         pair_box=a.locator('#peerQR').bounding_box()
         target_size=a.evaluate('Math.min(innerWidth*.94,innerHeight*.52,480)')
         assert pair_box['width']>=target_size-1 and pair_box['width']==pair_box['height'],pair_box
-        offer=a.locator('#peerQR').get_attribute('title')
-        assert offer and offer.startswith('WS1:')
-        assert a.evaluate('('+qr_decode+')('+json.dumps(offer)+')')==offer
+        a.evaluate('window.pairAssembler=PO33PeerTransfer.createSignalAssembler()')
+        assembled_ui=None;last_frame=None;seen_frames=set()
+        for _ in range(16):
+            frame=a.locator('#peerQR').get_attribute('data-signal-frame')
+            if frame!=last_frame and frame not in seen_frames:
+                seen_frames.add(frame)
+                decoded=a.evaluate('('+qr_decode+')('+json.dumps(frame)+')')
+                assembled_ui=a.evaluate('f=>pairAssembler.add(f)',decoded)
+                if assembled_ui['complete']:break
+            last_frame=frame
+            a.wait_for_function('(previous)=>document.querySelector("#peerQR")?.dataset.signalFrame!==previous',arg=last_frame,timeout=2500)
+        assert assembled_ui and assembled_ui['complete'] and assembled_ui['text'].startswith('WS1:')
+        assert a.evaluate('s=>PO33PeerTransfer.unpackSignal(s).then(x=>x.type)',assembled_ui['text'])=='offer'
         a.locator('#peerCancel').click();a.evaluate('PO33Transfer.close()')
         browser.close()
     print('PASS compressed offer/reply QR signaling, local WebRTC data channel between browser pages, chunked transfer, SHA-256 validation and acknowledgment; no signaling or file server used.')
