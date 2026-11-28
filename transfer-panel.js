@@ -126,8 +126,10 @@
     }
     async function accept(project){
       const previous=hooks.snapshot(),previousNative=native,previousBaseline=baseline,previousSession=session;
+      view.progress=.96;view.phase='restore';$('transferHint').textContent='Loading samples and patterns / 正在载入音色与节奏';render();
       hooks.adopt(project);native=project;baseline=hooks.snapshot();session=true;
       undo={snapshot:previous,native:previousNative,baseline:previousBaseline,session:previousSession};
+      view.progress=.98;view.phase='save';$('transferHint').textContent='Saving restored project / 正在保存恢复后的工程';render();
       let saved=true;try{await writeCheckpoint();}catch(error){saved=false;}
       const unresolved=project.validation.unresolvedAudioRanges;
       end((saved?'End · Project restored / 工程已恢复': 'End · Restored in memory; storage unavailable / 仅本次有效')+(unresolved?` · ${unresolved} unavailable slices / 异常切片`:''));
@@ -140,11 +142,11 @@
         if(m.type==='error'){await fail(Error(m.message));return;}
         if(m.type==='progress'){
           const value=m.completed/Math.max(1,m.total);
-          view.phase=m.phase;view.progress=command==='encode'?value*.9:m.phase==='validated'?1:m.phase==='demodulate'?.2+.75*value:m.phase==='clock'?.2:.1;
+          view.phase=m.phase;view.progress=command==='encode'?value*.9:command==='decode'&&data.filename?.endsWith('.po33frame')?(m.phase==='frame-validated'?.95:.9+.05*value):m.phase==='validated'?.96:m.phase==='demodulate'?.2+.75*value:m.phase==='clock'?.2:.1;
           render();return;
         }
         terminate();
-        if(m.type==='decoded'){try{await accept(m.project);}catch(error){await fail(error);}}
+        if(m.type==='decoded'){try{view.progress=.95;view.phase='restore';$('transferHint').textContent='Project verified · loading samples / 工程已校验，正在载入音色';render();await accept(m.project);}catch(error){await fail(error);}}
         if(m.type==='qr-frame'){
           try{await prepareAnimatedQR(m.buffer,token);}catch(error){if(token===generation)await fail(error);}
         }
@@ -175,9 +177,9 @@
         loadBuffer(file.name,bytes.buffer);
       }catch(error){if(token===generation)await fail(error);}
     }
-    async function loadBuffer(filename,buffer){
+    async function loadBuffer(filename,buffer,startProgress=0){
       if(!view.active)return;
-      generation++;set('decoding','Checking project / 正在校验工程',{progress:0});
+      generation++;set('decoding','Checking project / 正在校验工程',{progress:startProgress});
       if(!/\.(wav|m4a|json|po33frame|po33\.gz)$/i.test(filename) || !(buffer instanceof ArrayBuffer) || buffer.byteLength>128*1024*1024){fail(Error('Choose a stereo WAV/M4A or JSON project under 128 MB'));return;}
       if(/\.m4a$/i.test(filename)){
         const token=generation;
@@ -228,7 +230,7 @@
     }
     scanButton.onclick=async()=>{
       const token=++generation;set('scanning','Scanning project QR / 扫描工程二维码',{progress:0,level:0});
-      try{const text=await scanner.open();if(token!==generation)return;if(text?.buffer)loadBuffer(text.filename,text.buffer);else if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
+      try{const text=await scanner.open(packet=>{if(token!==generation)return;view.progress=packet.complete ? .92 : Math.min(.88,packet.fraction*.88);view.phase='qr-reassembly';render();});if(token!==generation)return;if(text?.buffer){view.progress=.92;set('decoding','QR received · validating project / 二维码已接收，正在校验工程',{progress:.92});loadBuffer(text.filename,text.buffer,.92);}else if(text)await readURL(text);else set('waiting','rcv · Scan cancelled / 已取消扫码',{progress:0});}
       catch(error){if(token===generation)await fail(error);}
     };
     async function makeAudio(rate,token){

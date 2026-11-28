@@ -1,12 +1,19 @@
-import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=web-sampler-0.2.24';
-import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=web-sampler-0.2.24';
-import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=web-sampler-0.2.24';
-import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=web-sampler-0.2.24';
-import './project-compression.js?v=web-sampler-0.2.24';
+import {decodePO33Backup,decodePO33Frame,encodePO33Backup,transferTimeline,parseWavStereo} from './decoder/browser/src/codec/po33Codec.js?v=web-sampler-0.2.25';
+import {projectFromJSON,projectToJSON} from './decoder/browser/src/codec/po33JSON.js?v=web-sampler-0.2.25';
+import {encodePO33Frame} from './decoder/browser/src/codec/po33Encode.js?v=web-sampler-0.2.25';
+import {buildHardwareProject} from './decoder/browser/src/codec/po33WebProject.js?v=web-sampler-0.2.25';
+import './project-compression.js?v=web-sampler-0.2.25';
 self.onmessage=async({data:m})=>{
   try{
     if(m.command==='decode'){
-      const project=m.filename?.endsWith('.po33.gz')?decodePO33Frame(await globalThis.PO33ProjectCompression.unpackFrame(new Uint8Array(m.wav))):m.filename?.endsWith('.po33frame')?decodePO33Frame(new Uint8Array(m.wav)):m.filename?.toLowerCase().endsWith('.json')?projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav)):decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
+      let project;
+      if(m.filename?.endsWith('.po33.gz'))project=decodePO33Frame(await globalThis.PO33ProjectCompression.unpackFrame(new Uint8Array(m.wav)));
+      else if(m.filename?.endsWith('.po33frame')){
+        self.postMessage({type:'progress',phase:'frame-check',completed:0,total:1});
+        project=decodePO33Frame(new Uint8Array(m.wav));
+        self.postMessage({type:'progress',phase:'frame-validated',completed:1,total:1});
+      }else if(m.filename?.toLowerCase().endsWith('.json'))project=projectFromJSON(new TextDecoder('utf-8',{fatal:true}).decode(m.wav));
+      else project=decodePO33Backup(m.wav || m.pcm,{onProgress:(phase,completed,total)=>self.postMessage({type:'progress',phase,completed,total})});
       self.postMessage({type:'decoded',project});
     }else if(m.command==='export-qr'){
       const built=buildHardwareProject(m.snapshot,m.native,m.baseline),project=decodePO33Frame(encodePO33Frame(built.raw.state));

@@ -43,7 +43,7 @@ try:
     for(const packet of qrEncodedFrames)result=await receiver.add(packet);
     if(!result?.complete)throw Error(`QR sender did not show every frame (${result?.received}/${result?.total})`);
     const worker=new Worker(PO33_RESOURCE('./transfer-worker.js'),{type:'module'});
-    const project=await new Promise((resolve,reject)=>{worker.onerror=e=>reject(Error(`worker failed: ${e.message} ${e.filename}:${e.lineno}`));worker.onmessage=({data})=>{worker.terminate();data.type==='decoded'?resolve(data.project):reject(Error(data.message||data.type));};worker.postMessage({command:'decode',filename:result.filename,wav:result.buffer});});
+    const project=await new Promise((resolve,reject)=>{worker.onerror=e=>reject(Error(`worker failed: ${e.message} ${e.filename}:${e.lineno}`));worker.onmessage=({data})=>{if(data.type==='decoded'){worker.terminate();resolve(data.project);}else if(data.type==='error'){worker.terminate();reject(Error(data.message||data.type));}};worker.postMessage({command:'decode',filename:result.filename,wav:result.buffer});});
     return {packets:qrEncodedFrames.length,rawBytes:qrEncodingStats.rawBytes,compressedBytes:qrEncodingStats.compressedBytes,chunkBytes:qrEncodingStats.chunkBytes,slots:project.slots.length,patterns:project.patterns.length,bpm:project.meta.bpm};
   }''')
   assert decoded['packets']>1 and decoded['packets']<1000 and decoded['slots']==16 and decoded['patterns']==16 and decoded['bpm']==132,decoded
@@ -52,25 +52,32 @@ try:
   assert page.locator('#transferAnimatedQRDialog').count()==1 and not page.locator('#transferAnimatedQRDialog').is_visible()
   assert page.locator('#lcdNumber').get_attribute('data-value')=='stp'
   assert page.locator('#transferAnimatedQR').is_enabled()
-  packets=page.evaluate('''async()=>PO33QRTransfer.encode(crypto.getRandomValues(new Uint8Array(500))).then(x=>x.frames)''')
+  packets=page.evaluate('''async()=>PO33QRTransfer.encode(crypto.getRandomValues(new Uint8Array(1500)),{chunkBytes:600}).then(x=>x.frames)''')
+  assert len(packets)==3,len(packets)
   for i,packet in enumerate(packets):qrcode.make(packet).save(root/f't/animated-rx-{i}.png')
-  page.evaluate('''async count=>{
+  mobile=browser.new_page(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,device_scale_factor=3)
+  mobile.on('pageerror',lambda e:errors.append(str(e)))
+  mobile.goto(f'http://127.0.0.1:{server.server_port}/index.html');mobile.wait_for_timeout(500)
+  mobile.evaluate('''async count=>{
     window.qrCameraStops=0;
     const images=await Promise.all(Array.from({length:count},(_,i)=>new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=`t/animated-rx-${i}.png`;})));
     const canvas=document.createElement('canvas');canvas.width=480;canvas.height=480;
     const ctx=canvas.getContext('2d');let index=0;
-    const draw=()=>{ctx.fillStyle='white';ctx.fillRect(0,0,480,480);ctx.drawImage(images[index],0,0,480,480);index=(index+1)%images.length;};draw();window.qrCameraTimer=setInterval(draw,300);
+    const draw=()=>{ctx.fillStyle='white';ctx.fillRect(0,0,480,480);ctx.drawImage(images[index],0,0,480,480);index=(index+1)%images.length;};draw();window.qrCameraTimer=setInterval(draw,1100);
     const stream=canvas.captureStream(10);stream.getTracks().forEach(t=>{const stop=t.stop.bind(t);t.stop=()=>{qrCameraStops++;stop();};});window.qrCameraStream=stream;
     navigator.mediaDevices.getUserMedia=async c=>{if(c.audio!==false)throw Error('camera must not request audio');return stream;};
   }''',len(packets))
-  page.evaluate('PO33Transfer.open("receive")');page.locator('#transferScan').click()
-  page.wait_for_function('document.body.dataset.transfer==="error"',timeout=30000)
-  assert 'CRC' in page.locator('#transferHint').text_content() or 'frame' in page.locator('#transferHint').text_content().lower(),page.locator('#transferHint').text_content()
-  assert page.locator('#transferQRStatus').text_content().startswith('All ')
-  assert page.evaluate('qrCameraStops>0 && qrCameraStream.getTracks().every(t=>t.readyState==="ended")')
-  page.evaluate('clearInterval(qrCameraTimer)')
+  mobile.evaluate('PO33Transfer.open("receive")');mobile.locator('#transferScan').click()
+  mobile.wait_for_function('document.querySelector("#transferQRStatus").textContent.includes("Receiving 1/3")',timeout=30000)
+  assert 0.25<=mobile.locator('#transferQRProgress').evaluate('(e)=>e.value')<=0.4
+  mobile.wait_for_function('document.body.dataset.transfer==="error"',timeout=30000)
+  assert 'CRC' in mobile.locator('#transferHint').text_content() or 'frame' in mobile.locator('#transferHint').text_content().lower(),mobile.locator('#transferHint').text_content()
+  assert mobile.locator('#transferQRStatus').text_content().startswith('All 3 ')
+  assert mobile.evaluate('qrCameraStops>0 && qrCameraStream.getTracks().every(t=>t.readyState==="ended")')
+  mobile.evaluate('clearInterval(qrCameraTimer)')
   assert not errors,errors
-  print(f"PASS small-screen QR roundtrip: {decoded['compressedBytes']} compressed bytes in {decoded['packets']} × {decoded['chunkBytes']}-byte frames; pause/resume/speed/stop; camera reassembly/checksum and native CRC rejection; stop latches STP")
+  print(f"PASS 240×282 sender roundtrip: {decoded['compressedBytes']} compressed bytes in {decoded['packets']} × {decoded['chunkBytes']}-byte frames; phone-sized mobile camera gets visible 1/3 progress, reassembles/checksums, and native CRC rejects invalid test frame; camera released; pause/resume/speed/stop and STP")
+  mobile.close()
   browser.close()
 finally:
  server.shutdown();server.server_close()
