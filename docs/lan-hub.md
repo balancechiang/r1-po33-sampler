@@ -154,37 +154,6 @@ Page CSP violations are reported when the browser exposes them; other iframe
 failures do not provide a reliable detailed error to the parent page. No security
 restrictions or certificate checks are bypassed. Load File remains available.
 
-## Offline animated QR transfer
-
-The transfer panel supports direct, offline project handoff in either direction.
-On the sending device choose **Send → Animated QR**. The current editable project
-is validated and compiled to the native project frame, gzip-compressed, split
-into checksum-protected packets and shown as a repeating QR sequence. On the
-receiving device choose **Receive → Scan QR** and keep the camera aimed at the
-sender until the complete frame has been received and verified. The usual native
-decoder then validates the frame CRC before replacing the current project.
-
-No project data is uploaded to a server. The camera permission is used only on
-the receiving device; QR decoding stays local. A missed frame is sent again on
-the next loop. Fragment capacity scales to the sender's display area (600 bytes
-on a 240 px R1 display; larger screens can use up to 1,400 bytes per frame).
-The default 200 ms cadence is a speed/reliability compromise; 120 ms is fastest,
-while 300 or 500 ms can help when camera focus or display refresh misses frames.
-Pause/resume and Stop are available. Keep both pages in the foreground. HTTPS
-(or localhost during development), camera permission,
-`CompressionStream`/`DecompressionStream`, and Web Crypto are required.
-
-On the current full factory demo, local browser verification compressed the
-native frame to about 492 KB and 820 fragments at 600 bytes each: a full loop is
-about 98 seconds at 120 ms/frame or 164 seconds at 200 ms/frame. Actual camera
-retries and device speed can increase the time; larger phone/desktop sender
-screens use larger fragments and reduce the count.
-
-The phone/R1 camera path is not considered hardware-verified until tested on the
-device. QR size and cadence can vary by display density and camera focus; start
-at 200 ms, then use 300/500 ms if the receive count stalls. Cancel/reopen the
-scanner before starting a different sender project.
-
 ## Camera download link
 
 Receive → Scan QR also continues to accept a single project download URL. WAV,

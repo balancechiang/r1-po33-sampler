@@ -32,12 +32,3 @@ body.transfer-open #samplerControls #panel {width:100%;visibility:hidden;pointer
 #transferUpdate,#transferFactoryReset {grid-column:span 2;}
 #transferControls #transferQR[open] {display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:calc(3 * var(--unit));overflow:auto;}
 #transferControls #transferQR video {height:100%;min-height:0;max-height:100%;min-width:0;object-fit:contain;contain:size;}
-#transferControls #transferQR[open] {grid-template-rows:auto minmax(0,1fr) auto 9px auto;}
-#transferQR progress {display:block;width:100%;height:8px;accent-color:#fe5000;}
-#transferAnimatedQRDialog{position:fixed;inset:0;z-index:100;box-sizing:border-box;width:min(100vw,520px);height:100dvh;max-width:none;max-height:none;margin:auto;padding:calc(6 * var(--unit));border:1px solid #555;background:#111;color:#fff;font:inherit;overflow:auto}
-#transferAnimatedQRDialog::backdrop{background:#000c}#transferAnimatedQRDialog[open]{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto auto;gap:calc(4 * var(--unit));align-items:center;text-align:center}
-#transferAnimatedQRDialog h2,#transferAnimatedQRDialog p{margin:0}#transferAnimatedQRDialog h2{font-size:clamp(13px,7 * var(--unit),24px)}
-#transferControls #animatedQRCode{width:min(88vw,70dvh,480px);aspect-ratio:1;background:#fff;padding:calc(3 * var(--unit));box-sizing:border-box;display:grid;place-items:center;justify-self:center;align-self:center}
-#animatedQRCode canvas,#animatedQRCode svg,#animatedQRCode img{width:100%!important;height:100%!important;max-width:100%;max-height:100%;image-rendering:pixelated}
-#transferAnimatedQRDialog .animatedQRControls{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:calc(3 * var(--unit))}#transferAnimatedQRDialog label{display:flex;align-items:center;gap:calc(3 * var(--unit))}
-@media(max-height:350px){#transferAnimatedQRDialog{padding:4px;gap:2px}#transferAnimatedQRDialog h2,#transferAnimatedQRDialog>p:last-child{display:none}#transferAnimatedQRDialog[open]{grid-template-rows:auto minmax(0,1fr) auto}#transferControls #animatedQRCode{width:min(88vw,78dvh,480px)}#transferAnimatedQRDialog .animatedQRControls{flex-wrap:nowrap;gap:2px}#transferAnimatedQRDialog label{font-size:0}#transferAnimatedQRDialog label select{width:76px;font-size:9px}#transferAnimatedQRDialog .animatedQRControls button,#transferAnimatedQRDialog .animatedQRControls select{min-height:23px;padding:2px;font-size:9px}}

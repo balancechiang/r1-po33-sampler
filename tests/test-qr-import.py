@@ -72,7 +72,7 @@ try:
   assert page.locator('.pad.sampled').count()==1
   page.locator('#transferClose').click()
   page.evaluate('cameraMode="blank";PO33Transfer.open("receive")');page.locator('#transferScan').click()
-  page.wait_for_function('document.querySelector("#transferQRStatus").textContent.includes("Aim at")')
+  page.wait_for_function('document.querySelector("#transferQRStatus").textContent.includes("Hold the full QR")')
   page.screenshot(path=str(root/'t/official-backup-tests/qr-camera-preview.png'))
   page.locator('#transferQRCancel').click();page.wait_for_function('document.body.dataset.transfer==="waiting"')
   page.wait_for_timeout(200);assert not page.locator('#transferQR').is_visible()
